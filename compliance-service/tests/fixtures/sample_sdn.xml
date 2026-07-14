@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-built sample matching the publicly documented OFAC SDN.XML schema
+  (sdnEntry/akaList/idList/programList/addressList/dateOfBirthList/
+  placeOfBirthList/nationalityList), used because a live fetch from
+  sanctionslistservice.ofac.treas.gov hits a TLS trust-chain issue on this
+  dev machine that needs separate verification from the real deployment
+  target. NOT real sanctions data: names/IDs are fictional test fixtures.
+-->
+<sdnList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <publshInformation>
+    <Publish_Date>07/01/2026</Publish_Date>
+  </publshInformation>
+  <sdnEntry>
+    <uid>10001</uid>
+    <firstName>Ivan</firstName>
+    <lastName>Ivanov</lastName>
+    <sdnType>Individual</sdnType>
+    <remarks>Test fixture record; not a real designation.</remarks>
+    <programList>
+      <program>UKRAINE-EO13662</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>20001</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>Ivanoff</lastName>
+        <firstName>Ivan</firstName>
+      </aka>
+    </akaList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>30001</uid>
+        <dateOfBirth>15 Jan 1975</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>30002</uid>
+        <placeOfBirth>Moscow, Russia</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+    <nationalityList>
+      <nationality>
+        <uid>40001</uid>
+        <country>Russia</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <idList>
+      <id>
+        <uid>50001</uid>
+        <idType>Passport</idType>
+        <idNumber>751234567</idNumber>
+        <idCountry>Russia</idCountry>
+      </id>
+    </idList>
+    <addressList>
+      <address>
+        <uid>60001</uid>
+        <city>Moscow</city>
+        <country>Russia</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>10002</uid>
+    <lastName>Testcorp Holdings Ltd</lastName>
+    <sdnType>Entity</sdnType>
+    <remarks>Test fixture record; not a real designation.</remarks>
+    <programList>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>50002</uid>
+        <idType>Legal Entity Identifier (LEI)</idType>
+        <idNumber>549300ABCDEF1234GH56</idNumber>
+        <idCountry>United Kingdom</idCountry>
+      </id>
+    </idList>
+    <addressList>
+      <address>
+        <uid>60002</uid>
+        <city>London</city>
+        <country>United Kingdom</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+</sdnList>

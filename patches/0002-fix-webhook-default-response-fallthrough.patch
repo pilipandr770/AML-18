@@ -1,0 +1,15 @@
+diff --git a/pkg/trisa/transfer.go b/pkg/trisa/transfer.go
+index 2b662cb..044c0dc 100644
+--- a/pkg/trisa/transfer.go
++++ b/pkg/trisa/transfer.go
+@@ -402,9 +402,7 @@ func (s *Server) WebhookResponse(ctx context.Context, payload *api.Payload, p *p
+ 	// If a 204 no content response is received, then return the default response.
+ 	if reply.TransferAction == webhook.DefaultTransferAction {
+ 		p.Log.Debug().Msg("received 204 no content from webhook callback, using default response")
+-		if err = s.DefaultResponse(payload, p); err != nil {
+-			return err
+-		}
++		return s.DefaultResponse(payload, p)
+ 	}
+ 
+ 	// Otherwise handle the payload received from the webhook callback.

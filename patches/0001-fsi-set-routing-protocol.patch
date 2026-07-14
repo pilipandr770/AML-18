@@ -1,0 +1,12 @@
+diff --git a/cmd/fsi/account.go b/cmd/fsi/account.go
+index 3645985..5d57e55 100644
+--- a/cmd/fsi/account.go
++++ b/cmd/fsi/account.go
+@@ -37,6 +37,7 @@ func makePrepare(travelAddress string) *api.Prepare {
+ 	network := networks[rand.Intn(len(networks))]
+ 	return &api.Prepare{
+ 		Routing: &api.Routing{
++			Protocol:      "trisa",
+ 			TravelAddress: travelAddress,
+ 		},
+ 		Originator:  makeRandPerson("US", network),

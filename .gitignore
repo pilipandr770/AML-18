@@ -1,0 +1,16 @@
+# Vendored third-party clone -- not part of this repo, see patches/README.md
+envoy/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secrets and local data
+.env
+*.db
+
+# OS junk
+.DS_Store
+Thumbs.db

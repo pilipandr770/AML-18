@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hand-built sample matching the EU Financial Sanctions Files (FSF) XML
+  schema. Field names verified against OpenSanctions' actual production
+  crawler (github.com/opensanctions/opensanctions, zavod/zavod/shed/fsf.py
+  and datasets/eu/fsf/crawler.py) rather than guessed, since a live fetch
+  from webgate.ec.europa.eu was not reachable from this dev environment.
+  NOT real sanctions data: names/IDs are fictional test fixtures.
+
+  Residual uncertainty flagged in ofac_sdn-style parser comments below:
+  exact subjectType code values (P/E assumed) and which nameAlias entry is
+  "primary" vs an aka were not directly confirmed from source and should be
+  checked against a real downloaded file before production use.
+-->
+<export>
+  <sanctionEntityList>
+    <sanctionEntity logicalId="EU-1001" euReferenceNumber="EU.1001.1" unitedNationId="">
+      <subjectType code="P" classificationCode="P"/>
+      <nameAlias logicalId="EU-1001-1" nameLanguage="rus" strong="true"
+                 wholeName="Petr Sidorov" firstName="Petr" lastName="Sidorov"/>
+      <nameAlias logicalId="EU-1001-2" nameLanguage="rus" strong="false"
+                 wholeName="Petr Sidoroff" firstName="Petr" lastName="Sidoroff"/>
+      <birthdate birthdate="1980-03-12" year="1980" month="3" day="12"/>
+      <citizenship countryDescription="Russia" countryIso2Code="RU"/>
+      <identification identificationTypeCode="PASSPORT" identificationTypeDescription="Passport"
+                       number="70 1234567" countryDescription="Russia" countryIso2Code="RU"/>
+      <address city="Moscow" countryDescription="Russia"/>
+      <regulation programme="RUS" numberTitle="Council Regulation (EU) 269/2014" entryIntoForceDate="2026-01-01"/>
+      <remark>Test fixture record; not a real designation.</remark>
+    </sanctionEntity>
+    <sanctionEntity logicalId="EU-1002" euReferenceNumber="EU.1002.1" unitedNationId="">
+      <subjectType code="E" classificationCode="E"/>
+      <nameAlias logicalId="EU-1002-1" nameLanguage="eng" strong="true"
+                 wholeName="Testinvest Group SA"/>
+      <identification identificationTypeCode="LEI" identificationTypeDescription="Legal Entity Identifier (LEI)"
+                       number="213800XYZLEITESTABC1" countryDescription="Luxembourg" countryIso2Code="LU"/>
+      <address city="Luxembourg" countryDescription="Luxembourg"/>
+      <regulation programme="SDGT" numberTitle="Council Regulation (EU) 881/2002" entryIntoForceDate="2026-02-01"/>
+      <remark>Test fixture record; not a real designation.</remark>
+    </sanctionEntity>
+  </sanctionEntityList>
+</export>
