@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Decision {{ decision.transaction_id }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('review_ui.list_decisions') }}">&larr; Back to decisions</a></p>
+
+  <div class="panel">
+    <dl class="kv">
+      <dt>Transaction ID</dt><dd><code>{{ decision.transaction_id }}</code></dd>
+      <dt>Decision</dt><dd><span class="badge {{ decision.decision }}">{{ decision.decision }}</span></dd>
+      <dt>Sent to Envoy</dt><dd>{{ decision.transfer_action_sent }}</dd>
+      <dt>Created</dt><dd>{{ decision.created_at.strftime("%Y-%m-%d %H:%M:%S UTC") }}</dd>
+      {% if decision.human_override %}
+      <dt>Human override</dt>
+      <dd>
+        <span class="badge {{ decision.human_override_decision }}">{{ decision.human_override_decision }}</span>
+        by {{ decision.human_override_by }} at {{ decision.human_override_at.strftime("%Y-%m-%d %H:%M UTC") }}<br>
+        <span class="muted">{{ decision.human_override_reason }}</span>
+      </dd>
+      {% endif %}
+    </dl>
+  </div>
+
+  {% for role, role_matches in matches_by_role.items() %}
+  <div class="panel">
+    <h3 style="margin-top:0">{{ role }}</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Matched name</th>
+          <th>Source</th>
+          <th>Score</th>
+          <th>Corroborating fields</th>
+          <th>Rule</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in role_matches %}
+        <tr>
+          <td>{{ m.rank }}</td>
+          <td>{{ m.matched_name_variant }}</td>
+          <td class="muted">
+            {% if m.sanctioned_entity %}{{ m.sanctioned_entity.source }} #{{ m.sanctioned_entity.source_entity_id }}{% else %}—{% endif %}
+          </td>
+          <td>{{ "%.1f"|format(m.name_score) }}</td>
+          <td class="muted">
+            {% if m.corroborating_fields_matched %}
+              {% for k, v in m.corroborating_fields_matched.items() %}{{ k }}={{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
+            {% else %}
+              none
+            {% endif %}
+          </td>
+          <td class="muted"><code>{{ m.rule_branch }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="panel muted">No sanctions candidates were found for any party in this transaction.</div>
+  {% endfor %}
+
+  <div class="panel">
+    <h3 style="margin-top:0">Manual override</h3>
+    <form method="post" action="{{ url_for('review_ui.override_decision', decision_id=decision.id) }}">
+      <label for="override_by">Your name</label>
+      <input type="text" id="override_by" name="override_by" required>
+
+      <label for="override_decision">Decision</label>
+      <select id="override_decision" name="override_decision" required>
+        <option value="accepted">Accept</option>
+        <option value="review">Keep in review</option>
+        <option value="rejected">Reject</option>
+      </select>
+
+      <label for="reason">Reason</label>
+      <textarea id="reason" name="reason" rows="3" required></textarea>
+
+      <button type="submit">Save override</button>
+    </form>
+  </div>
+{% endblock %}

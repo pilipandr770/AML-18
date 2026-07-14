@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Screening Decisions{% endblock %}
+{% block content %}
+  <div class="filters">
+    <a href="{{ url_for('review_ui.list_decisions') }}" class="{{ 'active' if not current_filter }}">All</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='review') }}" class="{{ 'active' if current_filter == 'review' }}">Review</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='rejected') }}" class="{{ 'active' if current_filter == 'rejected' }}">Rejected</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='accepted') }}" class="{{ 'active' if current_filter == 'accepted' }}">Accepted</a>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Transaction</th>
+          <th>Decision</th>
+          <th>Sent to Envoy</th>
+          <th>Override</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in decisions %}
+        <tr>
+          <td><a href="{{ url_for('review_ui.decision_detail', decision_id=d.id) }}"><code>{{ d.transaction_id[:8] }}…</code></a></td>
+          <td><span class="badge {{ d.decision }}">{{ d.decision }}</span></td>
+          <td>{{ d.transfer_action_sent }}</td>
+          <td>
+            {% if d.human_override %}
+              <span class="badge {{ d.human_override_decision }}">{{ d.human_override_decision }}</span>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+          <td class="muted">{{ d.created_at.strftime("%Y-%m-%d %H:%M UTC") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted">No screening decisions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if has_prev or has_next %}
+  <div class="filters">
+    {% if has_prev %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page-1) }}">&larr; Newer</a>{% endif %}
+    <span class="muted">Page {{ page }}</span>
+    {% if has_next %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page+1) }}">Older &rarr;</a>{% endif %}
+  </div>
+  {% endif %}
+{% endblock %}

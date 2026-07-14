@@ -52,3 +52,4 @@ class ScreeningMatch(db.Model):
     rank = db.Column(db.Integer, nullable=False, default=1)  # 1 = best candidate considered for this party
 
     decision = db.relationship("ScreeningDecision", back_populates="matches")
+    sanctioned_entity = db.relationship("SanctionedEntity")
