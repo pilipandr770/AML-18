@@ -3,6 +3,8 @@ param(
     [string]$IssuedMdocPath = "tmp/ageverify-e2e/issued_mdoc.txt",
     [string]$ComplianceBaseUrl = "http://localhost:8300",
     [string]$VerifierBaseUrl = "http://localhost:8080",
+    [string]$IssuerBaseUrl = "https://backend.issuer.dev.ageverification.dev",
+    [switch]$ReuseExistingMdoc,
     [int]$PollAttempts = 10,
     [int]$PollDelaySeconds = 1
 )
@@ -30,6 +32,123 @@ function Ensure-Cbor2Installed([string]$PythonExe) {
     $result = & $PythonExe -c $checkCmd 2>$null
     if ($LASTEXITCODE -ne 0) {
         & $PythonExe -m pip install cbor2 | Out-Null
+    }
+}
+
+function Ensure-CryptographyInstalled([string]$PythonExe) {
+    $checkCmd = "import cryptography; print('ok')"
+    $result = & $PythonExe -c $checkCmd 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        & $PythonExe -m pip install cryptography | Out-Null
+    }
+}
+
+function Issue-FreshCredential([string]$PythonExe, [string]$IssuerBaseUrl, [string]$OutPath) {
+    $py = @'
+import base64
+import json
+import sys
+import time
+from pathlib import Path
+
+import requests
+from cryptography.hazmat.primitives.asymmetric import ec
+
+requests.packages.urllib3.disable_warnings()
+
+issuer_base = sys.argv[1].rstrip("/")
+out_path = sys.argv[2]
+
+
+def b64u(value):
+    if isinstance(value, dict):
+        value = json.dumps(value).encode("utf-8")
+    return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+claims_payload = {
+    "credentials": [
+        {
+            "credential_configuration_id": "eu.europa.ec.eudi.age_verification_mdoc",
+            "data": {
+                "age_over_18": True,
+                "age_over_13": True,
+                "age_over_15": True,
+                "age_over_16": True,
+                "age_over_21": True,
+            },
+        }
+    ]
+}
+offer_request_jwt = f"{b64u({'alg': 'none', 'typ': 'JWT'})}.{b64u(claims_payload)}.sig"
+
+resp = requests.post(
+    f"{issuer_base}/credentialOfferReq2",
+    data={"request": offer_request_jwt},
+    verify=False,
+    timeout=15,
+)
+resp.raise_for_status()
+offer = resp.json()
+
+grant = offer["grants"]["urn:ietf:params:oauth:grant-type:pre-authorized_code"]
+preauth_code = grant["pre-authorized_code"]
+tx_code = grant["tx_code"]["value"]
+
+resp = requests.post(
+    f"{issuer_base}/oidc/token",
+    data={
+        "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code",
+        "pre-authorized_code": preauth_code,
+        "tx_code": str(tx_code),
+    },
+    verify=False,
+    timeout=15,
+)
+resp.raise_for_status()
+access_token = resp.json()["access_token"]
+
+private_key = ec.generate_private_key(ec.SECP256R1())
+public_numbers = private_key.public_key().public_numbers()
+x_bytes = public_numbers.x.to_bytes(32, "big")
+y_bytes = public_numbers.y.to_bytes(32, "big")
+jwk = {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": base64.urlsafe_b64encode(x_bytes).rstrip(b"=").decode("ascii"),
+    "y": base64.urlsafe_b64encode(y_bytes).rstrip(b"=").decode("ascii"),
+}
+proof_header = {"typ": "openid4vci-proof+jwt", "alg": "ES256", "jwk": jwk}
+proof_payload = {"aud": f"{issuer_base}/credential", "nonce": "test-nonce", "iat": int(time.time())}
+proof_jwt = f"{b64u(proof_header)}.{b64u(proof_payload)}.sig"
+
+resp = requests.post(
+    f"{issuer_base}/credential",
+    json={
+        "credential_configuration_id": "eu.europa.ec.eudi.age_verification_mdoc",
+        "proof": {"proof_type": "jwt", "jwt": proof_jwt},
+    },
+    headers={"Authorization": f"Bearer {access_token}"},
+    verify=False,
+    timeout=15,
+)
+resp.raise_for_status()
+credential = resp.json()["credentials"][0]["credential"]
+
+Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+Path(out_path).write_text(credential, encoding="ascii")
+print(len(credential))
+'@
+
+    $tmpPyPath = "tmp/ageverify-e2e/issue_fresh_credential_tmp.py"
+    [System.IO.File]::WriteAllText($tmpPyPath, $py, (New-Object System.Text.UTF8Encoding($false)))
+
+    & $PythonExe $tmpPyPath $IssuerBaseUrl $OutPath | Out-Null
+    if (Test-Path $tmpPyPath) {
+        Remove-Item $tmpPyPath -Force
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to issue fresh AV credential from $IssuerBaseUrl"
     }
 }
 
@@ -84,14 +203,20 @@ if (-not (Test-Path $pythonExe)) {
     throw "Python venv not found at $pythonExe"
 }
 
-if (-not (Test-Path $IssuedMdocPath)) {
-    throw "Issued mdoc file not found: $IssuedMdocPath"
+New-Item -ItemType Directory -Force -Path "tmp/ageverify-e2e" | Out-Null
+
+if ($ReuseExistingMdoc) {
+    if (-not (Test-Path $IssuedMdocPath)) {
+        throw "Issued mdoc file not found: $IssuedMdocPath"
+    }
+} else {
+    Ensure-CryptographyInstalled -PythonExe $pythonExe
+    Issue-FreshCredential -PythonExe $pythonExe -IssuerBaseUrl $IssuerBaseUrl -OutPath $IssuedMdocPath
 }
 
 Ensure-Cbor2Installed -PythonExe $pythonExe
 
 $deviceResponsePath = "tmp/ageverify-e2e/device_response_from_issued.txt"
-New-Item -ItemType Directory -Force -Path "tmp/ageverify-e2e" | Out-Null
 Build-DeviceResponseFromIssued -PythonExe $pythonExe -IssuedPath $IssuedMdocPath -OutPath $deviceResponsePath
 
 $enc = New-Object System.Text.UTF8Encoding($false)
