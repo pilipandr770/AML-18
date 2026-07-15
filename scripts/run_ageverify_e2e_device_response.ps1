@@ -11,7 +11,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Decode-JwtPayload([string]$Jwt) {
+function ConvertFrom-JwtPayload([string]$Jwt) {
     $parts = $Jwt.Split('.')
     if ($parts.Length -lt 2) {
         throw "Invalid JWT request_value format"
@@ -27,23 +27,23 @@ function Decode-JwtPayload([string]$Jwt) {
     return $json | ConvertFrom-Json
 }
 
-function Ensure-Cbor2Installed([string]$PythonExe) {
+function Install-Cbor2Dependency([string]$PythonExe) {
     $checkCmd = "import cbor2; print('ok')"
-    $result = & $PythonExe -c $checkCmd 2>$null
+    & $PythonExe -c $checkCmd 2>$null
     if ($LASTEXITCODE -ne 0) {
         & $PythonExe -m pip install cbor2 | Out-Null
     }
 }
 
-function Ensure-CryptographyInstalled([string]$PythonExe) {
+function Install-CryptographyDependency([string]$PythonExe) {
     $checkCmd = "import cryptography; print('ok')"
-    $result = & $PythonExe -c $checkCmd 2>$null
+    & $PythonExe -c $checkCmd 2>$null
     if ($LASTEXITCODE -ne 0) {
         & $PythonExe -m pip install cryptography | Out-Null
     }
 }
 
-function Issue-FreshCredential([string]$PythonExe, [string]$IssuerBaseUrl, [string]$OutPath) {
+function New-FreshCredential([string]$PythonExe, [string]$IssuerBaseUrl, [string]$OutPath) {
     $py = @'
 import base64
 import json
@@ -152,7 +152,7 @@ print(len(credential))
     }
 }
 
-function Build-DeviceResponseFromIssued([string]$PythonExe, [string]$IssuedPath, [string]$OutPath) {
+function New-DeviceResponseFromIssued([string]$PythonExe, [string]$IssuedPath, [string]$OutPath) {
     $py = @'
 import base64
 import sys
@@ -210,14 +210,14 @@ if ($ReuseExistingMdoc) {
         throw "Issued mdoc file not found: $IssuedMdocPath"
     }
 } else {
-    Ensure-CryptographyInstalled -PythonExe $pythonExe
-    Issue-FreshCredential -PythonExe $pythonExe -IssuerBaseUrl $IssuerBaseUrl -OutPath $IssuedMdocPath
+    Install-CryptographyDependency -PythonExe $pythonExe
+    New-FreshCredential -PythonExe $pythonExe -IssuerBaseUrl $IssuerBaseUrl -OutPath $IssuedMdocPath
 }
 
-Ensure-Cbor2Installed -PythonExe $pythonExe
+Install-Cbor2Dependency -PythonExe $pythonExe
 
 $deviceResponsePath = "tmp/ageverify-e2e/device_response_from_issued.txt"
-Build-DeviceResponseFromIssued -PythonExe $pythonExe -IssuedPath $IssuedMdocPath -OutPath $deviceResponsePath
+New-DeviceResponseFromIssued -PythonExe $pythonExe -IssuedPath $IssuedMdocPath -OutPath $deviceResponsePath
 
 $enc = New-Object System.Text.UTF8Encoding($false)
 $startPayload = [ordered]@{
@@ -235,7 +235,7 @@ if (-not $start.session_id -or -not $start.request_value) {
 }
 
 $sessionId = [string]$start.session_id
-$requestPayload = Decode-JwtPayload -Jwt ([string]$start.request_value)
+$requestPayload = ConvertFrom-JwtPayload -Jwt ([string]$start.request_value)
 $state = [string]$requestPayload.state
 if (-not $state) {
     throw "No state in request_value"
@@ -262,13 +262,11 @@ for ($i = 1; $i -le $PollAttempts; $i++) {
     Start-Sleep -Seconds $PollDelaySeconds
 }
 
-$result = [ordered]@{
+[ordered]@{
     session_id = $sessionId
     direct_post_url = $directPostUrl
     direct_post_response = $directPostResponse
     final_status = $final.status
     verified = $final.verified
     verification_id = $final.verification_id
-}
-
-$result | ConvertTo-Json -Depth 5
+} | ConvertTo-Json -Depth 5

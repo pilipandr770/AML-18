@@ -1,4 +1,4 @@
-FROM gradle:8.14.3-jdk17 AS build
+FROM gradle:8.14.3-jdk17-alpine AS build
 
 WORKDIR /workspace
 
@@ -10,7 +10,7 @@ COPY src src
 
 RUN gradle bootJar -x test --no-daemon
 
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
