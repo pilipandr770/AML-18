@@ -29,7 +29,7 @@ def _make_decision(decision="review", transaction_id="txn-abc"):
 def test_list_decisions_empty(client):
     resp = client.get("/review/")
     assert resp.status_code == 200
-    assert b"No screening decisions yet" in resp.data
+    assert b"Noch keine Screening-Entscheidungen" in resp.data
 
 
 def test_list_decisions_shows_created_row(client, app):
@@ -48,11 +48,11 @@ def test_list_decisions_filter_by_decision(client, app):
 
     resp = client.get("/review/?decision=rejected")
     assert resp.status_code == 200
-    assert b"No screening decisions yet" in resp.data
+    assert b"Noch keine Screening-Entscheidungen" in resp.data
 
     resp = client.get("/review/?decision=review")
     assert resp.status_code == 200
-    assert b"No screening decisions yet" not in resp.data
+    assert b"Noch keine Screening-Entscheidungen" not in resp.data
 
 
 def test_decision_detail_shows_matches(client, app):
@@ -63,7 +63,7 @@ def test_decision_detail_shows_matches(client, app):
     resp = client.get(f"/review/{decision_id}")
     assert resp.status_code == 200
     assert b"Ivan Ivanov" in resp.data
-    assert b"originator" in resp.data
+    assert "Auftraggeber".encode() in resp.data
     assert b"high_score_corroborated_default_review" in resp.data
 
 

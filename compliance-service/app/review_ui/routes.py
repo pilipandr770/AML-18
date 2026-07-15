@@ -13,6 +13,21 @@ review_bp = Blueprint("review_ui", __name__, url_prefix="/review", template_fold
 PAGE_SIZE = 25
 VALID_DECISIONS = {"accepted", "review", "rejected"}
 
+# Internal values (DB rows, CSS classes, Envoy's transfer_action vocabulary)
+# stay in English; only the rendered label is German.
+DECISION_LABELS = {"accepted": "Akzeptiert", "review": "Zu prüfen", "rejected": "Abgelehnt"}
+PARTY_ROLE_LABELS = {
+    "originator": "Auftraggeber",
+    "beneficiary": "Begünstigter",
+    "originator_vasp": "Auftraggeber-VASP",
+    "beneficiary_vasp": "Begünstigten-VASP",
+}
+
+
+@review_bp.context_processor
+def inject_labels():
+    return {"decision_labels": DECISION_LABELS, "party_role_labels": PARTY_ROLE_LABELS}
+
 
 @review_bp.get("/health")
 def health():
