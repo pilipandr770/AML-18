@@ -35,6 +35,9 @@ def create_app(config_class=Config):
     from app.review_ui.routes import review_bp
     app.register_blueprint(review_bp)
 
+    from app.ageverify.routes import ageverify_bp
+    app.register_blueprint(ageverify_bp)
+
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
     from app.sanctions import models as _sanctions_models  # noqa: F401

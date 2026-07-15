@@ -24,3 +24,14 @@ class Config:
     SCREENING_AUTO_REJECT_EXACT_MATCH = (
         os.environ.get("SCREENING_AUTO_REJECT_EXACT_MATCH", "false").lower() == "true"
     )
+
+    # Age verification defaults. The implementation stores only an opaque
+    # platform subject reference plus a hash of the received proof token --
+    # never the raw token or source identity document payload.
+    AGEVERIFY_DEFAULT_ADAPTER = os.environ.get("AGEVERIFY_DEFAULT_ADAPTER", "mock")
+    AGEVERIFY_MIN_AGE = int(os.environ.get("AGEVERIFY_MIN_AGE", "18"))
+    AGEVERIFY_EU_VERIFIER_BASE_URL = os.environ.get("AGEVERIFY_EU_VERIFIER_BASE_URL", "")
+    AGEVERIFY_EU_VERIFIER_VERIFY_PATH = os.environ.get("AGEVERIFY_EU_VERIFIER_VERIFY_PATH", "/verify")
+    AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS = float(
+        os.environ.get("AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS", "5")
+    )

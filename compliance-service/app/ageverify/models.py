@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from app.extensions import db
 
@@ -24,3 +25,21 @@ class AgeVerification(db.Model):
     verified_at = db.Column(db.DateTime(timezone=True), nullable=True)
     expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
+
+
+class AgeVerificationSession(db.Model):
+    __tablename__ = "age_verification_sessions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    public_id = db.Column(db.String(32), nullable=False, unique=True, default=lambda: uuid4().hex)
+    subject_reference = db.Column(db.String(128), nullable=False, index=True)
+    adapter = db.Column(db.String(32), nullable=False)
+    min_age = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(16), nullable=False, default="pending")
+    external_transaction_id = db.Column(db.String(256), nullable=False, unique=True)
+    request_value = db.Column(db.Text, nullable=True)
+    verification_id = db.Column(db.Integer, db.ForeignKey("age_verifications.id"), nullable=True)
+    last_error = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow)
+    completed_at = db.Column(db.DateTime(timezone=True), nullable=True)

@@ -38,8 +38,14 @@ einschlägigen Rechtsvorschriften abgeleitet, nicht aus eigenen Annahmen
   expliziten Entscheidung antwortet (Akzeptieren/Prüfen/Ablehnen). Enthält
   außerdem die Oberfläche für den Compliance-Officer (Entscheidungsliste,
   Detailansicht mit Begründung, manuelle Prüfung). Altersverifikation ist
-  aktuell nur als Schnittstelle + isoliertes Datenmodell angelegt — noch
-  keine echte Anbieter-Anbindung.
+  als eigener, datensparsamer API-Pfad mit Adapter-Schicht umgesetzt:
+  synchron für Mock-Nachweise (`POST /age-verify/check`) und zustandsbehaftet
+  für die EU-OID4VP-/Verifier-Integration (`POST /age-verify/sessions`,
+  `GET /age-verify/sessions/<id>`).
+- **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
+  EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
+  Verifier-Backend, technische Spezifikation), damit Anpassungen lokal und
+  reproduzierbar weiterentwickelt werden können.
 
 ## Einrichtung
 
@@ -75,6 +81,128 @@ Verzeichnis der zuerst genannten Datei auf).
 Die Compliance-Oberfläche ist danach unter `http://localhost:8300/review/`
 erreichbar.
 
+Für die lokale EU-Altersverifikationsentwicklung kann der offizielle
+Verifier-Backend-Dienst zusammen mit dem Compliance-Service separat gestartet
+werden:
+
+```
+cp compliance-service/.env.example compliance-service/.env
+docker compose -f docker-compose.ageverify.yaml up -d --build
+```
+
+Der Stack baut den vendorierten Verifier-Backend-Code lokal zu einem nativen
+Image für die Host-Architektur, statt das vorgebaute Upstream-Image unter
+Emulation laufen zu lassen.
+
+Dabei setzt der Compose-Stack automatisch:
+- `AGEVERIFY_DEFAULT_ADAPTER=eu_oid4vp`
+- `AGEVERIFY_EU_VERIFIER_BASE_URL=http://ageverify-verifier:8080`
+
+Danach laufen lokal:
+- Compliance-Service: `http://localhost:8300`
+- EU Verifier Backend: `http://localhost:8080`
+
+## Altersverifikation API (privacy-preserving)
+
+Der Compliance-Service bietet einen separaten Endpoint für Altersnachweise:
+
+```
+POST /age-verify/check
+```
+
+Request:
+
+```
+{
+  "subject_reference": "platform-user-123",
+  "proof_token": "opaque-proof-or-mock-token",
+  "adapter": "mock|eu_oid4vp"   // optional, default via ENV
+}
+```
+
+Antwort enthält nur den Altersentscheid (ja/nein) und Metadaten, keine
+personenbezogenen Rohdaten aus dem Nachweis.
+
+Relevante ENV-Variablen:
+
+```
+AGEVERIFY_DEFAULT_ADAPTER=mock
+AGEVERIFY_MIN_AGE=18
+AGEVERIFY_EU_VERIFIER_BASE_URL=
+AGEVERIFY_EU_VERIFIER_VERIFY_PATH=/verify
+AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=5
+```
+
+Für den lokalen Einstieg kann der `mock`-Adapter verwendet werden:
+- `proof_token=mock:over18` -> `verified=true`
+- `proof_token=mock:under18` -> `verified=false`
+
+Die EU-Integration (`eu_oid4vp`) läuft über einen separaten Session-Flow gegen
+den offiziellen Verifier-Backend-Dienst:
+
+```
+POST /age-verify/sessions
+{
+  "subject_reference": "platform-user-123",
+  "adapter": "eu_oid4vp",
+  "min_age": 18
+}
+```
+
+Antwort:
+
+```
+{
+  "session_id": "...",
+  "status": "pending",
+  "transaction_id": "...",
+  "request_value": "..."
+}
+```
+
+Danach Status pollen:
+
+```
+GET /age-verify/sessions/<session_id>
+```
+
+Für lokale Entwicklung gibt es zusätzlich eine Helper-Seite pro Session:
+
+```
+GET /age-verify/sessions/<session_id>/launch
+```
+
+Sie rendert einen Deep-Link für Wallets auf demselben Gerät sowie ein
+serverseitig generiertes SVG-QR für Cross-Device-Tests.
+
+Sobald der externe Verifier eine Wallet-Antwort verarbeitet hat, persistiert
+der Compliance-Service nur noch das finale Alters-Urteil (z. B.
+`verified=true`) plus einen Hash des Proof-Artefakts, nicht aber den
+Rohnachweis selbst.
+
+Aktuelle ENV-Variablen für den EU-Verifier:
+
+```
+AGEVERIFY_EU_VERIFIER_BASE_URL=
+AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=5
+```
+
+Für einen echten EU-Blueprint-Flow startet der Client zunächst eine Session:
+
+```
+POST /age-verify/sessions
+```
+
+und pollt anschließend:
+
+```
+GET /age-verify/sessions/<session_id>
+```
+
+Die offiziell vendorierten EU-Blueprint-Quellen sind in
+`vendor/ageverify/` eingecheckt und in `vendor/ageverify/VERSIONS.md`
+gepinnt.
+
 ## Stand des Projekts
 
 - **Phase 0** (Webhook + HMAC-Auth + IVMS101-Parsing): abgeschlossen,
@@ -94,7 +222,8 @@ erreichbar.
 - **Als Nächstes**: Anforderungskatalog aus den tatsächlichen EU-/DE-
   Rechtstexten (MiCA, TFR, DSA Art. 28, JMStV, GlüStV) ableiten und daraus
   die Roadmap priorisieren; UN-Konsolidierte-Liste als weitere Quelle;
-  Altersverifikations-Adapter (Zyphe / EU Age Verification Solution);
+  EU Age Verification Solution (OID4VP) als primären
+  Altersverifikations-Adapter integrieren;
   Basis-Authentifizierung für die Compliance-Oberfläche.
 
 Testsuite: `python -m pytest` im Verzeichnis `compliance-service/`.

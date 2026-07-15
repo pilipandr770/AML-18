@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Age Verification Session {{ session.public_id }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('review_ui.list_decisions') }}">&larr; Zurück zur Übersicht</a></p>
+
+  <div class="panel">
+    <h2 style="margin-top:0">EU Age Verification Session</h2>
+    <dl class="kv">
+      <dt>Session-ID</dt><dd><code>{{ session.public_id }}</code></dd>
+      <dt>Status</dt><dd><span class="badge {{ 'accepted' if session.status == 'verified' else 'review' if session.status == 'pending' else 'rejected' }}">{{ session.status }}</span></dd>
+      <dt>Adapter</dt><dd><code>{{ session.adapter }}</code></dd>
+      <dt>Mindestalter</dt><dd>{{ session.min_age }}+</dd>
+      <dt>Subject Ref</dt><dd><code>{{ session.subject_reference }}</code></dd>
+      <dt>Transaktion</dt><dd><code>{{ session.external_transaction_id }}</code></dd>
+    </dl>
+  </div>
+
+  {% if av_uri %}
+  <div class="panel">
+    <h3 style="margin-top:0">Wallet Start</h3>
+    <p>Für Mobile/Deep-Link:</p>
+    <p><a href="{{ av_uri }}">Wallet auf diesem Gerät öffnen</a></p>
+    <p>Für ein zweites Gerät / QR-Scan:</p>
+    <img src="{{ url_for('ageverify.age_verify_session_qr', session_id=session.public_id) }}" alt="Age verification QR" style="max-width: 360px; width: 100%; height: auto; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; background: #fff;">
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top:0">Technische Daten</h3>
+    <label>AV URI</label>
+    <textarea rows="6" readonly>{{ av_uri }}</textarea>
+    <label>Request JWT</label>
+    <textarea rows="10" readonly>{{ session.request_value }}</textarea>
+  </div>
+  {% elif av_uri_error %}
+  <div class="panel">
+    <strong>Konnte keinen AV-Link erzeugen:</strong>
+    <div class="muted" style="margin-top:8px">{{ av_uri_error }}</div>
+  </div>
+  {% else %}
+  <div class="panel muted">Für diese Session liegt noch kein Request-Artefakt vor.</div>
+  {% endif %}
+{% endblock %}

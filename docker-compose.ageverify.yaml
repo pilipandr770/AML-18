@@ -1,0 +1,28 @@
+services:
+  compliance.local:
+    build:
+      context: ./compliance-service
+      dockerfile: ./docker/Dockerfile
+    image: aml18/compliance-service
+    container_name: compliance.local
+    ports:
+      - "8300:8300"
+    volumes:
+      - ./compliance-service/tmp/data:/data
+    env_file:
+      - ./compliance-service/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/compliance.db}
+      - AGEVERIFY_DEFAULT_ADAPTER=${AGEVERIFY_DEFAULT_ADAPTER:-eu_oid4vp}
+      - AGEVERIFY_MIN_AGE=${AGEVERIFY_MIN_AGE:-18}
+      - AGEVERIFY_EU_VERIFIER_BASE_URL=${AGEVERIFY_EU_VERIFIER_BASE_URL:-http://ageverify-verifier:8080}
+      - AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=${AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS:-5}
+
+  ageverify-verifier:
+    build:
+      context: ./vendor/ageverify/av-srv-web-verifier-endpoint-23220-4-kt
+      dockerfile: ./Dockerfile
+    image: aml18/ageverify-verifier
+    container_name: ageverify-verifier
+    ports:
+      - "8080:8080"
