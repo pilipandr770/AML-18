@@ -22,6 +22,13 @@ DeviceResponse CBOR structure before submitting it to the verifier's `direct_pos
   fresh AV credential from scratch (credential offer -> token -> credential) against the live remote reference
   issuer (`https://backend.issuer.dev.ageverification.dev`), builds a DeviceResponse from it, starts a compliance
   session, submits it to the verifier, and polls until verified — no manual step required.
+- Wallet-Ownership-Verification module (`app/wallet_ownership/`) implemented: covers the EBA Travel Rule
+  guidelines / BaFin GwG Sec. 15a requirement to verify control of a self-hosted wallet address for transfers at
+  or above a configurable EUR threshold (default 1000). Two methods: a signed-challenge-message flow (no
+  blockchain infrastructure required, works today) and an EVM on-chain test-transfer flow (requires a funded
+  sender key + RPC endpoint, not configured by default). Endpoints: `GET /wallet-ownership/requirement`,
+  `POST /wallet-ownership/challenges`, `POST /wallet-ownership/verifications`,
+  `GET /wallet-ownership/verifications/<id>`.
 
 ## Verified Results (re-confirmed 2026-07-15, this session)
 
@@ -35,6 +42,9 @@ DeviceResponse CBOR structure before submitting it to the verifier's `direct_pos
     compliance-service DB on every run.
 - The reference issuer's `/credentialOfferReq2` and `/credential` endpoints do not validate the proof JWT
   signature (by design, for testing) — the script exploits this to skip real key-signing and DPoP wallet software.
+- Wallet ownership signed-message flow verified end-to-end against the live rebuilt `compliance.local` container:
+  generated an EC key, requested a challenge, signed it, and confirmed `status: verified` with the correct
+  recovered address. Full pytest suite (80 tests, including 10 new wallet-ownership tests) passes.
 
 ## Remaining Gaps / Risks
 
@@ -46,15 +56,25 @@ DeviceResponse CBOR structure before submitting it to the verifier's `direct_pos
   Docker services (only adapter-level tests with mocked `requests` calls exist in `tests/test_ageverify_route.py`).
 - `tmp/ageverify-e2e/` contains working artifacts (tokens, credentials) that should stay out of version control.
 - TLS/trust constraints for upstream issuer endpoints still require `verify=False`/`curl -k` in this environment.
+- Wallet-Ownership-Verification's `test_transfer` method is implemented and unit-tested (mocked RPC calls) but
+  has never been exercised against a real chain — it needs a funded testnet account and RPC endpoint (e.g.
+  Sepolia + Infura/Alchemy) to validate for real, plus a decision on who supplies/custodies that sender key in
+  production. The `signed_message` method has no such dependency and is fully live-verified.
+- No caller currently invokes `GET /wallet-ownership/requirement` automatically from the webhook/screening flow;
+  it exists as a standalone check the integrator (Envoy webhook handler or another caller) must query and act on.
+  Wiring it into the screening decision path for self-hosted-wallet transfers is still open.
 
 ## Recommended Next Steps
 
-1. Add a pytest-level integration test that drives the same flow against the live Docker services (or document
+1. Add a pytest-level integration test that drives the AV E2E flow against the live Docker services (or document
    why this stays a PowerShell script only).
-2. Decide on and implement the Wallet-Ownership-Verification module flagged in `ANFORDERUNGEN.md` (EBA/BaFin
-   requirement for self-hosted wallet transfers above EUR 1000).
-3. Close the GlüStV research gap noted in `ANFORDERUNGEN.md` (Teil B.3) if the gambling/casino use case is still in scope.
-4. Keep temporary artifacts (tmp/, vendor build output) out of versioned source unless explicitly needed.
+2. Wire `/wallet-ownership/requirement` + `/verifications` into the webhook/screening decision flow so
+   self-hosted-wallet transfers above threshold are automatically flagged for ownership proof, not just
+   API-callable in isolation.
+3. Validate the `test_transfer` method against a real EVM testnet once a funded sender key and RPC endpoint are
+   available.
+4. Close the GlüStV research gap noted in `ANFORDERUNGEN.md` (Teil B.3) if the gambling/casino use case is still in scope.
+5. Keep temporary artifacts (tmp/, vendor build output) out of versioned source unless explicitly needed.
 
 ## Operational Notes
 

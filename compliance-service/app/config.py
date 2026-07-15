@@ -35,3 +35,27 @@ class Config:
     AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS = float(
         os.environ.get("AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS", "5")
     )
+
+    # Wallet ownership verification (EBA Travel Rule guidelines / BaFin GwG
+    # Sec. 15a): self-hosted-wallet transfers at or above this EUR threshold
+    # require proof of control of the counterparty address, via a signed
+    # challenge message or a small on-chain test transfer.
+    WALLET_OWNERSHIP_THRESHOLD_EUR = float(os.environ.get("WALLET_OWNERSHIP_THRESHOLD_EUR", "1000"))
+    WALLET_OWNERSHIP_CHALLENGE_TTL_SECONDS = int(
+        os.environ.get("WALLET_OWNERSHIP_CHALLENGE_TTL_SECONDS", "600")
+    )
+
+    # EVM test-transfer adapter. Left unset by default -- the adapter raises
+    # AdapterNotConfiguredError rather than silently no-op'ing.
+    WALLET_OWNERSHIP_EVM_RPC_URL = os.environ.get("WALLET_OWNERSHIP_EVM_RPC_URL", "")
+    WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY = os.environ.get("WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY", "")
+    WALLET_OWNERSHIP_EVM_CHAIN_ID = int(os.environ.get("WALLET_OWNERSHIP_EVM_CHAIN_ID", "1"))
+    WALLET_OWNERSHIP_EVM_RPC_TIMEOUT_SECONDS = float(
+        os.environ.get("WALLET_OWNERSHIP_EVM_RPC_TIMEOUT_SECONDS", "10")
+    )
+    WALLET_OWNERSHIP_TEST_TRANSFER_AMOUNT_WEI = int(
+        os.environ.get("WALLET_OWNERSHIP_TEST_TRANSFER_AMOUNT_WEI", "1000000000000")
+    )
+    WALLET_OWNERSHIP_TEST_TRANSFER_MIN_CONFIRMATIONS = int(
+        os.environ.get("WALLET_OWNERSHIP_TEST_TRANSFER_MIN_CONFIRMATIONS", "1")
+    )

@@ -38,11 +38,15 @@ def create_app(config_class=Config):
     from app.ageverify.routes import ageverify_bp
     app.register_blueprint(ageverify_bp)
 
+    from app.wallet_ownership.routes import wallet_ownership_bp
+    app.register_blueprint(wallet_ownership_bp)
+
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
     from app.sanctions import models as _sanctions_models  # noqa: F401
     from app.ageverify import models as _ageverify_models  # noqa: F401
     from app.audit import models as _audit_models  # noqa: F401
+    from app.wallet_ownership import models as _wallet_ownership_models  # noqa: F401
 
     from app.cli import register_cli
     register_cli(app)

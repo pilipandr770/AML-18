@@ -60,11 +60,22 @@ Einzelquelle** — die deutsche Aufsicht konkretisiert die EU-Vorgaben:
 | A15 | **§ 15a GwG** verlangt eine gesonderte **verstärkte Sorgfaltspflicht** bei Krypto-Transfers von/zu Self-Hosted-Adressen: Verpflichtete müssen nicht nur das allgemeine Geldwäsche-/Terrorismusfinanzierungsrisiko, sondern konkret das Risiko der **Nichtumsetzung/Umgehung von Sanktionen** (targeted financial sanctions, Proliferationsfinanzierung) ermitteln, bewerten und mindern — u. a. durch Blockchain-Analyse und Kontrollverifikation der Adresse (z. B. Referenztransfer oder signierte Nachricht). **Ein bloßer Wallet-Screenshot genügt hierfür ausdrücklich nicht.** | BaFin AuA GwG 2025 | 🟡 |
 
 **Unmittelbare Konsequenz für die Roadmap:** § 15a GwG + die EBA-Leitlinien
-(A8) beschreiben zusammen ein konkretes, noch fehlendes Feature: ein
+(A8) beschreiben zusammen ein konkretes Feature: ein
 **Wallet-Ownership-Verification-Modul** für Self-Hosted-Adressen oberhalb
 €1.000 (Testtransfer oder signierte Nachricht), das über das bestehende
-Namens-Screening hinausgeht. Das ist ein reales, in der Roadmap bisher
-nicht abgebildetes Gap.
+Namens-Screening hinausgeht.
+
+**Status (2026-07-15): implementiert.** `compliance-service/app/wallet_ownership/`
+bietet beide in A8 genannten Methoden — signierte Herausforderungsnachricht
+(sofort einsatzbereit, keine Blockchain-Infrastruktur nötig) und einen
+EVM-Testtransfer-Adapter (benötigt eine fremdfinanzierte Sender-Wallet +
+RPC-Endpunkt, standardmäßig nicht konfiguriert). Der Schwellenwert (Standard
+€1.000) ist über `WALLET_OWNERSHIP_THRESHOLD_EUR` konfigurierbar. Die
+signierte-Nachricht-Methode wurde live gegen den laufenden Service verifiziert;
+die Testtransfer-Methode ist nur unit-getestet (RPC-Calls gemockt), noch nicht
+gegen ein echtes Testnetz validiert. Offen: automatische Anbindung an den
+bestehenden Webhook-/Screening-Entscheidungspfad (aktuell ein eigenständig
+aufrufbarer Endpunkt, siehe `PROJECT_STATUS.md`).
 
 ---
 
@@ -133,10 +144,10 @@ Recherche-Runde — konkret zu klären:
 1. **Das Sanktions-Screening (bereits gebaut) hat jetzt eine explizite
    Rechtsgrundlage**, nicht nur eine plausible Annahme: TFR Art. 14 i. V. m.
    AMLR (targeted financial sanctions screening) und BaFins § 15a GwG.
-2. **Neues, bisher nicht in der Roadmap enthaltenes Gap:**
-   Wallet-Ownership-Verification für Self-Hosted-Adressen oberhalb €1.000
-   (Testtransfer/signierte Nachricht) — von EBA-Leitlinien und BaFin
-   ausdrücklich verlangt, von unserem aktuellen System noch nicht abgedeckt.
+2. **Wallet-Ownership-Verification für Self-Hosted-Adressen oberhalb €1.000
+   ist implementiert** (`app/wallet_ownership/`, signierte Nachricht + EVM-
+   Testtransfer) — siehe Detailstatus in Teil A.4 und `PROJECT_STATUS.md`.
+   Offen bleibt die automatische Anbindung an den Webhook-/Screening-Pfad.
 3. **Die Wahl der EU Age Verification Solution als Zielarchitektur für die
    Altersverifikation ist durch die Kommissions-Leitlinien vom 14.07.2025
    bestätigt** (nicht nur eine von mehreren Optionen).
