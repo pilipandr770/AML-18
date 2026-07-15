@@ -1,0 +1,12 @@
+.git
+.github
+build
+.gradle
+docker
+security
+*.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE
+SECURITY.md
+FileHeader.txt

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}"
+        type="image/vnd.microsoft.icon" />
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.gif') }}" type="image/gif" />
+    <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
+    <title>EU AV Test Issuer</title>
+</head>
+
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+
+    <!-- Nav -->
+    <nav class="bg-blue-900 border-b border-blue-800">
+        <div class="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4">
+            <img src="{{ url_for('static', filename='ic-logo.svg') }}" alt="AV Issuer" class="h-9 w-auto">
+            <div class="h-6 w-px bg-blue-700"></div>
+            <span class="text-white font-semibold text-sm tracking-wide">EU Age Verification Issuer</span>
+        </div>
+    </nav>
+
+    <!-- Page -->
+    <main class="flex-1 flex items-start justify-center px-4 py-12">
+        <div class="w-full max-w-lg">
+
+            <!-- Hero -->
+            <div class="mb-8">
+                <p class="text-xs font-bold uppercase tracking-widest text-blue-700 mb-2">Test Issuer</p>
+                <h1 class="font-pf text-4xl font-bold text-gray-900 mb-3">EU AV Test Issuer</h1>
+                <p class="text-gray-500 leading-relaxed">
+                    This is a test issuer for the EU Age Verification solution supporting issuing
+                    the AV Attestation as an mDoc format following the OID4VCI.
+                </p>
+            </div>
+
+            <!-- Credential Offer card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
+                <div class="px-6 py-5 border-b border-gray-50">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-5 h-5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h2 class="font-semibold text-gray-900 mb-1">OID4VCI Credential Offer Flow</h2>
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                The Issuer supports the OID4VCI Credential Offer flow. This feature enables
+                                over-the-counter issuance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4">
+                    <a href="{{ service_url }}/credential_offer"
+                        class="flex items-center justify-center gap-2 w-full bg-blue-900 text-white font-semibold py-3 rounded-xl hover:bg-blue-800 transition-colors duration-200 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        Start Credential Offer
+                    </a>
+                </div>
+            </div>
+
+            <!-- Repo link -->
+            <p class="text-xs text-gray-400 text-center">
+                Issuer repository:
+                <a href="https://github.com/eu-digital-identity-wallet/av-srv-web-issuing-avw-py"
+                    class="text-blue-600 hover:text-blue-800 hover:underline">
+                    av-srv-web-issuing-avw-py
+                </a>
+            </p>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-100 py-4">
+        <p class="text-center text-xs text-gray-300">For testing purposes only · EU Age Verification</p>
+    </footer>
+
+</body>
+
+</html>
