@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from flask import Flask
+from flask import Flask, redirect
 
 from app.config import Config
 from app.extensions import db, migrate
@@ -43,6 +43,10 @@ def create_app(config_class=Config):
 
     from app.developer_portal.routes import developer_portal_bp
     app.register_blueprint(developer_portal_bp)
+
+    @app.get("/")
+    def index():
+        return redirect("/developer/")
 
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
