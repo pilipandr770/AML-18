@@ -70,6 +70,12 @@
     .pillar { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
     .pillar h4 { margin: 0 0 6px; font-size: 14px; }
     .pillar p { margin: 0; font-size: 13px; color: var(--muted); }
+    footer {
+      max-width: 860px; margin: 0 auto; padding: 8px 24px 32px;
+      font-size: 12px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -84,5 +90,9 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+  <footer>
+    <span>Open Source, MIT-lizenziert, selbst hostbar</span>
+    <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
+  </footer>
 </body>
 </html>

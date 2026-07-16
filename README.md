@@ -236,6 +236,14 @@ den lokalen Stack.
 
 Testsuite: `python -m pytest` im Verzeichnis `compliance-service/`.
 
+## Lizenz
+
+MIT für den eigenen Code dieses Projekts (`compliance-service/`, `scripts/`,
+`examples/`, Dokumentation) — siehe `LICENSE`. Vendorierte Drittanbieter-Codebasen
+behalten ihre eigene Upstream-Lizenz und eigene `LICENSE`-Datei: `envoy/`
+(MIT, trisacrypto/envoy) und die Projekte unter `vendor/ageverify/`
+(überwiegend Apache License 2.0; die technische Spezifikation ist CC BY 4.0).
+
 ## Entwicklungsnotizen
 
 Die lokale Entwicklung fand in einer Reihe von Claude-Code-Sitzungen statt —

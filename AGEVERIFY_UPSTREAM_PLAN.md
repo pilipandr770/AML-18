@@ -1,5 +1,10 @@
 # Age Verification Upstream Integration Plan
 
+> Design rationale and delivery history for the `ageverify` module. For
+> the project's current live status across all three regulatory pillars,
+> see `PROJECT_STATUS.md` -- the "Current status" section below reflects
+> 2026-07-15 and predates the unified deployment and developer-portal work.
+
 Goal: integrate the regulator-aligned open-source age verification flow
 as the primary adapter, returning only over-age outcome while keeping raw
 identity data outside this service.
