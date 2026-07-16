@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.developer_portal.auth import require_api_key
 from app.wallet_ownership.adapters import AdapterError, AdapterNotConfiguredError
 from app.wallet_ownership.models import WalletOwnershipVerification
 from app.wallet_ownership.schemas import (
@@ -41,6 +42,10 @@ def _verification_reply(row: WalletOwnershipVerification) -> dict:
 
 @wallet_ownership_bp.get("/requirement")
 def check_requirement_route():
+    _project, error = require_api_key()
+    if error:
+        return error
+
     raw_amount = request.args.get("transfer_amount_eur")
     try:
         amount = float(raw_amount)
@@ -58,6 +63,10 @@ def check_requirement_route():
 
 @wallet_ownership_bp.post("/challenges")
 def create_challenge_route():
+    _project, error = require_api_key()
+    if error:
+        return error
+
     try:
         body = ChallengeRequest.model_validate(request.get_json(force=True))
     except Exception:
@@ -78,6 +87,10 @@ def create_challenge_route():
 
 @wallet_ownership_bp.post("/verifications")
 def create_verification_route():
+    _project, error = require_api_key()
+    if error:
+        return error
+
     raw = request.get_json(force=True) or {}
     method = raw.get("method")
     threshold_eur = current_app.config["WALLET_OWNERSHIP_THRESHOLD_EUR"]
@@ -123,6 +136,10 @@ def create_verification_route():
 
 @wallet_ownership_bp.get("/verifications/<verification_id>")
 def get_verification_route(verification_id):
+    _project, error = require_api_key()
+    if error:
+        return error
+
     try:
         row = refresh_test_transfer(verification_id, config=current_app.config)
     except AdapterNotConfiguredError as exc:

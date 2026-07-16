@@ -15,6 +15,7 @@ from app.ageverify.schemas import (
 )
 from app.ageverify.session_service import create_session, refresh_session
 from app.ageverify.service import verify_and_persist
+from app.developer_portal.auth import require_api_key
 from app.extensions import db
 
 ageverify_bp = Blueprint("ageverify", __name__, url_prefix="/age-verify", template_folder="templates")
@@ -60,6 +61,10 @@ def _load_session_or_404(session_id):
 
 @ageverify_bp.post("/check")
 def age_verify_check():
+    _project, error = require_api_key()
+    if error:
+        return error
+
     try:
         body = AgeVerificationRequest.model_validate(request.get_json(force=True))
     except Exception:
@@ -98,6 +103,10 @@ def age_verify_check():
 
 @ageverify_bp.post("/sessions")
 def age_verify_start_session():
+    _project, error = require_api_key()
+    if error:
+        return error
+
     try:
         body = AgeVerificationSessionRequest.model_validate(request.get_json(force=True))
     except Exception:
@@ -125,6 +134,10 @@ def age_verify_start_session():
 
 @ageverify_bp.get("/sessions/<session_id>")
 def age_verify_get_session(session_id):
+    _project, error = require_api_key()
+    if error:
+        return error
+
     try:
         row = refresh_session(session_id, config=current_app.config)
     except AdapterNotConfiguredError as exc:

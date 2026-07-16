@@ -44,8 +44,8 @@ für ein anderes Projekt, das diesen Container nutzt:
 | Anforderung | Einstiegspunkt | Warum |
 |---|---|---|
 | Travel-Rule-Screening | Echtes TRISA-Protokoll (`envoy.local:8100`) | TRISA ist ein VASP-zu-VASP-Protokoll — das eigene Projekt muss selbst einen TRISA-Knoten betreiben (z. B. ebenfalls mit vendoriertem Envoy) und sich damit verbinden, nicht nur einen REST-Call machen. |
-| Wallet-Ownership-Verification | REST (`/wallet-ownership/*`) | Gilt für Self-Hosted-Wallets — dort gibt es keinen zweiten VASP, mit dem man TRISA sprechen könnte. |
-| Altersverifikation | REST (`/age-verify/*`) | Eigenständige, von Travel-Rule-Identitätsdaten getrennte Prüfung. |
+| Wallet-Ownership-Verification | REST (`/wallet-ownership/*`), API-Schlüssel über `/developer/signup` | Gilt für Self-Hosted-Wallets — dort gibt es keinen zweiten VASP, mit dem man TRISA sprechen könnte. |
+| Altersverifikation | REST (`/age-verify/*`), API-Schlüssel über `/developer/signup` | Eigenständige, von Travel-Rule-Identitätsdaten getrennte Prüfung. |
 
 Der Travel-Rule-Weg ist bewusst der „echte", nicht ein vereinfachter
 REST-Shortcut: Er zeigt, dass ein anfragendes Projekt tatsächlich über das
@@ -76,6 +76,10 @@ gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
     lokale Entwicklung und EU-OID4VP-Adapter für den echten Blueprint-Flow.
   - `review_ui/` — die Oberfläche für den Compliance-Officer
     (Entscheidungsliste, Detailansicht mit Begründung, manuelle Prüfung).
+  - `developer_portal/` — das Entwicklerportal: Projekt registrieren,
+    API-Schlüssel erhalten, Integrationsanleitung. Gate für die beiden
+    REST-APIs (`wallet_ownership`, `ageverify`), die ohne gültigen
+    API-Schlüssel `401` zurückgeben.
 - **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
   EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
   Verifier-Backend, technische Spezifikation).
@@ -131,6 +135,27 @@ eingespielten OFAC-/EU-Sanktionsliste — Ergebnis: **review**/**rejected**,
 mit sichtbarem Treffer, Score und Begründung. Details:
 `examples/travel-rule-demo/README.md`.
 
+## Entwicklerportal (`/developer/`)
+
+Einstiegspunkt für ein fremdes Projekt, das die beiden REST-APIs nutzen
+will (Wallet-Ownership, Altersverifikation) — keine Anmeldung nötig,
+sofort ein API-Schlüssel:
+
+```
+curl -X POST http://localhost:8300/developer/signup \
+  --data-urlencode "name=Mein Projekt" \
+  --data-urlencode "contact_email=dev@mein-projekt.example"
+```
+
+Antwort enthält den API-Schlüssel **einmalig** im Klartext (`aml18_sk_...`)
+— er wird serverseitig nur als Hash gespeichert und kann nicht erneut
+angezeigt werden. Bei Verlust: `POST /developer/api-key/rotate` mit dem
+aktuellen Schlüssel als Bearer-Token, oder neu registrieren. Übersicht mit
+Integrationsbeispielen: `http://localhost:8300/developer/`.
+
+Beide folgenden REST-APIs verlangen den Schlüssel als Bearer-Token — ohne
+gültigen, aktiven Schlüssel antworten sie mit `401`.
+
 ## Wallet-Ownership-Verification API
 
 ```
@@ -140,8 +165,9 @@ POST /wallet-ownership/verifications       {"method": "signed_message", "challen
 GET  /wallet-ownership/verifications/<id>
 ```
 
-Zwei Methoden (beide aus der EBA-Leitlinien-Liste zulässiger Verfahren):
-`signed_message` (Server-Nonce signieren, sofort einsatzbereit, keine
+Jeder Aufruf mit `Authorization: Bearer aml18_sk_...`. Zwei Methoden (beide
+aus der EBA-Leitlinien-Liste zulässiger Verfahren): `signed_message`
+(Server-Nonce signieren, sofort einsatzbereit, keine
 Blockchain-Infrastruktur nötig) und `test_transfer` (kleiner EVM-Transfer,
 benötigt `WALLET_OWNERSHIP_EVM_RPC_URL` + `WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY`
 in `.env`).
@@ -150,6 +176,7 @@ in `.env`).
 
 ```
 POST /age-verify/check
+Authorization: Bearer aml18_sk_...
 {
   "subject_reference": "platform-user-123",
   "proof_token": "opaque-proof-or-mock-token",
@@ -166,9 +193,9 @@ Die EU-Integration (`eu_oid4vp`, Standard-Adapter in diesem Stack) läuft
 über einen zustandsbehafteten Session-Flow:
 
 ```
-POST /age-verify/sessions        {"subject_reference": "...", "adapter": "eu_oid4vp"}
-GET  /age-verify/sessions/<id>
-GET  /age-verify/sessions/<id>/launch   # Deep-Link + QR für Wallet-Tests
+POST /age-verify/sessions        {"subject_reference": "...", "adapter": "eu_oid4vp"}   # Bearer-Token erforderlich
+GET  /age-verify/sessions/<id>                                                          # Bearer-Token erforderlich
+GET  /age-verify/sessions/<id>/launch   # Deep-Link + QR für Wallet-Tests -- bewusst ohne Auth (Browser/Wallet-App öffnet direkt)
 ```
 
 `scripts/run_ageverify_e2e_device_response.ps1` automatisiert den
@@ -190,6 +217,11 @@ den lokalen Stack.
 - **Altersverifikation**: `eu_oid4vp`-Adapter end-to-end gegen den
   vendorierten Referenz-Issuer und -Verifier verifiziert, inklusive
   automatisierter frischer Credential-Ausstellung.
+- **Entwicklerportal**: Selbstbedienungs-Registrierung + API-Schlüssel
+  live über Browser-Formular und curl verifiziert; `wallet_ownership`- und
+  `ageverify`-REST-Endpunkte (mit Ausnahme der Wallet-App-Deep-Link-Seiten
+  `/launch`/`qr.svg`) sind jetzt hinter dem Schlüssel geschlossen (vorher:
+  komplett offen — ein echtes, jetzt geschlossenes Sicherheitsloch).
 - **Compliance-Officer-Oberfläche**: Entscheidungsliste, Detailansicht mit
   Begründung, manuelle Prüfung mit Audit-Log. Noch **ohne
   Authentifizierung** — vor jedem echten Einsatz nachzurüsten.
@@ -197,7 +229,10 @@ den lokalen Stack.
   (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
   Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad
   (aktuell ein eigenständig aufrufbarer Endpunkt); Basis-Authentifizierung
-  für die Compliance-Oberfläche.
+  für die Compliance-Oberfläche; Entwicklerportal-Zugang hat noch kein
+  Login/Recovery jenseits des einmalig gezeigten Schlüssels (Rotation via
+  `/developer/api-key/rotate` funktioniert, Passwort-Login nicht — bewusstes
+  MVP-Scoping).
 
 Testsuite: `python -m pytest` im Verzeichnis `compliance-service/`.
 

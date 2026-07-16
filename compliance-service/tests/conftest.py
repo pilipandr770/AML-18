@@ -24,3 +24,24 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def auth_headers(app):
+    """A valid Authorization header for a freshly registered developer
+    project -- required by every gated wallet-ownership/age-verify route."""
+    from app.developer_portal.auth import generate_api_key, hash_api_key
+    from app.developer_portal.models import DeveloperProject
+    from app.extensions import db
+
+    with app.app_context():
+        api_key = generate_api_key()
+        db.session.add(DeveloperProject(
+            name="Test Project",
+            contact_email="dev@example.com",
+            api_key_prefix=api_key[:16],
+            api_key_hash=hash_api_key(api_key),
+        ))
+        db.session.commit()
+
+    return {"Authorization": f"Bearer {api_key}"}

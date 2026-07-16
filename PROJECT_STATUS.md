@@ -50,6 +50,17 @@ over the actual TRISA protocol gets screened automatically.
   `envoy.local`, proving the webhook -> screening -> decision path works
   end to end, with both an accepted and a review/rejected outcome
   demonstrated.
+- **Developer portal** (`compliance-service/app/developer_portal`): the
+  actual product surface for a third-party project connecting to the two
+  REST pillars. Self-service signup (`GET/POST /developer/signup`) issues
+  an API key shown once (sha256-hashed at rest, never stored plaintext);
+  `POST /developer/api-key/rotate` lets a developer who still has their
+  current key issue a new one, no login system needed. Closed a real
+  security gap in the same change: `wallet_ownership` and `ageverify`
+  (all routes except the wallet-app-facing `/launch` and `/qr.svg` pages,
+  which can't carry an Authorization header) had **zero authentication**
+  before this -- anyone could call them. Now gated on a valid, active
+  `DeveloperProject` API key.
 
 ## Verified Results (this session, 2026-07-16)
 
@@ -88,6 +99,28 @@ over the actual TRISA protocol gets screened automatically.
   `localhost` for both nodes in `docker-compose.yml` -- confirmed the
   re-issued cookies now carry `Domain=localhost` and the demo script still
   works after the restart.
+- Developer portal signup verified through a real browser (not just curl):
+  filled and submitted the `/developer/signup` form via the Browser tool,
+  got a one-time API key rendered on the success page, then confirmed that
+  exact key works against `GET /wallet-ownership/requirement`. Found and
+  fixed a template-name collision bug in the process: `developer_portal`'s
+  `base.html` was being shadowed by `review_ui`'s own `base.html` (Flask's
+  blueprint template loader resolves same-named templates by blueprint
+  registration order) -- renamed to `developer_base.html`.
+- Gating broke 21 previously-open-endpoint tests as expected; updated
+  `test_wallet_ownership_route.py` and `test_ageverify_route.py` to use a
+  new `auth_headers` fixture (registers a throwaway `DeveloperProject` and
+  returns a valid Bearer header), added `test_developer_portal_route.py`
+  (8 tests: signup, validation, key rotation, revoked-key rejection). Full
+  suite: 91/91 passing.
+- `scripts/run_ageverify_e2e_device_response.ps1` needed updating too --
+  it calls the now-gated `/age-verify/sessions` endpoints. Added a
+  `Get-OrCreateApiKey` helper that self-registers a throwaway project via
+  `/developer/signup` if no `-ApiKey` is passed, so the script still runs
+  with zero manual steps. (Hit and fixed a real PowerShell bug along the
+  way: `curl.exe`'s multi-line output comes back as a string array, and
+  `-notmatch` against an array checks each line individually rather than
+  the whole response -- had to `-join "\`n"` first.)
 
 ## Remaining Gaps / Risks
 
@@ -105,6 +138,13 @@ over the actual TRISA protocol gets screened automatically.
 - GlüStV (online gambling) regulatory research is still open
   (`ANFORDERUNGEN.md`, Teil B.3).
 - The compliance officer review UI still has no authentication.
+- The developer portal has no login/recovery beyond the one-time key
+  display; a lost key with no way to re-auth means registering a new
+  project. `POST /developer/api-key/rotate` covers "I still have my key
+  but want a new one," not "I lost it." Deliberate MVP scoping, not an
+  oversight -- revisit if this becomes a real adoption blocker.
+- No rate limiting or abuse controls on `/developer/signup` -- anyone can
+  mint unlimited projects/keys right now.
 - `tmp/ageverify-e2e/` and other working artifacts should stay out of
   version control going forward.
 
@@ -121,6 +161,8 @@ over the actual TRISA protocol gets screened automatically.
 5. Add a pytest-level integration test for the Travel Rule webhook path
    against live Docker services.
 6. Close the GlüStV research gap if the gambling use case stays in scope.
+7. Decide whether the developer portal needs real signup abuse controls
+   (rate limiting, email verification) before any public deployment.
 
 ## Operational Notes
 

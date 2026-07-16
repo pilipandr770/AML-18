@@ -1,0 +1,24 @@
+{% extends "developer_base.html" %}
+{% block title %}Projekt registriert – AML+18{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <h2>Projekt „{{ project.name }}" registriert</h2>
+
+  <div class="warning">
+    Dieser Schlüssel wird nur jetzt angezeigt und nirgendwo gespeichert —
+    kopieren Sie ihn sofort. Bei Verlust: neuen Schlüssel über
+    <code>POST /developer/api-key/rotate</code> mit dem aktuellen Schlüssel
+    anfordern, oder ein neues Projekt registrieren.
+  </div>
+
+  <div class="key-box">{{ api_key }}</div>
+
+  <h3>Nächster Schritt</h3>
+  <pre><code>curl "http://localhost:8300/wallet-ownership/requirement?transfer_amount_eur=1500" \
+  -H "Authorization: Bearer {{ api_key }}"</code></pre>
+
+  <p><a href="{{ url_for('developer_portal.landing') }}">← Zurück zur Integrationsübersicht</a></p>
+</div>
+
+{% endblock %}

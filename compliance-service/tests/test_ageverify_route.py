@@ -13,11 +13,11 @@ def _jwt_for_payload(payload):
     return f"{header}.{body}.signature"
 
 
-def test_ageverify_check_mock_over18(client, app):
+def test_ageverify_check_mock_over18(client, app, auth_headers):
     resp = client.post("/age-verify/check", json={
         "subject_reference": "user-123",
         "proof_token": "mock:over18",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["subject_reference"] == "user-123"
@@ -34,46 +34,54 @@ def test_ageverify_check_mock_over18(client, app):
         assert row.proof_token_hash != "mock:over18"
 
 
-def test_ageverify_check_mock_under18(client, app):
+def test_ageverify_check_mock_under18(client, app, auth_headers):
     resp = client.post("/age-verify/check", json={
         "subject_reference": "user-456",
         "proof_token": "mock:under18",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["verified"] is False
 
 
-def test_ageverify_rejects_unknown_adapter(client):
+def test_ageverify_rejects_unknown_adapter(client, auth_headers):
     resp = client.post("/age-verify/check", json={
         "subject_reference": "user-789",
         "proof_token": "mock:over18",
         "adapter": "unsupported",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 400
 
 
-def test_ageverify_reports_unconfigured_eu_adapter(client):
+def test_ageverify_reports_unconfigured_eu_adapter(client, auth_headers):
     resp = client.post("/age-verify/check", json={
         "subject_reference": "user-eu",
         "proof_token": "opaque-proof",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 400
 
 
-def test_ageverify_eu_adapter_requires_session_flow(client, app):
+def test_ageverify_eu_adapter_requires_session_flow(client, app, auth_headers):
     app.config["AGEVERIFY_EU_VERIFIER_BASE_URL"] = "https://example-verifier.local"
 
     resp = client.post("/age-verify/check", json={
         "subject_reference": "user-eu-bad",
         "proof_token": "opaque-proof",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 400
 
 
-def test_ageverify_session_start_eu_adapter(client, app, monkeypatch):
+def test_ageverify_check_requires_api_key(client):
+    resp = client.post("/age-verify/check", json={
+        "subject_reference": "user-noauth",
+        "proof_token": "mock:over18",
+    })
+    assert resp.status_code == 401
+
+
+def test_ageverify_session_start_eu_adapter(client, app, auth_headers, monkeypatch):
     class _FakeResponse:
         status_code = 200
 
@@ -96,7 +104,7 @@ def test_ageverify_session_start_eu_adapter(client, app, monkeypatch):
     resp = client.post("/age-verify/sessions", json={
         "subject_reference": "user-eu-session",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 201
     data = resp.get_json()
     assert data["status"] == "pending"
@@ -104,7 +112,7 @@ def test_ageverify_session_start_eu_adapter(client, app, monkeypatch):
     assert data["request_value"] == "jwt-request-value"
 
 
-def test_ageverify_session_poll_eu_adapter_completes(client, app, monkeypatch):
+def test_ageverify_session_poll_eu_adapter_completes(client, app, auth_headers, monkeypatch):
     class _InitResponse:
         status_code = 200
 
@@ -151,10 +159,10 @@ def test_ageverify_session_poll_eu_adapter_completes(client, app, monkeypatch):
     started = client.post("/age-verify/sessions", json={
         "subject_reference": "user-eu-complete",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     session_id = started.get_json()["session_id"]
 
-    resp = client.get(f"/age-verify/sessions/{session_id}")
+    resp = client.get(f"/age-verify/sessions/{session_id}", headers=auth_headers)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["status"] == "verified"
@@ -168,7 +176,7 @@ def test_ageverify_session_poll_eu_adapter_completes(client, app, monkeypatch):
         assert row.verified is True
 
 
-def test_ageverify_session_poll_eu_adapter_pending_on_not_submitted(client, app, monkeypatch):
+def test_ageverify_session_poll_eu_adapter_pending_on_not_submitted(client, app, auth_headers, monkeypatch):
     class _InitResponse:
         status_code = 200
 
@@ -198,16 +206,16 @@ def test_ageverify_session_poll_eu_adapter_pending_on_not_submitted(client, app,
     started = client.post("/age-verify/sessions", json={
         "subject_reference": "user-eu-pending",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     session_id = started.get_json()["session_id"]
 
-    resp = client.get(f"/age-verify/sessions/{session_id}")
+    resp = client.get(f"/age-verify/sessions/{session_id}", headers=auth_headers)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["status"] == "pending"
 
 
-def test_ageverify_session_poll_eu_adapter_surfaces_validation_error_detail(client, app, monkeypatch):
+def test_ageverify_session_poll_eu_adapter_surfaces_validation_error_detail(client, app, auth_headers, monkeypatch):
     class _InitResponse:
         status_code = 200
 
@@ -256,10 +264,10 @@ def test_ageverify_session_poll_eu_adapter_surfaces_validation_error_detail(clie
     started = client.post("/age-verify/sessions", json={
         "subject_reference": "user-eu-expired",
         "adapter": "eu_oid4vp",
-    })
+    }, headers=auth_headers)
     session_id = started.get_json()["session_id"]
 
-    resp = client.get(f"/age-verify/sessions/{session_id}")
+    resp = client.get(f"/age-verify/sessions/{session_id}", headers=auth_headers)
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["status"] == "failed"
@@ -267,6 +275,9 @@ def test_ageverify_session_poll_eu_adapter_surfaces_validation_error_detail(clie
 
 
 def test_ageverify_launch_page_renders_av_uri_and_qr(client, app):
+    # Deliberately no auth_headers: /launch and /qr.svg are browser/wallet-
+    # facing capability URLs (opened by a QR scan or deep link, no way to
+    # attach an Authorization header) and must stay unauthenticated.
     payload = {
         "response_type": "vp_token",
         "response_mode": "direct_post",
@@ -313,8 +324,8 @@ def test_ageverify_launch_page_renders_av_uri_and_qr(client, app):
     assert b"<svg" in qr.data
 
 
-def test_ageverify_bad_request_on_missing_fields(client):
+def test_ageverify_bad_request_on_missing_fields(client, auth_headers):
     resp = client.post("/age-verify/check", json={
         "subject_reference": "",
-    })
+    }, headers=auth_headers)
     assert resp.status_code == 400

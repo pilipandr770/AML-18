@@ -1,0 +1,28 @@
+{% extends "developer_base.html" %}
+{% block title %}Projekt registrieren – AML+18{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <h2>Projekt registrieren</h2>
+  <p class="lede">Sofort einsatzbereit: Sie erhalten direkt im Anschluss
+  einen API-Schlüssel für die Wallet-Ownership- und Altersverifikations-APIs.</p>
+
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('developer_portal.signup_submit') }}">
+    <label for="name">Projektname</label>
+    <input type="text" id="name" name="name" required value="{{ form.name if form else '' }}">
+
+    <label for="contact_email">Kontakt-E-Mail</label>
+    <input type="email" id="contact_email" name="contact_email" required value="{{ form.contact_email if form else '' }}">
+
+    <label for="webhook_url">Webhook-URL <span class="hint">(optional, für asynchrone Benachrichtigungen)</span></label>
+    <input type="url" id="webhook_url" name="webhook_url" placeholder="https://ihr-projekt.example/webhooks/aml18" value="{{ form.webhook_url if form else '' }}">
+
+    <button type="submit">Registrieren &amp; Schlüssel erhalten</button>
+  </form>
+</div>
+
+{% endblock %}

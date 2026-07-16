@@ -4,12 +4,29 @@ param(
     [string]$ComplianceBaseUrl = "http://localhost:8300",
     [string]$VerifierBaseUrl = "http://localhost:8080",
     [string]$IssuerBaseUrl = "https://backend.issuer.dev.ageverification.dev",
+    [string]$ApiKey,
     [switch]$ReuseExistingMdoc,
     [int]$PollAttempts = 10,
     [int]$PollDelaySeconds = 1
 )
 
 $ErrorActionPreference = "Stop"
+
+function Get-OrCreateApiKey([string]$ComplianceBaseUrl, [string]$ExplicitKey) {
+    if ($ExplicitKey) {
+        return $ExplicitKey
+    }
+
+    $signupResponse = (& curl.exe -sS -X POST `
+        --data-urlencode "name=ageverify-e2e-script" `
+        --data-urlencode "contact_email=ageverify-e2e@example.com" `
+        "$ComplianceBaseUrl/developer/signup") -join "`n"
+
+    if ($signupResponse -notmatch "aml18_sk_[A-Za-z0-9_-]+") {
+        throw "Could not obtain an API key from /developer/signup: $signupResponse"
+    }
+    return $Matches[0]
+}
 
 function ConvertFrom-JwtPayload([string]$Jwt) {
     $parts = $Jwt.Split('.')
@@ -205,6 +222,9 @@ if (-not (Test-Path $pythonExe)) {
 
 New-Item -ItemType Directory -Force -Path "tmp/ageverify-e2e" | Out-Null
 
+$ApiKey = Get-OrCreateApiKey -ComplianceBaseUrl $ComplianceBaseUrl -ExplicitKey $ApiKey
+$authHeader = "Authorization: Bearer $ApiKey"
+
 if ($ReuseExistingMdoc) {
     if (-not (Test-Path $IssuedMdocPath)) {
         throw "Issued mdoc file not found: $IssuedMdocPath"
@@ -228,7 +248,7 @@ $startPayload = [ordered]@{
 $startPayloadPath = "tmp/ageverify-e2e/start_session_auto.json"
 [System.IO.File]::WriteAllText($startPayloadPath, $startPayload, $enc)
 
-$startRaw = & curl.exe -sS -X POST -H "Content-Type: application/json" --data-binary "@$startPayloadPath" "$ComplianceBaseUrl/age-verify/sessions"
+$startRaw = & curl.exe -sS -X POST -H "Content-Type: application/json" -H "$authHeader" --data-binary "@$startPayloadPath" "$ComplianceBaseUrl/age-verify/sessions"
 $start = $startRaw | ConvertFrom-Json
 if (-not $start.session_id -or -not $start.request_value) {
     throw "Session start failed: $startRaw"
@@ -251,7 +271,7 @@ $directPostResponse = & curl.exe -sS -X POST --data-urlencode "state=$state" --d
 
 $final = $null
 for ($i = 1; $i -le $PollAttempts; $i++) {
-    $pollRaw = & curl.exe -sS "$ComplianceBaseUrl/age-verify/sessions/$sessionId"
+    $pollRaw = & curl.exe -sS -H "$authHeader" "$ComplianceBaseUrl/age-verify/sessions/$sessionId"
     $poll = $pollRaw | ConvertFrom-Json
     $final = $poll
 

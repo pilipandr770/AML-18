@@ -1,0 +1,85 @@
+{% extends "developer_base.html" %}
+{% block content %}
+
+<div class="panel">
+  <h2>Ein Baustein, drei regulatorische Anforderungen</h2>
+  <p class="lede">
+    AML+18 ist das rechtliche Fundament, auf dem Ihr Krypto-Projekt aufbauen
+    kann — nicht ein fertiges Produkt für ein bestimmtes Geschäftsmodell.
+    Es macht aus einer bloßen Blockchain-Adresse eine <strong>verifizierte
+    Entität</strong>: Sanktionsprüfung, Nachweis der Wallet-Kontrolle,
+    Altersverifikation. Was Sie danach damit bauen — Börse, Wallet,
+    Umtauschdienst, Plattform — ist Ihre Sache; Lizenzen und Genehmigungen
+    für Ihr konkretes Geschäftsmodell liegen außerhalb dieses Bausteins.
+  </p>
+
+  <div class="pillars">
+    <div class="pillar">
+      <h4>Travel-Rule-Screening</h4>
+      <p>Sanktionsprüfung bei Krypto-Transfers zwischen zwei VASPs, über
+      das echte TRISA-Protokoll. Erfordert einen eigenen TRISA-Knoten —
+      keine REST-Registrierung hier.</p>
+    </div>
+    <div class="pillar">
+      <h4>Wallet-Ownership-Verification</h4>
+      <p>Nachweis der Kontrolle über eine Self-Hosted-Wallet-Adresse bei
+      Transfers ab einem Schwellenwert. REST-API, sofort einsatzbereit.</p>
+    </div>
+    <div class="pillar">
+      <h4>Altersverifikation</h4>
+      <p>Privatsphärenschonender Alters-Ja/Nein-Nachweis, für Adult-Content
+      genauso wie für Online-Glücksspiel. REST-API, sofort einsatzbereit.</p>
+    </div>
+  </div>
+
+  <a class="btn" href="{{ url_for('developer_portal.signup_form') }}">Projekt registrieren →</a>
+</div>
+
+<div class="panel">
+  <h2>REST-Einstieg (Wallet-Ownership &amp; Altersverifikation)</h2>
+  <p>Nach der Registrierung erhalten Sie einen API-Schlüssel. Jeder Aufruf
+  trägt ihn als Bearer-Token:</p>
+
+  <h3>Wallet-Ownership-Verification</h3>
+  <pre><code># Muss dieser Transfer überhaupt geprüft werden?
+curl "http://localhost:8300/wallet-ownership/requirement?transfer_amount_eur=1500" \
+  -H "Authorization: Bearer aml18_sk_..."
+
+# Challenge anfordern, vom Kunden mit dem Wallet-Key signieren lassen
+curl -X POST http://localhost:8300/wallet-ownership/challenges \
+  -H "Authorization: Bearer aml18_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"network": "ETH", "address": "0x..."}'
+
+# Signatur einreichen
+curl -X POST http://localhost:8300/wallet-ownership/verifications \
+  -H "Authorization: Bearer aml18_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"method": "signed_message", "challenge_id": "...", "signature": "0x..."}'</code></pre>
+
+  <h3>Altersverifikation</h3>
+  <pre><code>curl -X POST http://localhost:8300/age-verify/check \
+  -H "Authorization: Bearer aml18_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"subject_reference": "platform-user-123", "proof_token": "mock:over18"}'</code></pre>
+
+  <p class="muted">Vollständige Endpunkt-Referenz: siehe README.md des Projekts.</p>
+</div>
+
+<div class="panel">
+  <h2>Travel-Rule-Einstieg (TRISA)</h2>
+  <p>Für echtes Sanktions-Screening bei VASP-zu-VASP-Transfers betreiben
+  Sie selbst einen TRISA-Knoten und verbinden ihn über das offizielle
+  Protokoll — kein API-Schlüssel dieser Seite ist dafür nötig oder
+  ausreichend. Details und ein funktionierendes Demo-Skript:
+  <code>examples/travel-rule-demo/README.md</code> im Projekt-Repository.</p>
+</div>
+
+<div class="panel">
+  <h2>Für Compliance-Officer</h2>
+  <p>Entscheidungen, Begründungen und manuelle Prüfung laufen über eine
+  separate, interne Oberfläche — nicht dieses Entwicklerportal.
+  <a href="{{ url_for('review_ui.list_decisions') }}">Zum Compliance-Officer-Login →</a></p>
+</div>
+
+{% endblock %}
