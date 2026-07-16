@@ -1,0 +1,41 @@
+{{ define "head" -}}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="robots" content="noindex,follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="An open source TRISA node for use in Travel Rule information transfers." />
+  <meta name="author" content="Rotational Labs and Open Source Contributors on behalf of TRISA" />
+
+  <!-- HTMX Configuration -->
+  {{ block "htmxConfig" . -}}
+  <meta
+    name="htmx-config"
+    content='{
+      "responseHandling":[
+        {"code":"204", "swap": false},
+        {"code":"[23]..", "swap": true},
+        {"code":"422", "swap": true},
+        {"code":"[45]..", "swap": false, "error":true},
+        {"code":"...", "swap": true}
+      ]
+    }'
+  />
+  {{ end }}
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+
+   <!-- Title -->
+  <title>{{- block "title" . -}}TRISA Envoy{{- end -}}</title>
+
+  {{ block "styles" . -}}
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/css/libs.bundle.css" />
+  <link rel="stylesheet" href="/static/css/theme.bundle.css" />
+  {{- end }}
+
+  <!-- Page Specific Stylesheets -->
+  {{ block "appstyle" . -}}{{- end }}
+</head>
+{{- end -}}

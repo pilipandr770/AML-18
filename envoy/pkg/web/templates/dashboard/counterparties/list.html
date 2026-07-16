@@ -1,0 +1,60 @@
+{{ template "dashboard.html" . }}
+{{- define "title" }}Counterparty Management | TRISA Envoy{{ end }}
+{{- define "pretitle" }}Counterparties{{ end }}
+{{- define "pagetitle" }}Manage Counterparty VASPs{{ end }}
+
+{{- define "header-actions" }}
+{{- if not .IsViewOnly }}
+<button class="btn btn-primary ms-2" disabled>
+  Add Counterparty
+</button>
+{{- end }}
+{{- end }}
+
+{{- define "tabs" }}
+<div class="row align-items-center">
+  <div class="col">
+    <ul class="nav nav-tabs nav-overflow header-tabs">
+      <li class="nav-item">
+        <a href="/counterparties" class="nav-link{{ if not .Source }} active{{ end }}">
+          All Counterparties
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/counterparties?source=gds" class='nav-link{{ if eq .Source "gds" }} active{{ end }}'>
+          TRISA GDS
+        </a>
+      </li>
+      {{ if .DaybreakEnabled }}
+      <li class="nav-item">
+        <a href="/counterparties?source=daybreak" class='nav-link{{ if eq .Source "daybreak" }} active{{ end }}'>
+          Daybreak Counterparties
+        </a>
+      </li>
+      {{ end }}
+      <li class="nav-item">
+        <a href="/counterparties?source=user" class='nav-link{{ if eq .Source "user" }} active{{ end }}'>
+          Your Counterparties
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{{- end }}
+
+{{- define "main" }}
+<section id="counterparties" hx-get="/v1/counterparties?source={{ .Source }}" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/counterparties/index.js"></script>
+{{- end }}

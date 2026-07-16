@@ -1,0 +1,57 @@
+{{ template "page.html" . }}
+{{ define "title" }}User Profile | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Profile{{ end }}
+{{ define "pagetitle" }}{{ .User.Name }}{{ end }}
+
+{{ define "tabs" }}
+  {{- with $tab := "profile" }}
+    {{- template "profileTabs" $tab }}
+  {{- end -}}
+{{ end }}
+
+{{ define "main"  }}
+<!-- Avatar -->
+<div class="row justify-content-between align-items-center">
+  <div class="col">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <div class="avatar">
+          <img class="avatar-img rounded-circle" src="{{ .User.Gravatar }}" alt="Avatar Image">
+        </div>
+      </div>
+      <div class="col ms-n2">
+        <h4 class="mb-1">
+          Profile Avatar
+        </h4>
+        <small class="text-body-secondary">
+          Your avatar image is managed by Gravatar.
+        </small>
+      </div>
+    </div>
+  </div>
+  <div class="col-auto">
+    <a class="btn btn-sm btn-primary" target="_blank" href="https://gravatar.com">
+      Change
+    </a>
+  </div>
+</div> <!-- / .row -->
+
+<!-- Divider -->
+<hr class="my-5">
+
+<!-- Form Alerts -->
+<div id="alerts" class=""></div>
+
+<!-- Profile Form -->
+<section id="profileForm" hx-get="/v1/profile" hx-trigger="load">
+  <div class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</section>
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/profile/index.js"></script>
+{{ end }}

@@ -1,0 +1,70 @@
+{{ template "page.html" . }}
+{{ define "title" }}Travel Rule Transfer Message | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Travel Rule{{ end }}
+{{ define "pagetitle" }}Transfer Message{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": true, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "alerts" }}
+  <div id="alerts" class="position-fixed top-0 end-0 p-3 w-25">
+    {{ range .ToastMessages }}
+    <div class="alert alert-{{ .Type }} alert-dismissible fade show" role="alert">
+      <strong>{{ .Heading }}</strong>: <span>{{ .Message }}</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "page-content" }}
+<section id="transaction" hx-get="/v1/transactions/{{ .ID }}" hx-trigger="load, transactions-updated from:body">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="secureEnvelopePayload" hx-get="/v1/transactions/{{ .ID }}/latest" hx-trigger="load" hx-swap="outerHTML">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="mt-5 mb-3 border-bottom border-light">
+  <h2>Message History</h2>
+</div>
+
+<section class="mb-5" id="secureEnvelopes" hx-get="/v1/transactions/{{ .ID }}/secure-envelopes" hx-trigger="load">
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}
+
+{{- define "appcode" }}
+<script type="module" src="/static/js/modules/components.js"></script>
+<script type="module" src="/static/js/transactions/detail.js"></script>
+{{- end }}

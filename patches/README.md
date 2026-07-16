@@ -1,15 +1,17 @@
 # Local patches to `trisacrypto/envoy`
 
 This project builds on [TRISA Envoy](https://github.com/trisacrypto/envoy) (MIT
-licensed) as a vendored local clone rather than a fork. Envoy itself is not
-committed to this repository — clone it separately and apply these two small
-patches on top (both are real upstream bugs hit while integrating the webhook,
-worth reporting as GitHub issues against `trisacrypto/envoy`).
+licensed), vendored directly into `envoy/` (see `envoy/VERSIONS.md` for the
+pinned upstream commit) the same way `vendor/ageverify/` is vendored — as
+regular committed files, not a fork or submodule.
 
-## Setup
+Both patches below are already applied in the committed `envoy/` tree — no
+setup step is needed. They're kept here as `.patch` files for provenance and
+because both are real upstream bugs worth reporting as GitHub issues against
+`trisacrypto/envoy`. If `envoy/` is ever re-vendored from a fresh upstream
+clone, re-apply them with:
 
 ```
-git clone https://github.com/trisacrypto/envoy.git
 cd envoy
 git apply ../patches/0001-fsi-set-routing-protocol.patch
 git apply ../patches/0002-fix-webhook-default-response-fallthrough.patch

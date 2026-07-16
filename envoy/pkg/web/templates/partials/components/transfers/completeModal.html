@@ -1,0 +1,21 @@
+{{ define "completeTransferModal" -}}
+<div id="completeTransferModal" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Complete Transfer</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="completeAlerts"></div>
+        <div hx-get="/v1/transactions/{{ .ID }}/complete" hx-trigger="revealed" hx-swap="outerHTML"></div>
+      </div>
+      <div class="modal-footer">
+        <span id="completeLoader" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" form="completeForm" class="btn btn-success">Complete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end }}

@@ -1,0 +1,264 @@
+{{ template "page.html" . }}
+{{ define "title" }}Send Travel Rule Message | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Travel Rule{{ end }}
+{{ define "pagetitle" }}
+  {{- if .PageTitle -}}
+    {{ .PageTitle }}
+  {{- else -}}
+    Send a {{ uppercase .Protocol }} Secure Envelope
+  {{- end -}}
+{{ end }}
+
+{{ define "htmxConfig" }}
+<meta
+  name="htmx-config"
+  content='{
+    "responseHandling":[
+      {"code":"204", "swap": false},
+      {"code":"[23]..", "swap": true},
+      {"code":"[45]..", "swap": false, "error":true},
+      {"code":"...", "swap": true}
+    ]
+  }'
+/>
+{{ end }}
+
+{{ define "alerts" }}
+<div id="alerts" class="position-fixed top-0 end-0 p-3 w-25"></div>
+{{ end }}
+
+{{ define "modals" }}
+  <!-- message preview modal -->
+  <div id="previewModal" class="modal" tabindex="-1">
+    <div class='modal-dialog modal-lg'>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Transfer Preview</h4>
+          <span id="previewModalLoader" class="ms-3 htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div id="previewModalBody" class="modal-body"></div>
+        <div class="modal-footer">
+          <button id="sendBtn" type="submit" form="sendPreparedForm" class="btn btn-primary" hx-swap="none">Send</button>
+          <button id="editBtn" type="button" class="btn btn-info" data-bs-dismiss="modal">Edit</button>
+          <a id="cancelBtn" href="/transactions" class="btn btn-warning">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+{{ define "main"  }}
+{{ $sendEnabled := .SendEnabledForProtocol .Protocol }}
+{{- if not $sendEnabled }}
+  <div class="alerts my-5">
+    <div class="alert alert-danger fade show" role="alert">
+      {{ if eq .Protocol "trisa" }}
+        <h4 class="alert-heading">TRISA is Disabled</h4>
+        <p class="mb-0">To enable TRISA functionality, you must request valid certificates from the TRISA Global Directory and be approved for membership in the TRISA network.</p>
+      {{ else if eq .Protocol "trp" }}
+        <h4 class="alert-heading">TRP is Disabled</h4>
+        <p class="mb-0">To enable TRP functionality, you must configure your Envoy node with valid TRP settings and enable it.</p>
+      {{ else if eq .Protocol "sunrise" }}
+        <h4 class="alert-heading">Sunrise is Disabled</h4>
+        <p class="mb-0">To enable Sunrise functionality, you must configure your Envoy node with a valid email configuration and enable Sunrise.</p>
+      {{ else }}
+      <h4 class="alert-heading">{{ .Protocol }} is Disabled</h4>
+      <p class="mb-0">To enable sending messages with this protocol, please contact your system administrator.</p>
+      {{ end }}
+    </div>
+  </div>
+{{- end }}
+
+<div class="d-flex justify-content-end mb-n5">
+  <span class="text-muted mt-1 p-0"><small>Switch Protocol:</small></span>
+  {{ if ne .Protocol "trisa" }}
+  <a href="/send/trisa" class="btn btn-light btn-sm ms-2" title="Send TRISA Message">
+    <i class="fe fe-shield"></i>
+  </a>
+  {{ end }}
+  {{ if ne .Protocol "trp" }}
+  <a href="/send/trp" class="btn btn-light btn-sm ms-2" title="Send TRP Message">
+    <i class="fe fe-zap"></i>
+  </a>
+  {{ end }}
+  {{ if ne .Protocol "sunrise" }}
+  <a href="/send/sunrise" class="btn btn-light btn-sm ms-2" title="Send Sunrise Email">
+    <i class="fe fe-sunrise"></i>
+  </a>
+  {{ end }}
+</div>
+
+<form id="sendTransferForm" class="mb-5" hx-post="/v1/transactions/prepare" hx-ext="json-enc" hx-target="#previewModalBody" hx-indicator="#previewModalLoader" hx-swap="innerHTML">
+  <!-- choose counterparty -->
+  <fieldset id="fieldsetCounterparty">
+    <h2>Select Counterparty</h2>
+    {{ if eq .Protocol "trisa" }}
+    {{ with .Routing }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="routingCounterpartyID">Search for TRISA Member</label>
+      <small class="form-text text-body-secondary">
+        All TRISA VASPs are registered in the TRISA Directory (GDS).
+      </small>
+      <select class="form-control"
+        id="routingCounterpartyID" name="routing_counterparty_id"
+        data-counterparty-lookup='{"searchEnabled": true, "allowHTML": false, "searchPlaceholderValue": "Search for a TRISA Counterparty"}'
+        {{- if .CounterpartyID -}} data-selected="{{ .CounterpartyID }}"{{ end }}
+        required
+      >
+        <option value="">Search for a TRISA Counterparty</option>
+      </select>
+    </div>
+    {{ end }}
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="trisa">
+    {{ else if eq .Protocol "sunrise" }}
+    {{ with .Routing }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="routingCounterparty">Counterparty Name</label>
+      <small class="form-text text-body-secondary">
+        The name of the VASP or CASP your account holder is transfering funds through.
+      </small>
+      <input type="text" class="form-control" id="routingCounterparty" name="routing_counterparty" placeholder="Business Legal Name" value="{{ .Counterparty }}">
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="routingEmail">Compliance Email Address</label>
+      <small class="form-text text-body-secondary">
+        Email address of the compliance team at the counterparty VASP.
+      </small>
+      <input type="text" class="form-control" id="routingEmail" name="routing_email" placeholder="Full Name <email@address.com>" value="{{ .EmailAddress }}" required>
+    </div>
+    {{ end }}
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="sunrise">
+    {{ else if eq .Protocol "trp" }}
+    {{ with .Routing }}
+    <div class="form-group">
+      <label class="form-label mb-1" for="routingTravelAddress">Travel Address</label>
+      <small class="form-text text-body-secondary">
+        TRP transfers require a travel address received from your account holder.
+      </small>
+      <input type="text" class="form-control" id="routingTravelAddress" name="routing_travel_address" placeholder="TRP Travel Address" value="{{ .TravelAddress }}" required>
+    </div>
+    {{ end }}
+    <input type="hidden" id="routingProtocol" name="routing_protocol" value="trp">
+    {{ else }}
+    <div class="alerts p-5">
+      <div class="alert alert-danger fade show" role="alert">
+        <strong>Unsupported Protocol!</strong> Unable to determine what protocol to use to select the counterparty.
+      </div>
+    </div>
+    {{ end}}
+  </fieldset><!-- end choose counterparty -->
+  <hr class="mt-4 mb-5">
+
+  <!-- transfer details -->
+  <fieldset id="fieldsetTransaction">
+    <h2>Transfer Details</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="originatorCryptoAddress">
+            Originator Wallet Address <span id="originatorLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <small class="form-text text-body-secondary">
+            Registered wallet addresses will update the originator info.
+          </small>
+          <input
+            type="text" class="form-control"
+            id="originatorCryptoAddress" name="originator_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetOriginator" hx-swap="outerHTML"
+            hx-indicator="#originatorLookupIndicator"
+          >
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="beneficiaryCryptoAddress">
+            Beneficiary Wallet Address <span id="beneficiaryLookupIndicator" class="htmx-indicator spinner-border spinner-border-sm text-muted ms-3" role="status" aria-hidden="true"></span>
+          </label>
+          <small class="form-text text-body-secondary">
+            Registered wallet addresses will update the beneficiary info.
+          </small>
+          <input
+            type="text" class="form-control"
+            id="beneficiaryCryptoAddress" name="beneficiary_crypto_address"
+            placeholder="Crypto Wallet Address" required
+            hx-get="/v1/accounts/lookup" hx-trigger="change"
+            hx-target="#fieldsetBeneficiary" hx-swap="outerHTML"
+            hx-indicator="#beneficiaryLookupIndicator"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="transferAmount">Transfer Amount</label>
+          <small class="form-text text-body-secondary">
+            Enter a value that can be matched on the blockchain.
+          </small>
+          <input type="text" class="form-control" id="transferAmount" name="transfer_amount" placeholder="Transfer Amount" required>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label mb-1" for="transferAmount">Network</label>
+          <small class="form-text text-body-secondary">
+            Select the network or blockchain DTI/SLIP-0044 code.
+          </small>
+          <select class="form-control" id="network" name="transfer_network" data-networks='{"searchEnabled": true}' placeholder="Digital Token Identifier" required></select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="assetType">Asset Type</label>
+          <input type="text" class="form-control" id="assetType" name="transfer_asset_type" placeholder="Network-Specific Asset Type (optional)">
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="form-group">
+          <label class="form-label" for="tag">Memo/Destination Tag</label>
+          <input type="text" class="form-control" id="tag" name="transfer_tag" placeholder="Network-Specific Memo (optional)">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label mb-1" for="txnID">Transaction ID/Hash</label>
+      <small class="form-text text-body-secondary">
+        If the transfer has already been completed on the chain, enter the hash or ID.
+      </small>
+      <input type="text" class="form-control" id="txnID" name="transfer_transaction_id" placeholder="Transaction ID or Hash">
+    </div>
+  </fieldset><!-- end transfer details -->
+  <hr class="mt-4 mb-5">
+
+  <!-- originator information -->
+  <h2>Originator Information</h2>
+  {{ template "naturalPersonForm" dict "Prefix" "originator" }}
+  <hr class="mt-4 mb-5">
+
+  <!-- beneficiary information -->
+  <h2>Beneficiary Information</h2>
+  {{ template "naturalPersonForm" dict "Prefix" "beneficiary" }}
+  <hr class="mt-4 mb-5">
+
+  <!-- buttons -->
+  <button type="submit" class="btn w-100 btn-primary"{{ if not $sendEnabled }} disabled{{ end }}>
+    Preview Message
+  </button>
+  <a type="reset" href="/transactions" class="btn w-100 btn-link text-body-secondary mt-2">
+    <i class="fe fe-arrow-left"></i> Back to Transfer Inbox
+  </a>
+</form>
+{{ end }}
+
+{{ define "appcode" }}
+<script type="module" src="/static/js/htmx/helpers.js"></script>
+<script type="module" src="/static/js/modules/networks.js"></script>
+<script type="module" src="/static/js/modules/countries.js"></script>
+<script type="module" src="/static/js/modules/ivms101.js"></script>
+<script type="module" src="/static/js/send/index.js"></script>
+{{ end }}

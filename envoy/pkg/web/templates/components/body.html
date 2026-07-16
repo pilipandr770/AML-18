@@ -1,0 +1,18 @@
+{{ define "body" }}
+<body class="{{- block "bodyclass" . -}}{{ end }}">
+  {{ block "content" . -}}{{- end }}
+
+  {{ block "scripts" . -}}
+  <!-- Application Scripts -->
+  <script src="/static/js/dashkit/vendor.bundle.js"></script>
+  <script src="/static/js/dashkit/theme.bundle.js"></script>
+  <script src="/static/js/htmx/htmx.min.js"></script>
+  <script src="/static/js/htmx/htmx-json-enc.js"></script>
+  <script type="module" src="/static/js/htmx/helpers.js"></script>
+  <script src="/static/js/main.js"></script>
+  {{- end }}
+
+  <!-- Page Specific Scripts -->
+  {{ block "appcode" . -}}{{- end }}
+</body>
+{{ end }}

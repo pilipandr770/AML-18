@@ -1,0 +1,230 @@
+package store
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"io"
+	"time"
+
+	"github.com/trisacrypto/envoy/pkg/enum"
+	"github.com/trisacrypto/envoy/pkg/store/dsn"
+	"github.com/trisacrypto/envoy/pkg/store/mock"
+	"github.com/trisacrypto/envoy/pkg/store/models"
+	"github.com/trisacrypto/envoy/pkg/store/secrets"
+	"github.com/trisacrypto/envoy/pkg/store/sqlite"
+	"github.com/trisacrypto/envoy/pkg/store/txn"
+
+	"github.com/google/uuid"
+	"go.rtnl.ai/ulid"
+)
+
+// Open a directory storage provider with the specified URI. Database URLs should either
+// specify protocol+transport://user:pass@host/dbname?opt1=a&opt2=b for servers or
+// protocol:///relative/path/to/file for embedded databases (for absolute paths, specify
+// protocol:////absolute/path/to/file).
+func Open(databaseURL string) (s Store, err error) {
+	var uri *dsn.DSN
+	if uri, err = dsn.Parse(databaseURL); err != nil {
+		return nil, err
+	}
+
+	switch uri.Scheme {
+	case dsn.Mock:
+		return mock.Open(uri)
+	case dsn.SQLite, dsn.SQLite3:
+		return sqlite.Open(uri)
+	default:
+		return nil, fmt.Errorf("unhandled database scheme %q", uri.Scheme)
+	}
+}
+
+// Store is a generic storage interface allowing multiple storage backends such as
+// SQLite or Postgres to be used based on the preference of the user.
+// NOTE: to prevent import cycles, the txn.Tx interface is in its own package. If an
+// interface is added to the Store interface, it should be added to the txn.Tx interface
+// as well (to ensure the Txn has the same methods as the Store).
+type Store interface {
+	Begin(context.Context, *sql.TxOptions) (txn.Txn, error)
+
+	io.Closer
+	TransactionStore
+	AccountStore
+	CounterpartyStore
+	ContactStore
+	SunriseStore
+	UserStore
+	APIKeyStore
+	ResetPasswordLinkStore
+	ComplianceAuditLogStore
+}
+
+// Secrets is a generic storage interface for storing secrets such as private key
+// material for identity and sealing certificates. It is separate from the generic store
+// since storage needs to be specialized for security.
+type Secrets interface {
+	io.Closer
+	ListSecrets(ctx context.Context, namespace string) (secrets.Iterator, error)
+	CreateSecret(context.Context, *secrets.Secret) error
+	RetrieveSecret(context.Context, *secrets.Secret) error
+	DeleteSecret(context.Context, *secrets.Secret) error
+}
+
+// All Store implementations must implement the Store interface
+var (
+	_ Store   = &mock.Store{}
+	_ Store   = &sqlite.Store{}
+	_ Secrets = &secrets.GCP{}
+)
+
+// All Tx implementations must implement the Tx interface
+var (
+	_ txn.Txn = &sqlite.Tx{}
+	_ txn.Txn = &mock.Tx{}
+)
+
+// The Stats interface exposes database statistics if it is available from the backend.
+type Stats interface {
+	Stats() sql.DBStats
+}
+
+// TransactionStore stores some lightweight information about specific transactions
+// stored in the database (most of which is not sensitive and is used for indexing).
+// It also maintains an association with all secure envelopes sent and received as
+// part of completing a travel rule exchange for the transaction.
+type TransactionStore interface {
+	SecureEnvelopeStore
+	ListTransactions(context.Context, *models.TransactionPageInfo) (*models.TransactionPage, error)
+	CreateTransaction(context.Context, *models.Transaction, *models.ComplianceAuditLog) error
+	RetrieveTransaction(context.Context, uuid.UUID) (*models.Transaction, error)
+	UpdateTransaction(context.Context, *models.Transaction, *models.ComplianceAuditLog) error
+	DeleteTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	ArchiveTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	UnarchiveTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) error
+	PrepareTransaction(context.Context, uuid.UUID, *models.ComplianceAuditLog) (models.PreparedTransaction, error)
+	CountTransactions(context.Context) (*models.TransactionCounts, error)
+	TransactionState(context.Context, uuid.UUID) (archived bool, status enum.Status, err error)
+}
+
+// SecureEnvelopes are associated with individual transactions.
+type SecureEnvelopeStore interface {
+	ListSecureEnvelopes(ctx context.Context, txID uuid.UUID, page *models.PageInfo) (*models.SecureEnvelopePage, error)
+	CreateSecureEnvelope(context.Context, *models.SecureEnvelope, *models.ComplianceAuditLog) error
+	RetrieveSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID) (*models.SecureEnvelope, error)
+	UpdateSecureEnvelope(context.Context, *models.SecureEnvelope, *models.ComplianceAuditLog) error
+	DeleteSecureEnvelope(ctx context.Context, txID uuid.UUID, envID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+	LatestSecureEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
+	LatestPayloadEnvelope(ctx context.Context, txID uuid.UUID, direction enum.Direction) (*models.SecureEnvelope, error)
+}
+
+// AccountStore provides CRUD interactions with Account models.
+type AccountStore interface {
+	TravelAddressStore
+	CryptoAddressStore
+	ListAccounts(ctx context.Context, page *models.PageInfo) (*models.AccountsPage, error)
+	CreateAccount(context.Context, *models.Account, *models.ComplianceAuditLog) error
+	LookupAccount(ctx context.Context, cryptoAddress string) (*models.Account, error)
+	RetrieveAccount(ctx context.Context, id ulid.ULID) (*models.Account, error)
+	UpdateAccount(context.Context, *models.Account, *models.ComplianceAuditLog) error
+	DeleteAccount(ctx context.Context, id ulid.ULID, auditLog *models.ComplianceAuditLog) error
+	ListAccountTransactions(ctx context.Context, accountID ulid.ULID, page *models.TransactionPageInfo) (*models.TransactionPage, error)
+}
+
+// CryptoAddressStore provides CRUD interactions with CryptoAddress models and their
+// associated Account model.
+type CryptoAddressStore interface {
+	TravelAddressStore
+	ListCryptoAddresses(ctx context.Context, accountID ulid.ULID, page *models.PageInfo) (*models.CryptoAddressPage, error)
+	CreateCryptoAddress(context.Context, *models.CryptoAddress, *models.ComplianceAuditLog) error
+	RetrieveCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID) (*models.CryptoAddress, error)
+	UpdateCryptoAddress(context.Context, *models.CryptoAddress, *models.ComplianceAuditLog) error
+	DeleteCryptoAddress(ctx context.Context, accountID, cryptoAddressID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+}
+
+// Counterparty store provides CRUD interactions with Counterparty models.
+type CounterpartyStore interface {
+	SearchCounterparties(ctx context.Context, query *models.SearchQuery) (*models.CounterpartyPage, error)
+	ListCounterparties(ctx context.Context, page *models.CounterpartyPageInfo) (*models.CounterpartyPage, error)
+	ListCounterpartySourceInfo(ctx context.Context, source enum.Source) ([]*models.CounterpartySourceInfo, error)
+	CreateCounterparty(context.Context, *models.Counterparty, *models.ComplianceAuditLog) error
+	RetrieveCounterparty(ctx context.Context, counterpartyID ulid.ULID) (*models.Counterparty, error)
+	LookupCounterparty(ctx context.Context, field, value string) (*models.Counterparty, error)
+	UpdateCounterparty(context.Context, *models.Counterparty, *models.ComplianceAuditLog) error
+	DeleteCounterparty(ctx context.Context, counterpartyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+}
+
+type ContactStore interface {
+	ListContacts(ctx context.Context, counterparty any, page *models.PageInfo) (*models.ContactsPage, error)
+	CreateContact(context.Context, *models.Contact, *models.ComplianceAuditLog) error
+	RetrieveContact(ctx context.Context, contactID, counterpartyID any) (*models.Contact, error)
+	UpdateContact(context.Context, *models.Contact, *models.ComplianceAuditLog) error
+	DeleteContact(ctx context.Context, contactID, counterpartyID any, auditLog *models.ComplianceAuditLog) error
+}
+
+type TravelAddressStore interface {
+	UseTravelAddressFactory(models.TravelAddressFactory)
+}
+
+// Sunrise store manages both contacts and counterparties.
+type SunriseStore interface {
+	ListSunrise(context.Context, *models.PageInfo) (*models.SunrisePage, error)
+	CreateSunrise(context.Context, *models.Sunrise, *models.ComplianceAuditLog) error
+	RetrieveSunrise(context.Context, ulid.ULID) (*models.Sunrise, error)
+	UpdateSunrise(context.Context, *models.Sunrise, *models.ComplianceAuditLog) error
+	UpdateSunriseStatus(context.Context, uuid.UUID, enum.Status, *models.ComplianceAuditLog) error
+	DeleteSunrise(context.Context, ulid.ULID, *models.ComplianceAuditLog) error
+	GetOrCreateSunriseCounterparty(ctx context.Context, email, name string, auditLog *models.ComplianceAuditLog) (*models.Counterparty, error)
+}
+
+type UserStore interface {
+	ListUsers(ctx context.Context, page *models.UserPageInfo) (*models.UserPage, error)
+	CreateUser(context.Context, *models.User, *models.ComplianceAuditLog) error
+	RetrieveUser(ctx context.Context, emailOrUserID any) (*models.User, error)
+	UpdateUser(context.Context, *models.User, *models.ComplianceAuditLog) error
+	// NOTE: password update does not require an audit log entry:
+	SetUserPassword(ctx context.Context, userID ulid.ULID, password string) error
+	// NOTE: last login time update does not require an audit log entry:
+	SetUserLastLogin(ctx context.Context, userID ulid.ULID, lastLogin time.Time) error
+	DeleteUser(ctx context.Context, userID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+	LookupRole(ctx context.Context, role string) (*models.Role, error)
+}
+
+type APIKeyStore interface {
+	ListAPIKeys(context.Context, *models.PageInfo) (*models.APIKeyPage, error)
+	CreateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
+	RetrieveAPIKey(ctx context.Context, clientIDOrKeyID any) (*models.APIKey, error)
+	UpdateAPIKey(context.Context, *models.APIKey, *models.ComplianceAuditLog) error
+	// NOTE: last seen time update does not require an audit log entry:
+	SetAPIKeyLastSeen(ctx context.Context, keyID ulid.ULID, lastSeen time.Time) error
+	DeleteAPIKey(ctx context.Context, keyID ulid.ULID, auditLog *models.ComplianceAuditLog) error
+}
+
+type ResetPasswordLinkStore interface {
+	// NOTE: no audit logs required for this resource
+	ListResetPasswordLinks(context.Context, *models.PageInfo) (*models.ResetPasswordLinkPage, error)
+	CreateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
+	RetrieveResetPasswordLink(context.Context, ulid.ULID) (*models.ResetPasswordLink, error)
+	UpdateResetPasswordLink(context.Context, *models.ResetPasswordLink) error
+	DeleteResetPasswordLink(context.Context, ulid.ULID) error
+}
+
+type ComplianceAuditLogStore interface {
+	ListComplianceAuditLogs(context.Context, *models.ComplianceAuditLogPageInfo) (*models.ComplianceAuditLogPage, error)
+	CreateComplianceAuditLog(context.Context, *models.ComplianceAuditLog) error
+	RetrieveComplianceAuditLog(context.Context, ulid.ULID) (*models.ComplianceAuditLog, error)
+	// NOTE: ComplianceAuditLogs are required to be immutable; do not create Update or Delete functions
+}
+
+// Methods required for managing Daybreak records in the database. This interface allows
+// us to have a single transaction open for a daybreak operation so that with respect
+// to a single counterparty we completely create the record or rollback on failure.
+//
+// NOTE: this is not part of the Store interface since it is not required for the
+// server to function but is useful for Daybreak-specific operations.
+type DaybreakStore interface {
+	// NOTE: no audit logs required for this resource
+	ListDaybreak(ctx context.Context) (map[string]*models.CounterpartySourceInfo, error)
+	CreateDaybreak(ctx context.Context, counterparty *models.Counterparty, log *models.ComplianceAuditLog) error
+	UpdateDaybreak(ctx context.Context, counterparty *models.Counterparty, log *models.ComplianceAuditLog) error
+	DeleteDaybreak(ctx context.Context, counterpartyID ulid.ULID, ignoreTxns bool, log *models.ComplianceAuditLog) error
+}

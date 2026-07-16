@@ -1,0 +1,50 @@
+{{ template "page.html" . }}
+{{ define "title" }}Travel Address Utility | TRISA Envoy{{ end }}
+{{ define "pretitle" }}Utilities{{ end }}
+{{ define "pagetitle" }}Travel Address Encoder &amp; Decoder{{ end }}
+
+{{ define "appstyle" }}
+<style>
+.output-container {
+  min-height: 108px;
+  border: 1px solid #e3ebf6;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  padding: .5rem .75rem;
+}
+</style>
+{{ end }}
+
+{{ define "main" }}
+<section id="travelAddressUtility">
+  <p class="fs-3">Encode and Decode Travel Addresses as defined in the <a href="https://gitlab.com/OpenVASP/travel-rule-protocol" target="_blank" class="">OpenVASP specifications</a>.</p>
+  <form id="traddrEncodeForm" action="/v1/utilities/travel-address/encode" method="POST">
+    <div class="mb-3">
+      <label for="inputContent" class="sr-only d-none">Input to Encode or Decode Travel Address</label>
+      <textarea class="form-control pe-3" id="inputContent" rows="4" placeholder="beneficiary.com/trisa?t=i"></textarea>
+      <div id="errorText" class="form-text text-danger"></div>
+    </div>
+    <div class="mb-4">
+      <button type="submit" id="encodeDecodeBtn" class="btn btn-primary">
+        Encode/Decode
+      </button>
+      <button type="reset" id="resetBtn" class="btn btn-secondary">
+        Clear
+      </button>
+    </div>
+  </form>
+  <div class="mb-4">
+    <p id="outputLabel" class="fs-3">Output:</p>
+    <div class="output-container text-wrap">
+      <p id="outputContent" class="text-break"></p>
+    </div>
+    <button type="button" id="copyOutputBtn" class="btn btn-primary mt-3">
+      <i class="fe fe-clipboard"></i> Copy Output
+    </button>
+  </div>
+</section>
+{{ end }}
+
+{{ define "appcode" }}
+<script src="/static/js/utilities/traveladdress.js"></script>
+{{ end }}

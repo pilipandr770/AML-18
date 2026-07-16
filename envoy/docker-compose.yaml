@@ -1,0 +1,135 @@
+services:
+  envoy.local:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        GIT_REVISION: ${GIT_REVISION}
+    image: trisa/envoy
+    init: true
+    depends_on:
+      - gds.local
+    ports:
+      - 8000:8000
+      - 8100:8100
+      - 8200:8200
+    volumes:
+      - ./tmp/envoy:/data
+    secrets:
+      - localhost.pem.gz
+      - server.pem.gz
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=release
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=envoy.local:8100
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:8000
+      - TRISA_WEB_ORIGIN=http://envoy.local:8000
+      - TRISA_WEB_AUDIENCE=http://envoy.local:8000
+      - TRISA_WEB_ISSUER=http://envoy.local:8000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=envoy.local
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:8100
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/server.pem.gz
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
+
+  counterparty.local:
+    image: trisa/envoy
+    init: true
+    depends_on:
+      - gds.local
+      - envoy.local
+    ports:
+      - 9000:9000
+      - 9100:9100
+    volumes:
+      - ./tmp/counterparty:/data
+    secrets:
+      - localhost.pem.gz
+      - counterparty.pem.gz
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=release
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=counterparty.local:9100
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:9000
+      - TRISA_WEB_ORIGIN=http://counterparty.local:9000
+      - TRISA_WEB_AUDIENCE=http://counterparty.local:9000
+      - TRISA_WEB_ISSUER=http://counterparty.local:9000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=counterparty.local
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:9100
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/counterparty.pem.gz
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
+
+  gds.local:
+    image: trisa/gds:v1.10.0
+    init: true
+    ports:
+      - 4433:4433
+      - 4434:4434
+      - 4435:4435
+    volumes:
+      - ./tmp/gds:/data
+    environment:
+      - GDS_DIRECTORY_ID=trisatest.dev
+      - GDS_SECRET_KEY=supersecretsquirrel
+      - GDS_MAINTENANCE=false
+      - GDS_LOG_LEVEL=info
+      - GDS_CONSOLE_LOG=true
+      - GDS_API_ENABLED=true
+      - GDS_BIND_ADDR=:4433
+      - GDS_ADMIN_ENABLED=false
+      - GDS_ADMIN_BIND_ADDR=:4434
+      - GDS_ADMIN_OAUTH_GOOGLE_AUDIENCE=nooauth
+      - GDS_ADMIN_OAUTH_AUTHORIZED_EMAIL_DOMAINS=trisatest.dev
+      - GDS_MEMBERS_ENABLED=true
+      - GDS_MEMBERS_BIND_ADDR=:4435
+      - GDS_MEMBERS_INSECURE=true
+      - GDS_DATABASE_URL=leveldb:////data/db
+      - GDS_DATABASE_REINDEX_ON_BOOT=false
+      - GDS_DATABASE_INSECURE=true
+      - SECTIGO_TESTING=true
+      - SECTIGO_PROFILE=17
+      - SECTIGO_ENVIRONMENT=testing
+      - SECTIGO_ENDPOINT=http://localhost
+      - GDS_EMAIL_TESTING=true
+      - GDS_EMAIL_STORAGE=/data/emails
+      - GDS_CERTMAN_ENABLED=false
+      - GDS_CERTMAN_STORAGE=/data/certs
+      - GDS_BACKUP_ENABLED=false
+      - GDS_BACKUP_STORAGE=/data/backups
+      - GDS_ACTIVITY_ENABLED=false
+      - GDS_SECRETS_TESTING=true
+
+secrets:
+  localhost.pem.gz:
+    file: ./.secret/localhost.pem.gz
+  server.pem.gz:
+    file: ./.secret/server.pem.gz
+  counterparty.pem.gz:
+    file: ./.secret/counterparty.pem.gz
