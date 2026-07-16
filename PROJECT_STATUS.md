@@ -78,6 +78,16 @@ over the actual TRISA protocol gets screened automatically.
   correctly detected and skipped every already-done step (idempotency
   verified in place; a from-absolute-zero fresh-clone run was not tested
   in this session to avoid wiping local dev state).
+- Fixed the Envoy web UI login: `TRISA_WEB_AUTH_COOKIE_DOMAIN` was set to
+  `envoy.local`/`counterparty.local`, but the ports are published on
+  `localhost` -- the browser silently drops a cookie scoped to a domain
+  that doesn't match the address bar, so login looked broken even though
+  the backend accepted the credentials (verified via a direct `/v1/login`
+  call returning 200 with a `Domain=envoy.local` cookie). Changed
+  `TRISA_WEB_ORIGIN`/`_AUDIENCE`/`_ISSUER`/`_AUTH_COOKIE_DOMAIN` to
+  `localhost` for both nodes in `docker-compose.yml` -- confirmed the
+  re-issued cookies now carry `Domain=localhost` and the demo script still
+  works after the restart.
 
 ## Remaining Gaps / Risks
 
