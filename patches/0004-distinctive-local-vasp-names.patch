@@ -1,0 +1,26 @@
+diff --git a/envoy/cmd/fsi/fixtures/localhost/counterparty.pb.json b/envoy/cmd/fsi/fixtures/localhost/counterparty.pb.json
+index 07d1b7f..6ed9ddc 100644
+--- a/envoy/cmd/fsi/fixtures/localhost/counterparty.pb.json
++++ b/envoy/cmd/fsi/fixtures/localhost/counterparty.pb.json
+@@ -3,7 +3,7 @@
+   "entity": {
+     "name": {
+       "name_identifiers": [{
+-        "legal_person_name": "Localhost Counterparty",
++        "legal_person_name": "Quillmark Custody Node",
+         "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+       }]
+     },
+diff --git a/envoy/cmd/fsi/fixtures/localhost/envoy.pb.json b/envoy/cmd/fsi/fixtures/localhost/envoy.pb.json
+index f2c2f79..c5e04ec 100644
+--- a/envoy/cmd/fsi/fixtures/localhost/envoy.pb.json
++++ b/envoy/cmd/fsi/fixtures/localhost/envoy.pb.json
+@@ -3,7 +3,7 @@
+   "entity": {
+     "name": {
+       "name_identifiers": [{
+-        "legal_person_name": "Localhost Development",
++        "legal_person_name": "Zephyrion Sandbox Node",
+         "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
+       }]
+     },

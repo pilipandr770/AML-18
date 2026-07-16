@@ -3,7 +3,7 @@
   "entity": {
     "name": {
       "name_identifiers": [{
-        "legal_person_name": "Localhost Counterparty",
+        "legal_person_name": "Quillmark Custody Node",
         "legal_person_name_identifier_type": "LEGAL_PERSON_NAME_TYPE_CODE_LEGL"
       }]
     },

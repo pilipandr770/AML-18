@@ -1,0 +1,193 @@
+name: aml18
+
+# Single compose file for the whole AML+18 stack: a local TRISA sandbox
+# (gds.local + envoy.local + counterparty.local, vendored from trisacrypto/envoy),
+# the compliance-service (screening + wallet_ownership + ageverify), and the
+# EU age-verification reference verifier backend.
+#
+# Quickstart: see scripts/bootstrap.ps1 -- it generates envoy's local test
+# certs, brings the whole stack up, registers both TRISA nodes with the
+# local directory, and creates the API credentials the demo scripts need.
+#
+# Requires a root .env (copy .env.example) with WEBHOOK_AUTH_KEY_ID /
+# WEBHOOK_AUTH_KEY_SECRET -- these don't exist until envoy.local is already
+# running once (generate via `docker compose exec envoy.local envoy hmackey`),
+# so the very first boot has no webhook auth wired up yet; bootstrap.ps1
+# handles this chicken-and-egg step automatically.
+services:
+  gds.local:
+    image: trisa/gds:v1.10.0
+    init: true
+    ports:
+      - 4433:4433
+      - 4434:4434
+      - 4435:4435
+    volumes:
+      - ./envoy/tmp/gds:/data
+    environment:
+      - GDS_DIRECTORY_ID=trisatest.dev
+      - GDS_SECRET_KEY=supersecretsquirrel
+      - GDS_MAINTENANCE=false
+      - GDS_LOG_LEVEL=info
+      - GDS_CONSOLE_LOG=true
+      - GDS_API_ENABLED=true
+      - GDS_BIND_ADDR=:4433
+      - GDS_ADMIN_ENABLED=false
+      - GDS_ADMIN_BIND_ADDR=:4434
+      - GDS_ADMIN_OAUTH_GOOGLE_AUDIENCE=nooauth
+      - GDS_ADMIN_OAUTH_AUTHORIZED_EMAIL_DOMAINS=trisatest.dev
+      - GDS_MEMBERS_ENABLED=true
+      - GDS_MEMBERS_BIND_ADDR=:4435
+      - GDS_MEMBERS_INSECURE=true
+      - GDS_DATABASE_URL=leveldb:////data/db
+      - GDS_DATABASE_REINDEX_ON_BOOT=false
+      - GDS_DATABASE_INSECURE=true
+      - SECTIGO_TESTING=true
+      - SECTIGO_PROFILE=17
+      - SECTIGO_ENVIRONMENT=testing
+      - SECTIGO_ENDPOINT=http://localhost
+      - GDS_EMAIL_TESTING=true
+      - GDS_EMAIL_STORAGE=/data/emails
+      - GDS_CERTMAN_ENABLED=false
+      - GDS_CERTMAN_STORAGE=/data/certs
+      - GDS_BACKUP_ENABLED=false
+      - GDS_BACKUP_STORAGE=/data/backups
+      - GDS_ACTIVITY_ENABLED=false
+      - GDS_SECRETS_TESTING=true
+
+  envoy.local:
+    build:
+      context: ./envoy
+      dockerfile: ./Dockerfile
+      args:
+        GIT_REVISION: ${GIT_REVISION}
+    image: trisa/envoy
+    init: true
+    depends_on:
+      - gds.local
+      - compliance.local
+    ports:
+      - 8000:8000
+      - 8100:8100
+      - 8200:8200
+    volumes:
+      - ./envoy/tmp/envoy:/data
+    secrets:
+      - localhost.pem.gz
+      - server.pem.gz
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=release
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=envoy.local:8100
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:8000
+      - TRISA_WEB_ORIGIN=http://envoy.local:8000
+      - TRISA_WEB_AUDIENCE=http://envoy.local:8000
+      - TRISA_WEB_ISSUER=http://envoy.local:8000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=envoy.local
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:8100
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/server.pem.gz
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
+      - TRISA_WEBHOOK_URL=http://compliance.local:8300/webhook/travel-rule
+      - TRISA_WEBHOOK_AUTH_KEY_ID=${WEBHOOK_AUTH_KEY_ID}
+      - TRISA_WEBHOOK_AUTH_KEY_SECRET=${WEBHOOK_AUTH_KEY_SECRET}
+
+  counterparty.local:
+    image: trisa/envoy
+    init: true
+    depends_on:
+      - gds.local
+      - envoy.local
+    ports:
+      - 9000:9000
+      - 9100:9100
+    volumes:
+      - ./envoy/tmp/counterparty:/data
+    secrets:
+      - localhost.pem.gz
+      - counterparty.pem.gz
+    environment:
+      - TRISA_MAINTENANCE=false
+      - TRISA_MODE=release
+      - TRISA_LOG_LEVEL=debug
+      - TRISA_CONSOLE_LOG=true
+      - TRISA_DATABASE_URL=sqlite3:////data/trisa.db
+      - TRISA_ENDPOINT=counterparty.local:9100
+      - TRISA_WEB_ENABLED=true
+      - TRISA_WEB_BIND_ADDR=:9000
+      - TRISA_WEB_ORIGIN=http://counterparty.local:9000
+      - TRISA_WEB_AUDIENCE=http://counterparty.local:9000
+      - TRISA_WEB_ISSUER=http://counterparty.local:9000
+      - TRISA_WEB_AUTH_COOKIE_DOMAIN=counterparty.local
+      - TRISA_NODE_ENABLED=true
+      - TRISA_NODE_BIND_ADDR=:9100
+      - TRISA_NODE_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_NODE_CERTS=/run/secrets/counterparty.pem.gz
+      - TRISA_NODE_DIRECTORY_INSECURE=true
+      - TRISA_NODE_DIRECTORY_ENDPOINT=gds.local:4433
+      - TRISA_NODE_DIRECTORY_MEMBERS_ENDPOINT=gds.local:4435
+      - TRISA_DIRECTORY_SYNC_ENABLED=true
+      - TRISA_TRP_ENABLED=true
+      - TRISA_TRP_BIND_ADDR=:8200
+      - TRISA_TRP_USE_MTLS=false
+      - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
+      - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
+
+  compliance.local:
+    build:
+      context: ./compliance-service
+      dockerfile: ./docker/Dockerfile
+    image: aml18/compliance-service
+    container_name: compliance.local
+    depends_on:
+      - ageverify-verifier
+    ports:
+      - "8300:8300"
+    volumes:
+      - ./compliance-service/tmp/data:/data
+    env_file:
+      - ./compliance-service/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/compliance.db}
+      - WEBHOOK_AUTH_KEY_ID=${WEBHOOK_AUTH_KEY_ID}
+      - WEBHOOK_AUTH_KEY_SECRET=${WEBHOOK_AUTH_KEY_SECRET}
+      - WEBHOOK_SIGN_REPLIES=${WEBHOOK_SIGN_REPLIES:-false}
+      - AGEVERIFY_DEFAULT_ADAPTER=${AGEVERIFY_DEFAULT_ADAPTER:-eu_oid4vp}
+      - AGEVERIFY_MIN_AGE=${AGEVERIFY_MIN_AGE:-18}
+      - AGEVERIFY_EU_VERIFIER_BASE_URL=${AGEVERIFY_EU_VERIFIER_BASE_URL:-http://ageverify-verifier:8080}
+      - AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=${AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS:-5}
+      - WALLET_OWNERSHIP_THRESHOLD_EUR=${WALLET_OWNERSHIP_THRESHOLD_EUR:-1000}
+      - WALLET_OWNERSHIP_CHALLENGE_TTL_SECONDS=${WALLET_OWNERSHIP_CHALLENGE_TTL_SECONDS:-600}
+      - WALLET_OWNERSHIP_EVM_RPC_URL=${WALLET_OWNERSHIP_EVM_RPC_URL:-}
+      - WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY=${WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY:-}
+      - WALLET_OWNERSHIP_EVM_CHAIN_ID=${WALLET_OWNERSHIP_EVM_CHAIN_ID:-1}
+
+  ageverify-verifier:
+    build:
+      context: ./vendor/ageverify/av-srv-web-verifier-endpoint-23220-4-kt
+      dockerfile: ./Dockerfile
+    image: aml18/ageverify-verifier
+    container_name: ageverify-verifier
+    ports:
+      - "8080:8080"
+
+secrets:
+  localhost.pem.gz:
+    file: ./envoy/.secret/localhost.pem.gz
+  server.pem.gz:
+    file: ./envoy/.secret/server.pem.gz
+  counterparty.pem.gz:
+    file: ./envoy/.secret/counterparty.pem.gz

@@ -30,21 +30,26 @@ openssl req -new -newkey rsa:4096 \
     -subj "/C=US/ST=Georgia/L=Atlanta/O=Client/OU=Testing/CN=localhost" \
     -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1"
 
-# Create signed certificates with CA
+# Create signed certificates with CA.
+#
+# NOTE: `-copy_extensions copyall` requires OpenSSL 3.0+ (unavailable in,
+# e.g., Git for Windows' bundled OpenSSL 1.1.1). Using -extfile with an
+# explicit SAN instead works identically on 1.1.1 and 3.0+, so it's used
+# here unconditionally rather than branching on openssl version.
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in server.csr -out server.pem \
-    -copy_extensions copyall
+    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:envoy.local,IP:127.0.0.1")
 
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in counterparty.csr -out counterparty.pem \
-    -copy_extensions copyall
+    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:counterparty.local,IP:127.0.0.1")
 
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in client.csr -out client.pem \
-    -copy_extensions copyall
+    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1")
 
 # Combine files into a single certificate chain
 cat ca.crt >> server.pem

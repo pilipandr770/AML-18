@@ -1,238 +1,211 @@
 # AML+18
 
-Open-Source-Compliance-Baustein für Krypto-Zahlungen (USDC) im EU-Raum.
-Ziel ist ein eigenständiges, wiederverwendbares Werkzeug, auf dessen Basis
-sich eine Börse, ein Umtauschdienst (Exchanger) oder eine Wallet aufbauen
-lässt – nicht an ein einzelnes Geschäftsmodell gebunden. Es deckt zwei
-regulatorische Anforderungen ab, die ein kleiner CASP (Crypto-Asset Service
-Provider) sonst separat bei Anbietern wie Sumsub oder Notabene einkaufen
-müsste:
+Ein offener, selbst hostbarer Compliance-Baustein für Krypto-Projekte im
+EU-Raum. Ziel ist **kein** fertiges Produkt für ein bestimmtes Geschäftsmodell
+(Börse, Umtauschdienst, Wallet, Casino, Adult-Plattform) — sondern das
+rechtliche Fundament, auf dem solche Projekte aufbauen können: aus einer
+bloßen Blockchain-Adresse eine **verifizierte Entität** machen (Sanktionsprüfung,
+Nachweis der Kontrolle über eine Self-Hosted-Wallet, Altersverifikation).
+Alles, was danach kommt — Glücksspiel-Lizenz, Adult-Content-Freigabe,
+Börsenzulassung — ist bewusst nicht Teil dieses Projekts.
 
-1. **EU Travel Rule** (Verordnung (EU) 2023/1113 „TFR" i. V. m. MiCA) —
-   Sanktions-/AML-Screening bei Krypto-Transfers, mit vollständig offener,
-   selbst hostbarer Architektur (ein echter Vorteil gegenüber der BaFin,
-   die technische Architektur statt bloßer Anbieter-Zusicherungen sehen
-   will).
-2. **Altersverifikation (18+)** — nicht nur für Adult-Content/PPV-Plattformen,
-   sondern grundsätzlich auch für Online-Glücksspiel (GlüStV) einsetzbar,
-   architektonisch strikt getrennt von den Travel-Rule-Identitätsdaten
-   (DSA Art. 28, JMStV und TFR sind drei unterschiedliche Regelungsregime,
-   die nicht in einem Datensatz vermischt werden dürfen).
+Es deckt drei regulatorische Anforderungen ab, die ein kleiner CASP
+(Crypto-Asset Service Provider) sonst separat bei Anbietern wie Sumsub oder
+Notabene einkaufen müsste:
+
+1. **EU Travel Rule** (Verordnung (EU) 2023/1113 „TFR" i. V. m. MiCA und der
+   AMLR) — Sanktions-/AML-Screening bei Krypto-Transfers zwischen zwei
+   VASPs (Crypto-Asset Service Providern), über das echte TRISA-Protokoll.
+2. **Wallet-Ownership-Verification** — Nachweis der Kontrolle über eine
+   Self-Hosted-Wallet-Adresse bei Transfers ab einem konfigurierbaren
+   EUR-Schwellenwert (Standard: €1.000), wie von den EBA-Travel-Rule-
+   Leitlinien und BaFins § 15a GwG verlangt.
+3. **Altersverifikation (18+)** — nicht nur für Adult-Content/PPV-
+   Plattformen, sondern grundsätzlich auch für Online-Glücksspiel (GlüStV)
+   einsetzbar.
+
+Alle drei sind architektonisch strikt voneinander getrennt (eigene
+Datenbanktabellen, keine Verknüpfung) — DSA Art. 28, JMStV, TFR und die
+EBA-Leitlinien sind unterschiedliche Regelungsregime, die nicht in einem
+Datensatz vermischt werden dürfen. Details und Rechtsgrundlagen:
+`ANFORDERUNGEN.md`.
 
 **Strategie:** Zuerst ein wirklich nützliches, einfach einzusetzendes
-Werkzeug schaffen, das kleine CASPs organisch übernehmen — Monetarisierung
-kommt erst danach. Der konkrete Anforderungskatalog wird direkt aus den
-einschlägigen Rechtsvorschriften abgeleitet, nicht aus eigenen Annahmen
-(siehe `ANFORDERUNGEN.md`, sobald verfügbar).
+Werkzeug schaffen, das kleine CASPs organisch übernehmen — mit offenem,
+nachvollziehbarem Code, klarer Dokumentation und einer Oberfläche, die ein
+Compliance-Officer tatsächlich benutzen kann. Monetarisierung kommt erst
+danach.
+
+## Die drei Einstiegspunkte
+
+Jede der drei Anforderungen hat einen eigenen, unabhängigen Einstiegspunkt
+für ein anderes Projekt, das diesen Container nutzt:
+
+| Anforderung | Einstiegspunkt | Warum |
+|---|---|---|
+| Travel-Rule-Screening | Echtes TRISA-Protokoll (`envoy.local:8100`) | TRISA ist ein VASP-zu-VASP-Protokoll — das eigene Projekt muss selbst einen TRISA-Knoten betreiben (z. B. ebenfalls mit vendoriertem Envoy) und sich damit verbinden, nicht nur einen REST-Call machen. |
+| Wallet-Ownership-Verification | REST (`/wallet-ownership/*`) | Gilt für Self-Hosted-Wallets — dort gibt es keinen zweiten VASP, mit dem man TRISA sprechen könnte. |
+| Altersverifikation | REST (`/age-verify/*`) | Eigenständige, von Travel-Rule-Identitätsdaten getrennte Prüfung. |
+
+Der Travel-Rule-Weg ist bewusst der „echte", nicht ein vereinfachter
+REST-Shortcut: Er zeigt, dass ein anfragendes Projekt tatsächlich über das
+offizielle Protokoll sprechen muss, damit seine Transfers automatisch
+gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
 
 ## Komponenten
 
-- **`envoy/`** (hier nicht eingecheckt — vendorierter Klon, siehe unten) —
-  [TRISA Envoy](https://github.com/trisacrypto/envoy), MIT-lizenziert,
-  selbst gehosteter Travel-Rule-Protokoll-Knoten. Reine Transportschicht:
-  kein eingebautes Sanktions-Screening, aber genau ein Erweiterungspunkt
-  dafür — ein ausgehender Webhook bei jeder eingehenden Travel-Rule-Nachricht.
-- **`compliance-service/`** — der eigentliche Mehrwert: ein Flask-Microservice,
-  der Envoys Webhook empfängt, IVMS101-Identitätsdaten gegen echte
-  Sanktionslisten prüft (OFAC SDN, EU-Konsolidierte Liste) und mit einer
-  expliziten Entscheidung antwortet (Akzeptieren/Prüfen/Ablehnen). Enthält
-  außerdem die Oberfläche für den Compliance-Officer (Entscheidungsliste,
-  Detailansicht mit Begründung, manuelle Prüfung). Altersverifikation ist
-  als eigener, datensparsamer API-Pfad mit Adapter-Schicht umgesetzt:
-  synchron für Mock-Nachweise (`POST /age-verify/check`) und zustandsbehaftet
-  für die EU-OID4VP-/Verifier-Integration (`POST /age-verify/sessions`,
-  `GET /age-verify/sessions/<id>`).
+- **`envoy/`** — [TRISA Envoy](https://github.com/trisacrypto/envoy),
+  MIT-lizenziert, lokal vendoriert (siehe `envoy/VERSIONS.md` für die
+  gepinnte Upstream-Revision, `patches/README.md` für lokale Anpassungen).
+  Reine Transportschicht: kein eingebautes Sanktions-Screening, aber genau
+  ein Erweiterungspunkt dafür — ein ausgehender Webhook bei jeder
+  eingehenden Travel-Rule-Nachricht, hier an `compliance.local` angebunden.
+  Der lokale Stack enthält zusätzlich `counterparty.local` (Stand-in für
+  ein fremdes, andockendes Projekt) und `gds.local` (eine vollständig
+  lokale, selbst-enthaltene TRISA-Verzeichnisdienst-Sandbox — keine
+  Registrierung bei einem echten Testnet nötig).
+- **`compliance-service/`** — der eigentliche Mehrwert: ein Flask-Microservice
+  mit drei unabhängigen Modulen:
+  - `screening/` + `webhook/` — empfängt Envoys Webhook, prüft IVMS101-
+    Identitätsdaten gegen echte Sanktionslisten (OFAC SDN, EU-Konsolidierte
+    Liste) und antwortet mit einer expliziten Entscheidung
+    (Akzeptieren/Prüfen/Ablehnen).
+  - `wallet_ownership/` — Signatur-Challenge- und EVM-Testtransfer-basierte
+    Verifikation der Kontrolle über eine Self-Hosted-Wallet-Adresse.
+  - `ageverify/` — datensparsamer Altersnachweis, mit Mock-Adapter für
+    lokale Entwicklung und EU-OID4VP-Adapter für den echten Blueprint-Flow.
+  - `review_ui/` — die Oberfläche für den Compliance-Officer
+    (Entscheidungsliste, Detailansicht mit Begründung, manuelle Prüfung).
 - **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
   EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
-  Verifier-Backend, technische Spezifikation), damit Anpassungen lokal und
-  reproduzierbar weiterentwickelt werden können.
+  Verifier-Backend, technische Spezifikation).
+- **`examples/travel-rule-demo/`** — Demo-Skripte, die den Travel-Rule-
+  Einstiegspunkt end-to-end vorführen (siehe unten).
 
-## Einrichtung
+## Schnellstart
 
-```
-git clone https://github.com/trisacrypto/envoy.git
-cd envoy
-git apply ../patches/0001-fsi-set-routing-protocol.patch
-git apply ../patches/0002-fix-webhook-default-response-fallthrough.patch
-cd .secret && ./generate.sh && cd ..   # bei Problemen unter Windows siehe patches/README.md
-export GIT_REVISION=$(git rev-parse --short HEAD)
-docker compose build
-docker compose up -d
-go run ./cmd/fsi gds:init
-docker compose exec envoy.local envoy createuser -e admin@envoy.local -r admin
-docker compose exec counterparty.local envoy createuser -e admin@counterparty.local -r admin
-```
-
-Anschließend, aus `compliance-service/`:
+Voraussetzungen: Docker, Docker Compose, Go (für `cmd/fsi`, Envoys
+eingebautes Test-Tool), Git Bash/`openssl` unter Windows für die lokale
+Zertifikatsgenerierung.
 
 ```
-cp .env.example .env
-# WEBHOOK_AUTH_KEY_ID / WEBHOOK_AUTH_KEY_SECRET eintragen, erzeugt via:
-docker compose exec envoy.local envoy hmackey
-
-docker compose -f ../envoy/docker-compose.yaml -f docker-compose.override.yaml \
-    --env-file ./.env up -d --build
+powershell -File scripts/bootstrap.ps1
 ```
 
-Warum die Reihenfolge der `-f`-Flags und `--env-file` wichtig sind, steht
-in `docker-compose.override.yaml` (Compose löst relative Pfade relativ zum
-Verzeichnis der zuerst genannten Datei auf).
+Das Skript ist idempotent — bereits vorhandene Zertifikate, GDS-Registrierung,
+API-Schlüssel und der Webhook-HMAC-Key werden übersprungen, nicht neu
+erzeugt (Flag `-Reset` erzwingt eine vollständige Neuinitialisierung). Es
+erledigt:
 
-Die Compliance-Oberfläche ist danach unter `http://localhost:8300/review/`
-erreichbar.
+1. `.env` aus `.env.example` anlegen, `GIT_REVISION` setzen.
+2. Lokale TLS-Sandbox-Zertifikate erzeugen (`envoy/.secret/generate.sh`).
+3. `docker compose build && docker compose up -d` — startet den gesamten
+   Stack: `gds.local`, `envoy.local`, `counterparty.local`,
+   `compliance.local`, `ageverify-verifier`.
+4. Beide TRISA-Knoten bei der lokalen Verzeichnis-Sandbox registrieren
+   (`go run ./cmd/fsi gds:init`).
+5. API-Schlüssel für `envoy.local`/`counterparty.local` erzeugen (für
+   `cmd/fsi` und die Demo-Skripte — landen ausschließlich in
+   `envoy/tmp/creds/*.txt`, gitignored, nie in der Konsolenausgabe).
+6. Den Webhook-HMAC-Key erzeugen und in `.env` eintragen, damit
+   `envoy.local` und `compliance.local` sich gegenseitig authentifizieren
+   können.
 
-Für die lokale EU-Altersverifikationsentwicklung kann der offizielle
-Verifier-Backend-Dienst zusammen mit dem Compliance-Service separat gestartet
-werden:
+Danach:
+- Compliance-Officer-Oberfläche: `http://localhost:8300/review/`
+- Envoy Web-UI: `http://localhost:8000/`
+- EU-Verifier-Backend: `http://localhost:8080/`
+
+## Travel-Rule-Demo (Einstiegspunkt-Nachweis)
 
 ```
-cp compliance-service/.env.example compliance-service/.env
-docker compose -f docker-compose.ageverify.yaml up -d --build
+python examples/travel-rule-demo/send_transfer.py --clean
+python examples/travel-rule-demo/send_transfer.py --flagged
 ```
 
-Der Stack baut den vendorierten Verifier-Backend-Code lokal zu einem nativen
-Image für die Host-Architektur, statt das vorgebaute Upstream-Image unter
-Emulation laufen zu lassen.
+Der erste Aufruf schickt einen Transfer mit sauberen, synthetischen
+Identitäten von `counterparty.local` (Stand-in für ein fremdes Projekt) an
+`envoy.local` — Ergebnis in der Officer-Oberfläche: **accepted**. Der
+zweite Aufruf verwendet einen Namen, live abgefragt aus der bereits
+eingespielten OFAC-/EU-Sanktionsliste — Ergebnis: **review**/**rejected**,
+mit sichtbarem Treffer, Score und Begründung. Details:
+`examples/travel-rule-demo/README.md`.
 
-Dabei setzt der Compose-Stack automatisch:
-- `AGEVERIFY_DEFAULT_ADAPTER=eu_oid4vp`
-- `AGEVERIFY_EU_VERIFIER_BASE_URL=http://ageverify-verifier:8080`
+## Wallet-Ownership-Verification API
 
-Danach laufen lokal:
-- Compliance-Service: `http://localhost:8300`
-- EU Verifier Backend: `http://localhost:8080`
+```
+GET  /wallet-ownership/requirement?transfer_amount_eur=1500
+POST /wallet-ownership/challenges          {"network": "ETH", "address": "0x..."}
+POST /wallet-ownership/verifications       {"method": "signed_message", "challenge_id": "...", "signature": "0x..."}
+GET  /wallet-ownership/verifications/<id>
+```
+
+Zwei Methoden (beide aus der EBA-Leitlinien-Liste zulässiger Verfahren):
+`signed_message` (Server-Nonce signieren, sofort einsatzbereit, keine
+Blockchain-Infrastruktur nötig) und `test_transfer` (kleiner EVM-Transfer,
+benötigt `WALLET_OWNERSHIP_EVM_RPC_URL` + `WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY`
+in `.env`).
 
 ## Altersverifikation API (privacy-preserving)
 
-Der Compliance-Service bietet einen separaten Endpoint für Altersnachweise:
-
 ```
 POST /age-verify/check
-```
-
-Request:
-
-```
 {
   "subject_reference": "platform-user-123",
   "proof_token": "opaque-proof-or-mock-token",
-  "adapter": "mock|eu_oid4vp"   // optional, default via ENV
+  "adapter": "mock|eu_oid4vp"
 }
 ```
 
 Antwort enthält nur den Altersentscheid (ja/nein) und Metadaten, keine
-personenbezogenen Rohdaten aus dem Nachweis.
+personenbezogenen Rohdaten aus dem Nachweis. Für den lokalen Einstieg:
+`proof_token=mock:over18` -> `verified=true`, `proof_token=mock:under18` ->
+`verified=false`.
 
-Relevante ENV-Variablen:
-
-```
-AGEVERIFY_DEFAULT_ADAPTER=mock
-AGEVERIFY_MIN_AGE=18
-AGEVERIFY_EU_VERIFIER_BASE_URL=
-AGEVERIFY_EU_VERIFIER_VERIFY_PATH=/verify
-AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=5
-```
-
-Für den lokalen Einstieg kann der `mock`-Adapter verwendet werden:
-- `proof_token=mock:over18` -> `verified=true`
-- `proof_token=mock:under18` -> `verified=false`
-
-Die EU-Integration (`eu_oid4vp`) läuft über einen separaten Session-Flow gegen
-den offiziellen Verifier-Backend-Dienst:
+Die EU-Integration (`eu_oid4vp`, Standard-Adapter in diesem Stack) läuft
+über einen zustandsbehafteten Session-Flow:
 
 ```
-POST /age-verify/sessions
-{
-  "subject_reference": "platform-user-123",
-  "adapter": "eu_oid4vp",
-  "min_age": 18
-}
+POST /age-verify/sessions        {"subject_reference": "...", "adapter": "eu_oid4vp"}
+GET  /age-verify/sessions/<id>
+GET  /age-verify/sessions/<id>/launch   # Deep-Link + QR für Wallet-Tests
 ```
 
-Antwort:
-
-```
-{
-  "session_id": "...",
-  "status": "pending",
-  "transaction_id": "...",
-  "request_value": "..."
-}
-```
-
-Danach Status pollen:
-
-```
-GET /age-verify/sessions/<session_id>
-```
-
-Für lokale Entwicklung gibt es zusätzlich eine Helper-Seite pro Session:
-
-```
-GET /age-verify/sessions/<session_id>/launch
-```
-
-Sie rendert einen Deep-Link für Wallets auf demselben Gerät sowie ein
-serverseitig generiertes SVG-QR für Cross-Device-Tests.
-
-Sobald der externe Verifier eine Wallet-Antwort verarbeitet hat, persistiert
-der Compliance-Service nur noch das finale Alters-Urteil (z. B.
-`verified=true`) plus einen Hash des Proof-Artefakts, nicht aber den
-Rohnachweis selbst.
-
-Aktuelle ENV-Variablen für den EU-Verifier:
-
-```
-AGEVERIFY_EU_VERIFIER_BASE_URL=
-AGEVERIFY_EU_VERIFIER_TIMEOUT_SECONDS=5
-```
-
-Für einen echten EU-Blueprint-Flow startet der Client zunächst eine Session:
-
-```
-POST /age-verify/sessions
-```
-
-und pollt anschließend:
-
-```
-GET /age-verify/sessions/<session_id>
-```
-
-Die offiziell vendorierten EU-Blueprint-Quellen sind in
-`vendor/ageverify/` eingecheckt und in `vendor/ageverify/VERSIONS.md`
-gepinnt.
+`scripts/run_ageverify_e2e_device_response.ps1` automatisiert den
+kompletten Flow von der Credential-Ausstellung bis zur Verifikation gegen
+den lokalen Stack.
 
 ## Stand des Projekts
 
-- **Phase 0** (Webhook + HMAC-Auth + IVMS101-Parsing): abgeschlossen,
-  Ende-zu-Ende gegen einen echten Zwei-Knoten-Envoy-Stack verifiziert.
-- **Phase 1** (echtes Sanktions-Screening): abgeschlossen. OFAC-SDN- und
+- **Travel-Rule-Screening**: abgeschlossen und end-to-end über das echte
+  TRISA-Protokoll verifiziert (siehe Demo oben). OFAC-SDN- und
   EU-Konsolidierte-Parser, phonetisch vorgefilterter Fuzzy-Abgleich
   (rapidfuzz + jellyfish/NYSIIS, MIT — bewusst nicht Beider-Morse/`abydos`,
   da GPLv3+), kyrillische Transliteration, konservative
   Akzeptieren/Prüfen/Ablehnen-Entscheidungslogik. Gegen die echte, aktuelle
-  OFAC-SDN-Liste verifiziert (19.210 Einträge) — eine synthetische
-  Transaktion mit dem Namen einer real gelisteten Person wurde korrekt zur
-  Prüfung markiert.
-- **Phase 2** (abgeschlossen): Compliance-Officer-Oberfläche
-  (Entscheidungsliste, Detailansicht mit Begründung, manuelle Prüfung mit
-  Audit-Log). Noch **ohne Authentifizierung** — vor jedem echten Einsatz
-  nachzurüsten.
-- **Als Nächstes**: Anforderungskatalog aus den tatsächlichen EU-/DE-
-  Rechtstexten (MiCA, TFR, DSA Art. 28, JMStV, GlüStV) ableiten und daraus
-  die Roadmap priorisieren; UN-Konsolidierte-Liste als weitere Quelle;
-  EU Age Verification Solution (OID4VP) als primären
-  Altersverifikations-Adapter integrieren;
-  Basis-Authentifizierung für die Compliance-Oberfläche.
+  OFAC-SDN-Liste verifiziert (19.210 Einträge).
+- **Wallet-Ownership-Verification**: `signed_message`-Methode live
+  verifiziert; `test_transfer`-Methode nur unit-getestet, noch nicht gegen
+  ein echtes Testnetz validiert.
+- **Altersverifikation**: `eu_oid4vp`-Adapter end-to-end gegen den
+  vendorierten Referenz-Issuer und -Verifier verifiziert, inklusive
+  automatisierter frischer Credential-Ausstellung.
+- **Compliance-Officer-Oberfläche**: Entscheidungsliste, Detailansicht mit
+  Begründung, manuelle Prüfung mit Audit-Log. Noch **ohne
+  Authentifizierung** — vor jedem echten Einsatz nachzurüsten.
+- **Offen**: GlüStV-Rechtsgrundlagen für den Glücksspiel-Anwendungsfall
+  (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
+  Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad
+  (aktuell ein eigenständig aufrufbarer Endpunkt); Basis-Authentifizierung
+  für die Compliance-Oberfläche.
 
 Testsuite: `python -m pytest` im Verzeichnis `compliance-service/`.
 
 ## Entwicklungsnotizen
 
 Die lokale Entwicklung fand in einer Reihe von Claude-Code-Sitzungen statt —
-die vollständige Fehlersuche (Windows-spezifische Stolpersteine, zwei echte
-Upstream-Bugs in Envoy gefunden und gepatcht, Erkenntnisse aus der
+die vollständige Fehlersuche (Windows-spezifische Stolpersteine, mehrere
+echte Upstream-Bugs in Envoy gefunden und gepatcht, Erkenntnisse aus der
 Verifikation mit Live-Daten) ist im Projektgedächtnis festgehalten und wird
-hier nicht dupliziert. `patches/README.md` (Englisch, da an das
-Upstream-Projekt gerichtet) dokumentiert die zwei benötigten Envoy-Patches.
+hier nicht dupliziert. `patches/README.md` (Englisch, da teilweise an das
+Upstream-Projekt gerichtet) dokumentiert die lokalen Envoy-Anpassungen.
