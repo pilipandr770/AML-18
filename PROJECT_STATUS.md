@@ -38,6 +38,28 @@ init, directory sync) in a CI runner is a separate, meaningfully riskier
 piece of work flagged as its own follow-up, not bundled into this pass.
 Added a CI status badge to the top of README.md.
 
+First CI run failed immediately (10s, before any real build) on `docker
+compose config --quiet`: the `secrets:` block references
+`envoy/.secret/*.pem.gz`, deliberately gitignored, so a fresh checkout
+(exactly what CI is) doesn't have them. Added a "Generate envoy sandbox
+certs" step (`bash envoy/.secret/generate.sh`) before config validation.
+
+Testing that fix locally (in an isolated temp copy, not touching the live
+working certs) surfaced a real, previously-unexecuted bug in patch 0003
+itself: the `-extfile <(printf "...")` process-substitution form signs
+without error-looking output on Linux, but on Git for Windows'
+bash/openssl combination it fails intermittently (`Can't open /dev/fd/63
+for reading`) while still exiting 0 -- the script "succeeds" but the
+signed leaf cert silently ends up with no SAN extension at all (verified
+by inspecting the decoded cert: wrong Subject entirely, matching the CA
+rather than the leaf). This patch had only ever been reasoned about
+syntactically, never actually executed top-to-bottom, because every local
+test session so far reused already-generated certs from before the patch
+existed. Fixed by writing the SAN to a real temp file instead of process
+substitution -- confirmed via decoded-cert inspection that the correct
+Subject and SAN now come out on Windows too. patches/0003 and its
+description in patches/README.md updated to match.
+
 ## 2026-07-17 Update: PostgreSQL + real Alembic migrations
 
 Following an external review (SWOT-style read of the repo), addressed the

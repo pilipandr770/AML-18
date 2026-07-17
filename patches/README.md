@@ -48,7 +48,13 @@ certs) requires OpenSSL 3.0+; Git for Windows bundles OpenSSL 1.1.1, which
 doesn't have it, silently dropping the SAN (subjectAltName) from the signed
 certs and breaking TLS hostname verification between the local nodes.
 Replaced with `-extfile` passing an explicit SAN, which produces an
-identical result on both 1.1.1 and 3.0+.
+identical result on both 1.1.1 and 3.0+. First version of this fix passed
+the SAN via `-extfile <(printf "...")` (process substitution) -- that
+turned out to be unreliable specifically on Git for Windows' bash/openssl
+combination (`Can't open /dev/fd/63 for reading`, non-fatal exit code, so
+the script "succeeds" while silently producing a leaf cert with no SAN at
+all). Switched to writing the SAN to a real temp file instead, which has
+no such portability issue on either platform.
 
 **`0004-distinctive-local-vasp-names.patch`** — `cmd/fsi/fixtures/localhost/*.pb.json`
 

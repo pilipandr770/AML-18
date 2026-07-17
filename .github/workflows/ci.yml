@@ -34,6 +34,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # docker-compose.yml declares file-based secrets pointing at
+      # envoy/.secret/*.pem.gz -- deliberately gitignored (regenerable
+      # local sandbox TLS certs, see envoy/.secret/generate.sh), but
+      # Compose needs them to exist just to resolve the config, let alone
+      # build. Generate throwaway certs the same way scripts/bootstrap.ps1
+      # does for a real local deployment.
+      - name: Generate envoy sandbox certs
+        working-directory: envoy/.secret
+        run: bash generate.sh
+
       - name: Validate compose config
         run: docker compose config --quiet
 

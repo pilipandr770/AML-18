@@ -35,21 +35,31 @@ openssl req -new -newkey rsa:4096 \
 # NOTE: `-copy_extensions copyall` requires OpenSSL 3.0+ (unavailable in,
 # e.g., Git for Windows' bundled OpenSSL 1.1.1). Using -extfile with an
 # explicit SAN instead works identically on 1.1.1 and 3.0+, so it's used
-# here unconditionally rather than branching on openssl version.
+# here unconditionally rather than branching on openssl version. Written
+# to real temp files rather than passed via `<(...)` process substitution:
+# Git for Windows' bash/openssl combination doesn't reliably read from
+# `/dev/fd/*` across the subprocess boundary process substitution relies
+# on -- it fails intermittently (openssl reports "No such file or
+# directory" but still exits 0), silently producing a signed cert with no
+# SAN extension. Plain temp files have no such portability issue.
+echo "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:envoy.local,IP:127.0.0.1" > server.ext
+echo "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:counterparty.local,IP:127.0.0.1" > counterparty.ext
+echo "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1" > client.ext
+
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in server.csr -out server.pem \
-    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:envoy.local,IP:127.0.0.1")
+    -extfile server.ext
 
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in counterparty.csr -out counterparty.pem \
-    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,DNS:counterparty.local,IP:127.0.0.1")
+    -extfile counterparty.ext
 
 openssl x509 -req -days 10950 \
     -CA ca.crt -CAkey ca.key \
     -in client.csr -out client.pem \
-    -extfile <(printf "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1")
+    -extfile client.ext
 
 # Combine files into a single certificate chain
 cat ca.crt >> server.pem
@@ -68,7 +78,7 @@ mv ca.crt localhost.pem
 gzip localhost.pem
 
 # Cleanup
-rm server.csr server.key.pem
-rm counterparty.csr counterparty.key.pem
-rm client.csr client.key.pem
+rm server.csr server.key.pem server.ext
+rm counterparty.csr counterparty.key.pem counterparty.ext
+rm client.csr client.key.pem client.ext
 rm ca.key
