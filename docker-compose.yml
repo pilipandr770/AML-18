@@ -179,7 +179,8 @@ services:
     volumes:
       - ./compliance-service/tmp/data:/data
     env_file:
-      - ./compliance-service/.env
+      - path: ./compliance-service/.env
+        required: false
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://aml18:aml18@postgres:5432/aml18}
       - WEBHOOK_AUTH_KEY_ID=${WEBHOOK_AUTH_KEY_ID}

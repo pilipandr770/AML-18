@@ -60,6 +60,29 @@ substitution -- confirmed via decoded-cert inspection that the correct
 Subject and SAN now come out on Windows too. patches/0003 and its
 description in patches/README.md updated to match.
 
+That fix still failed in CI (Run #2, 13s, `docker compose config`
+`exit code 1`). The Windows-Git-Bash-vs-real-Linux gap made the browser-tool
+GitHub Actions log view too slow to iterate against, so switched to a
+faithful local reproduction instead: cloned the repo with
+`-c core.autocrlf=false` (Windows' default checkout silently rewrites
+LF -> CRLF, which is *not* what a real Ubuntu runner sees -- confirmed
+`git show HEAD:envoy/.secret/generate.sh` has clean LF in the actual
+blob) into a short path (`C:\ci-sim`, Windows `MAX_PATH` broke a first
+attempt inside the deeper scratchpad path), then ran the exact CI
+commands inside a plain `ubuntu:24.04` container
+(`docker run -v ...:/repo -w /repo ubuntu:24.04 bash -c '...'`,
+`MSYS_NO_PATHCONV=1` needed on the `docker run` invocation itself to stop
+Git Bash mangling `-v`/`-w` path arguments). Cert generation turned out
+to be fine on real Linux -- the actual failure was
+`env file .../compliance-service/.env not found`: Compose's `env_file:`
+directive (unlike a missing `environment:` variable) hard-fails if the
+referenced file doesn't exist, and `compliance-service/.env` is
+deliberately gitignored. Fixed with Compose's `env_file: - path: ...
+required: false` form (Compose Specification, supported since Compose
+v2.24+ -- confirmed locally on v5.1.4). Verified the exact fix
+(`docker compose config --quiet`, `exit: 0`) against the clean
+`core.autocrlf=false` clone before pushing.
+
 ## 2026-07-17 Update: PostgreSQL + real Alembic migrations
 
 Following an external review (SWOT-style read of the repo), addressed the
