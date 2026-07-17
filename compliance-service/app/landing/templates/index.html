@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AML+18 – Der offene Compliance-Baustein für EU-Krypto-Projekte</title>
+  <style>
+    :root {
+      --bg: #f7f8fa; --panel: #ffffff; --text: #1b1f24; --muted: #5b6572;
+      --border: #e1e4e8; --accent: #2563eb; --accent-dark: #1d4ed8;
+      --accepted: #1a7f37; --review: #b35900; --rejected: #b91c1c;
+      --hero-bg: #0f172a; --hero-text: #e6e9ef; --hero-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    header {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header .brand { font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; }
+    header nav { margin-left: auto; display: flex; gap: 18px; }
+    header nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
+    header nav a:hover { color: var(--accent); }
+
+    .hero {
+      background: var(--hero-bg); color: var(--hero-text);
+      padding: 64px 24px 56px; text-align: center;
+    }
+    .hero h1 { font-size: 34px; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.01em; }
+    .hero p.lede {
+      max-width: 640px; margin: 0 auto 28px; font-size: 17px; color: var(--hero-muted);
+    }
+    .hero .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 11px 22px; border-radius: 8px; border: none;
+      font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--hero-text); border: 1px solid rgba(255,255,255,0.18); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.14); }
+
+    main { max-width: 1000px; margin: 0 auto; padding: 0 24px 64px; }
+    section { margin-top: 56px; }
+    section h2 { font-size: 22px; margin: 0 0 8px; }
+    section p.section-lede { color: var(--muted); font-size: 15px; max-width: 720px; margin: 0 0 28px; }
+
+    .problems { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .problem {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 22px;
+    }
+    .problem .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--rejected); background: #fdecec;
+      border-radius: 999px; padding: 3px 10px; margin-bottom: 10px;
+    }
+    .problem h3 { font-size: 16px; margin: 0 0 8px; }
+    .problem p { font-size: 14px; color: var(--muted); margin: 0; }
+
+    .arrow { text-align: center; font-size: 22px; color: var(--muted); margin: 24px 0; }
+
+    .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .pillar {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 22px;
+    }
+    .pillar .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--accepted); background: #e8f5ec;
+      border-radius: 999px; padding: 3px 10px; margin-bottom: 10px;
+    }
+    .pillar h3 { font-size: 16px; margin: 0 0 8px; }
+    .pillar p { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+    .pillar code { font-size: 12px; background: #f1f3f5; padding: 1px 5px; border-radius: 4px; }
+
+    .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; }
+    .steps li {
+      counter-increment: step; position: relative; padding: 0 0 24px 44px;
+      border-left: 2px solid var(--border); margin-left: 15px;
+    }
+    .steps li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    .steps li::before {
+      content: counter(step); position: absolute; left: -15px; top: 0;
+      width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff;
+      font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    }
+    .steps h4 { margin: 2px 0 4px; font-size: 15px; }
+    .steps p { margin: 0; font-size: 14px; color: var(--muted); }
+    .steps code { font-size: 12px; background: #f1f3f5; padding: 1px 5px; border-radius: 4px; }
+
+    .scope-box {
+      background: #fff8ec; border: 1px solid #f0d9a6; color: #7a5200;
+      border-radius: 10px; padding: 20px 24px; font-size: 14px;
+    }
+    .scope-box strong { color: #5c3d00; }
+
+    .cta-panel {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+      padding: 32px; text-align: center;
+    }
+    .cta-panel h2 { margin-bottom: 8px; }
+    .cta-panel p { color: var(--muted); margin: 0 0 20px; }
+    .cta-panel .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .btn-outline:hover { background: #eef3ff; }
+
+    footer {
+      max-width: 1000px; margin: 0 auto; padding: 24px 24px 40px;
+      font-size: 12px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap;
+      border-top: 1px solid var(--border); margin-top: 24px;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="{{ url_for('landing.index') }}">AML+18</a>
+    <nav>
+      <a href="{{ url_for('developer_portal.landing') }}">Entwicklerportal</a>
+      <a href="{{ url_for('review_ui.list_decisions') }}">Compliance-Officer</a>
+      <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>Aus einer Blockchain-Adresse eine verifizierte Entität machen</h1>
+    <p class="lede">
+      AML+18 ist der offene, selbst hostbare Compliance-Baustein für
+      Krypto-Projekte in der EU — Sanktionsprüfung, Nachweis der
+      Wallet-Kontrolle und Altersverifikation, fertig implementiert und
+      auf dem tatsächlichen Verordnungstext aufgebaut, nicht auf Annahmen.
+    </p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="{{ url_for('developer_portal.landing') }}">Für Entwickler: loslegen →</a>
+      <a class="btn btn-secondary" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub</a>
+    </div>
+  </div>
+
+  <main>
+
+    <section>
+      <h2>Das Problem: drei Pflichten, die sich niemand aussuchen kann</h2>
+      <p class="section-lede">
+        Wer in der EU Krypto-Transfers abwickelt, Self-Hosted-Wallets bedient
+        oder eine altersbeschränkte Plattform betreibt, muss unabhängig von
+        der eigenen Größe konkrete regulatorische Pflichten erfüllen — sonst
+        drohen Bußgelder, der Verlust der Lizenz oder gar keine Aufnahme des
+        Geschäfts.
+      </p>
+      <div class="problems">
+        <div class="problem">
+          <span class="tag">Travel Rule</span>
+          <h3>Krypto-Transfers ohne Sanktionsprüfung</h3>
+          <p>
+            VO (EU) 2023/1113 verlangt für jeden Krypto-Transfer zwischen
+            zwei Anbietern (CASPs) vollständige Auftraggeber-/Begünstigten-
+            angaben und ein Screening gegen Sanktionslisten — unabhängig
+            von der Transferhöhe, ohne Bagatellgrenze.
+          </p>
+        </div>
+        <div class="problem">
+          <span class="tag">Wallet Ownership</span>
+          <h3>Self-Hosted-Wallets ohne Kontrollnachweis</h3>
+          <p>
+            Ab €1.000 verlangen die EBA-Travel-Rule-Leitlinien und BaFins
+            §15a GwG einen Nachweis, dass der Begünstigte eine Self-Hosted-
+            Adresse tatsächlich besitzt oder kontrolliert — nicht nur, dass
+            sie existiert.
+          </p>
+        </div>
+        <div class="problem">
+          <span class="tag">Altersverifikation</span>
+          <h3>Zugang ohne verlässliche Alterskontrolle</h3>
+          <p>
+            Online-Glücksspiel und Adult-Content-Plattformen benötigen einen
+            belastbaren, datensparsamen 18+-Nachweis — nicht nur ein
+            Selbstauskunfts-Häkchen, das vor keiner Aufsichtsbehörde besteht.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <section style="margin-top: 0;">
+      <h2>Die Lösung: ein Baustein, drei unabhängige Module</h2>
+      <p class="section-lede">
+        Jedes Modul ist eigenständig nutzbar, mit eigenem Einstiegspunkt und
+        eigenen Datenbanktabellen — Sie binden nur das ein, was Ihr Projekt
+        tatsächlich braucht.
+      </p>
+      <div class="pillars">
+        <div class="pillar">
+          <span class="tag">Modul 1</span>
+          <h3>Travel-Rule-Screening</h3>
+          <p>
+            Echtes TRISA-Protokoll (vendoriertes <code>trisacrypto/envoy</code>),
+            Abgleich gegen OFAC-SDN- und EU-Sanktionslisten mit
+            automatischer, planbarer Aktualisierung. Entscheidung
+            Akzeptieren/Prüfen/Ablehnen, nachvollziehbar im
+            Compliance-Dashboard.
+          </p>
+        </div>
+        <div class="pillar">
+          <span class="tag">Modul 2</span>
+          <h3>Wallet-Ownership-Verification</h3>
+          <p>
+            REST-API, sofort einsatzbereit. Zwei EBA-konforme Methoden:
+            signierte Nachricht (keine Blockchain-Infrastruktur nötig) oder
+            kleiner EVM-Testtransfer.
+          </p>
+        </div>
+        <div class="pillar">
+          <span class="tag">Modul 3</span>
+          <h3>Altersverifikation</h3>
+          <p>
+            REST-API, privatsphärenschonend — es wird nur der Ja/Nein-Entscheid
+            gespeichert, nie das Ausweisdokument selbst. Mock-Adapter für
+            lokale Entwicklung, EU-OID4VP-Adapter für den echten Blueprint-Flow.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>So funktioniert es</h2>
+      <ol class="steps">
+        <li>
+          <h4>Selbst hosten</h4>
+          <p>Ein <code>docker compose up</code> startet den gesamten Stack —
+          keine Abhängigkeit von einem externen SaaS-Anbieter, Ihre Daten
+          bleiben in Ihrer Infrastruktur.</p>
+        </li>
+        <li>
+          <h4>Projekt registrieren</h4>
+          <p>Im <a href="{{ url_for('developer_portal.landing') }}">Entwicklerportal</a>
+          in wenigen Sekunden einen API-Schlüssel erhalten — keine
+          Freischaltung, keine Wartezeit.</p>
+        </li>
+        <li>
+          <h4>Modul(e) anbinden</h4>
+          <p>REST-Aufrufe für Wallet-Ownership und Altersverifikation, oder
+          ein eigener TRISA-Knoten für Travel-Rule-Screening — je nachdem,
+          was Ihr Projekt tatsächlich braucht.</p>
+        </li>
+        <li>
+          <h4>Ergebnis im Compliance-Dashboard sehen</h4>
+          <p>Jede Entscheidung mit Begründung, Sanktionslisten-Treffer und
+          manueller Prüfmöglichkeit — inklusive Anzeige, wie aktuell die
+          zugrunde liegende Sanktionsliste ist.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <div class="scope-box">
+        <strong>Was AML+18 nicht ist:</strong> ein fertiges Produkt für ein
+        bestimmtes Geschäftsmodell. Es ist das rechtliche Fundament, auf dem
+        Ihr Projekt aufbaut — was Sie danach damit bauen (Börse, Wallet,
+        Umtauschdienst, Glücksspielplattform) und welche Lizenzen und
+        Genehmigungen dafür zusätzlich nötig sind, liegt außerhalb dieses
+        Bausteins.
+      </div>
+    </section>
+
+    <section>
+      <div class="cta-panel">
+        <h2>Bereit anzufangen?</h2>
+        <p>Open Source, MIT-lizenziert, in wenigen Minuten lokal lauffähig.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="{{ url_for('developer_portal.landing') }}">Zum Entwicklerportal →</a>
+          <a class="btn btn-outline" href="{{ url_for('review_ui.list_decisions') }}">Zum Compliance-Officer-Dashboard →</a>
+          <a class="btn btn-outline" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Open Source, MIT-lizenziert, selbst hostbar</span>
+    <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
+    <a href="https://github.com/pilipandr770/AML-18/blob/main/ANFORDERUNGEN.md" target="_blank" rel="noopener">Rechtsgrundlagen (ANFORDERUNGEN.md) →</a>
+  </footer>
+</body>
+</html>

@@ -82,6 +82,10 @@ gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
     API-Schlüssel erhalten, Integrationsanleitung. Gate für die beiden
     REST-APIs (`wallet_ownership`, `ageverify`), die ohne gültigen
     API-Schlüssel `401` zurückgeben.
+  - `landing/` — die Startseite (`/`): erklärt Problem und Lösung auf
+    Deutsch (die drei regulatorischen Pflichten und wie die drei Module
+    sie abdecken), verlinkt weiter zu Entwicklerportal, Compliance-
+    Officer-Oberfläche und GitHub.
 - **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
   EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
   Verifier-Backend, technische Spezifikation).
@@ -129,6 +133,7 @@ vollständige Neuinitialisierung). Sie erledigen:
    können.
 
 Danach:
+- Startseite (Projektübersicht, Problem/Lösung): `http://localhost:8300/`
 - Compliance-Officer-Oberfläche: `http://localhost:8300/review/`
 - Envoy Web-UI: `http://localhost:8000/`
 - EU-Verifier-Backend: `http://localhost:8080/`
@@ -271,6 +276,11 @@ den lokalen Stack.
 - **Linux/macOS-Bootstrap**: `scripts/bootstrap.sh`, funktional identisch
   zu `scripts/bootstrap.ps1`, idempotent gegen einen bereits laufenden
   Stack getestet.
+- **Startseite**: `/` rendert jetzt eine eigene Projektübersicht (Problem/
+  Lösung, drei Module, Scope-Abgrenzung) statt direkt auf das
+  Entwicklerportal weiterzuleiten — das Entwicklerportal bleibt der
+  technische Einstieg für bereits entschlossene Entwickler, die Startseite
+  ist der allgemeine Erklärtext davor.
 - **Offen**: GlüStV-Rechtsgrundlagen für den Glücksspiel-Anwendungsfall
   (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
   Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad
