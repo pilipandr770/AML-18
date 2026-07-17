@@ -1,5 +1,7 @@
 # AML+18
 
+[![CI](https://github.com/pilipandr770/AML-18/actions/workflows/ci.yml/badge.svg)](https://github.com/pilipandr770/AML-18/actions/workflows/ci.yml)
+
 Ein offener, selbst hostbarer Compliance-Baustein für Krypto-Projekte im
 EU-Raum. Ziel ist **kein** fertiges Produkt für ein bestimmtes Geschäftsmodell
 (Börse, Umtauschdienst, Wallet, Casino, Adult-Plattform) — sondern das

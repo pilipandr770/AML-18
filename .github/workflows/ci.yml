@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: pytest (compliance-service)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: compliance-service/requirements-dev.txt
+
+      - name: Install dependencies
+        working-directory: compliance-service
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        working-directory: compliance-service
+        run: python -m pytest -v
+
+  docker-build:
+    name: docker compose build
+    runs-on: ubuntu-latest
+    env:
+      GIT_REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose config
+        run: docker compose config --quiet
+
+      - name: Build all images
+        run: docker compose build

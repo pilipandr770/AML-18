@@ -19,6 +19,25 @@ infrastructure. The Travel Rule pillar now has a real entry-point demo
 (`examples/travel-rule-demo/`) proving that an external project connecting
 over the actual TRISA protocol gets screened automatically.
 
+## 2026-07-17 Update: GitHub Actions CI
+
+Added `.github/workflows/ci.yml`, two independent jobs on push-to-main and
+every PR: `test` (Python 3.12, `pip install -r requirements-dev.txt`,
+`pytest -v` in `compliance-service/`) and `docker-build` (`docker compose
+config --quiet` then `docker compose build` for the whole stack --
+`envoy.local`, `compliance.local`, `ageverify-verifier` all have real
+`build:` blocks and get validated; `gds.local`/`counterparty.local`/
+`postgres` reuse prebuilt or already-built images, no separate build
+needed). `GIT_REVISION` is set to `${{ github.sha }}` at the job level so
+the compose build args resolve to something meaningful instead of an
+empty-string warning.
+
+Deliberately scoped to build validation, not a full bootstrap+e2e run in
+CI -- spinning up the whole local TRISA sandbox (cert generation, GDS
+init, directory sync) in a CI runner is a separate, meaningfully riskier
+piece of work flagged as its own follow-up, not bundled into this pass.
+Added a CI status badge to the top of README.md.
+
 ## 2026-07-17 Update: PostgreSQL + real Alembic migrations
 
 Following an external review (SWOT-style read of the repo), addressed the
