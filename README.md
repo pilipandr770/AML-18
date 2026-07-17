@@ -102,21 +102,22 @@ eingebautes Test-Tool), Git Bash/`openssl` unter Windows für die lokale
 Zertifikatsgenerierung.
 
 ```
-powershell -File scripts/bootstrap.ps1
+powershell -File scripts/bootstrap.ps1     # Windows
+bash scripts/bootstrap.sh                  # Linux/macOS
 ```
 
-Das Skript ist idempotent — bereits vorhandene Zertifikate, GDS-Registrierung,
-API-Schlüssel und der Webhook-HMAC-Key werden übersprungen, nicht neu
-erzeugt (Flag `-Reset` erzwingt eine vollständige Neuinitialisierung). Es
-erledigt:
+Beide Skripte sind funktional identisch und idempotent — bereits vorhandene
+Zertifikate, GDS-Registrierung, API-Schlüssel und der Webhook-HMAC-Key
+werden übersprungen, nicht neu erzeugt (`-Reset`/`--reset` erzwingt eine
+vollständige Neuinitialisierung). Sie erledigen:
 
 1. `.env` aus `.env.example` anlegen, `GIT_REVISION` setzen.
 2. Lokale TLS-Sandbox-Zertifikate erzeugen (`envoy/.secret/generate.sh`).
 3. `docker compose build && docker compose up -d` — startet den gesamten
    Stack: `gds.local`, `envoy.local`, `counterparty.local`, `postgres`,
-   `compliance.local`, `ageverify-verifier`. `compliance.local` wartet auf
-   den Postgres-Healthcheck und wendet beim Start automatisch alle
-   Alembic-Migrationen an (`flask db upgrade`, siehe
+   `compliance.local`, `ageverify-verifier`, `sanctions-cron`.
+   `compliance.local` wartet auf den Postgres-Healthcheck und wendet beim
+   Start automatisch alle Alembic-Migrationen an (`flask db upgrade`, siehe
    `compliance-service/migrations/`).
 4. Beide TRISA-Knoten bei der lokalen Verzeichnis-Sandbox registrieren
    (`go run ./cmd/fsi gds:init`).
@@ -146,6 +147,23 @@ zweite Aufruf verwendet einen Namen, live abgefragt aus der bereits
 eingespielten OFAC-/EU-Sanktionsliste — Ergebnis: **review**/**rejected**,
 mit sichtbarem Treffer, Score und Begründung. Details:
 `examples/travel-rule-demo/README.md`.
+
+## Sanktionsliste aktuell halten
+
+Der Service `sanctions-cron` (im Docker-Compose-Stack enthalten) ruft
+`flask sanctions-ingest` in einem festen Intervall auf (Standard: täglich,
+`SANCTIONS_CRON_INTERVAL_SECONDS` in `.env`) — ein frischer Checkout screent
+also nicht dauerhaft gegen den Stand vom Tag des Klonens. Jede Quelle wird
+unabhängig aktualisiert: Ist eine Quelle vorübergehend nicht erreichbar
+(z. B. geo-blockiert), blockiert das nicht die anderen.
+
+Das Alter der jeweils aktiven Liste je Quelle (`OFAC_SDN`, `EU_FSF`) steht
+in der Kopfzeile der Compliance-Officer-Oberfläche (`/review/`) — rot
+markiert, sobald es `SANCTIONS_STALENESS_WARNING_DAYS` (Standard: 7 Tage)
+überschreitet oder eine Quelle noch nie erfolgreich geladen wurde. Eine
+Entscheidung gegen eine veraltete Liste ist eine echte Compliance-Lücke,
+kein reines UI-Detail — daher ist der Hinweis immer sichtbar, nicht in
+einer Einstellungsseite versteckt.
 
 ## Entwicklerportal (`/developer/`)
 
@@ -235,8 +253,24 @@ den lokalen Stack.
   `/launch`/`qr.svg`) sind jetzt hinter dem Schlüssel geschlossen (vorher:
   komplett offen — ein echtes, jetzt geschlossenes Sicherheitsloch).
 - **Compliance-Officer-Oberfläche**: Entscheidungsliste, Detailansicht mit
-  Begründung, manuelle Prüfung mit Audit-Log. Noch **ohne
-  Authentifizierung** — vor jedem echten Einsatz nachzurüsten.
+  Begründung, manuelle Prüfung mit Audit-Log, sichtbares Alter der aktiven
+  Sanktionsliste je Quelle. Noch **ohne Authentifizierung** — vor jedem
+  echten Einsatz nachzurüsten.
+- **Sanktionslisten-Aktualisierung**: `sanctions-cron`-Sidecar-Service
+  (Docker-Compose) hält die Listen automatisch aktuell, unabhängig pro
+  Quelle. Beim Aufbau live gegen Postgres verifiziert und dabei ein echter
+  Bug gefunden und behoben: `nationality`/`country_of_residence` waren als
+  `VARCHAR(4)` modelliert (ISO-3166-1-Alpha-2-Annahme), beide Parser liefern
+  aber volle Ländernamen — SQLite hat das nie geprüft, Postgres hat die
+  Einfügung mit einem `StringDataRightTruncation`-Fehler abgebrochen.
+  Behoben durch Spaltenverbreiterung (Migration `445402baca5a`) plus
+  Härtung von `ingest_all()`: ein Quellen-Fetch-Fehler (z. B. der bekannte
+  EU-FSF-403 aus Nicht-EU-Netzen) erzeugt jetzt einen `failed`-Audit-Eintrag
+  statt den gesamten Lauf abzubrechen, sodass andere Quellen trotzdem
+  aktualisiert werden.
+- **Linux/macOS-Bootstrap**: `scripts/bootstrap.sh`, funktional identisch
+  zu `scripts/bootstrap.ps1`, idempotent gegen einen bereits laufenden
+  Stack getestet.
 - **Offen**: GlüStV-Rechtsgrundlagen für den Glücksspiel-Anwendungsfall
   (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
   Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad

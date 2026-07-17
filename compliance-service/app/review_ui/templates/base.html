@@ -39,6 +39,8 @@
     .badge.review { background: var(--review); }
     .badge.rejected { background: var(--rejected); }
     .muted { color: var(--muted); }
+    .freshness { margin-left: auto; display: flex; gap: 10px; font-size: 12px; color: var(--muted); }
+    .freshness .stale { color: var(--rejected); font-weight: 600; }
     .filters { margin-bottom: 12px; font-size: 14px; }
     .filters a {
       margin-right: 10px; padding: 4px 10px; border-radius: 6px;
@@ -66,6 +68,17 @@
     <nav>
       <a href="{{ url_for('review_ui.list_decisions') }}">Entscheidungen</a>
     </nav>
+    <div class="freshness" title="Alter der aktiven Sanktionsliste je Quelle">
+      {% for row in sanctions_freshness %}
+        {% if row.age_days is none %}
+          <span class="stale">{{ row.source }}: keine aktive Liste</span>
+        {% else %}
+          <span{% if row.age_days > sanctions_staleness_warning_days %} class="stale"{% endif %}>
+            {{ row.source }}: Liste vor {{ row.age_days }} {{ "Tag" if row.age_days == 1 else "Tagen" }}
+          </span>
+        {% endif %}
+      {% endfor %}
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}

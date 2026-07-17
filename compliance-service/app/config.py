@@ -25,6 +25,12 @@ class Config:
         os.environ.get("SCREENING_AUTO_REJECT_EXACT_MATCH", "false").lower() == "true"
     )
 
+    # A sanctions source whose active snapshot is older than this many days
+    # is flagged as stale in the compliance-officer UI (see
+    # app/sanctions/freshness.py) -- a real screening decision made against
+    # an outdated list is a compliance gap, not just a UI nicety.
+    SANCTIONS_STALENESS_WARNING_DAYS = int(os.environ.get("SANCTIONS_STALENESS_WARNING_DAYS", "7"))
+
     # Age verification defaults. The implementation stores only an opaque
     # platform subject reference plus a hash of the received proof token --
     # never the raw token or source identity document payload.

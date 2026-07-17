@@ -38,8 +38,13 @@ class SanctionedEntity(db.Model):
     primary_name = db.Column(db.String(256), nullable=False)
     date_of_birth = db.Column(db.String(32), nullable=True)  # kept as string: sources give partial/fuzzy DOBs
     place_of_birth = db.Column(db.String(256), nullable=True)
-    nationality = db.Column(db.String(4), nullable=True)  # ISO 3166-1 alpha-2 where known
-    country_of_residence = db.Column(db.String(4), nullable=True)
+    # Sources hand back whatever form they use internally -- OFAC SDN and the
+    # EU FSF both give full country names ("United Kingdom"), not ISO 3166-1
+    # alpha-2 codes -- so this is not a fixed-width code despite the column's
+    # original intent. Widened after Postgres's strict VARCHAR length caught
+    # what SQLite silently truncated.
+    nationality = db.Column(db.String(256), nullable=True)
+    country_of_residence = db.Column(db.String(256), nullable=True)
     national_ids = db.Column(db.JSON, nullable=True)  # [{type, value}]
     addresses = db.Column(db.JSON, nullable=True)
     programs = db.Column(db.JSON, nullable=True)  # sanctions program tags, e.g. ["SDGT"]

@@ -186,6 +186,7 @@ services:
       - WEBHOOK_AUTH_KEY_ID=${WEBHOOK_AUTH_KEY_ID}
       - WEBHOOK_AUTH_KEY_SECRET=${WEBHOOK_AUTH_KEY_SECRET}
       - WEBHOOK_SIGN_REPLIES=${WEBHOOK_SIGN_REPLIES:-false}
+      - SANCTIONS_STALENESS_WARNING_DAYS=${SANCTIONS_STALENESS_WARNING_DAYS:-7}
       - AGEVERIFY_DEFAULT_ADAPTER=${AGEVERIFY_DEFAULT_ADAPTER:-eu_oid4vp}
       - AGEVERIFY_MIN_AGE=${AGEVERIFY_MIN_AGE:-18}
       - AGEVERIFY_EU_VERIFIER_BASE_URL=${AGEVERIFY_EU_VERIFIER_BASE_URL:-http://ageverify-verifier:8080}
@@ -204,6 +205,29 @@ services:
     container_name: ageverify-verifier
     ports:
       - "8080:8080"
+
+  # Refreshes the sanctions lists (OFAC SDN, EU FSF) on a fixed interval so
+  # a fresh clone doesn't screen against a list that's stale from the day
+  # it was cloned. Reuses the compliance-service image built above --
+  # `docker compose build` must run before `up` so the image already
+  # exists locally (scripts/bootstrap.ps1 / bootstrap.sh do this in order).
+  # The compliance-officer UI header shows each source's current age (see
+  # app/sanctions/freshness.py); this service is what keeps that age low.
+  sanctions-cron:
+    image: aml18/compliance-service
+    container_name: aml18-sanctions-cron
+    depends_on:
+      compliance.local:
+        condition: service_started
+    command: ["./docker/cron-entrypoint.sh"]
+    volumes:
+      - ./compliance-service/tmp/data:/data
+    env_file:
+      - path: ./compliance-service/.env
+        required: false
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://aml18:aml18@postgres:5432/aml18}
+      - SANCTIONS_CRON_INTERVAL_SECONDS=${SANCTIONS_CRON_INTERVAL_SECONDS:-86400}
 
 volumes:
   postgres-data:

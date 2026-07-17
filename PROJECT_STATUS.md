@@ -1,6 +1,6 @@
 # Project Status
 
-Date: 2026-07-16
+Date: 2026-07-17
 Repository: AML-18
 
 ## Summary
@@ -121,6 +121,60 @@ versioning, no ALTER-TABLE path for future schema changes).
   Postgres (`SELECT` confirmed the row), the Travel Rule demo
   (`send_transfer.py --clean`) and the AV E2E script both re-run clean
   against the Postgres-backed stack.
+
+## 2026-07-17 Update: Linux bootstrap, sanctions freshness + auto-refresh cron
+
+- **`scripts/bootstrap.sh`**: bash equivalent of `bootstrap.ps1` for
+  Linux/macOS, same six steps, same idempotent skip logic (`--reset` to
+  force). Verified against an already-bootstrapped stack: every step
+  correctly detected existing state and skipped, only `docker compose
+  build`/`up -d` re-ran (as expected, since it also refreshes
+  `GIT_REVISION`).
+- **Sanctions list freshness indicator**: `app/sanctions/freshness.py`
+  reports each source's active-snapshot age; rendered in the
+  compliance-officer UI header (`review_ui/templates/base.html`) on every
+  page, red once `SANCTIONS_STALENESS_WARNING_DAYS` (default 7) is
+  exceeded or a source has no active snapshot at all.
+- **`sanctions-cron` sidecar service** (`docker-compose.yml`): reuses the
+  already-built `compliance-service` image, loops `flask sanctions-ingest`
+  every `SANCTIONS_CRON_INTERVAL_SECONDS` (default 86400 = daily) via
+  `compliance-service/docker/cron-entrypoint.sh`. Self-contained default so
+  a fresh clone doesn't screen against a list frozen at clone time, without
+  requiring the user to wire up host crontab themselves.
+- **Two real bugs found and fixed** while verifying the cron sidecar's
+  first live run against Postgres (this data path -- ingesting the full
+  live OFAC SDN feed with real free-text country fields -- had never
+  actually run against Postgres before; earlier verification used SQLite
+  or small XML fixtures):
+  1. `SanctionedEntity.nationality` / `.country_of_residence` were
+     `db.String(4)` (an unstated ISO-3166-1-alpha-2 assumption baked into
+     the original schema), but neither `ofac_sdn.py` nor `eu_fsf.py` ever
+     produces an alpha-2 code -- both hand back the source's full country
+     name (e.g. "United Kingdom", 14 chars). SQLite never enforces VARCHAR
+     length so this silently truncated-or-passed locally; Postgres raised
+     `StringDataRightTruncation` and aborted the whole ingest. Fixed by
+     widening both columns to `String(256)` (migration `445402baca5a`) and
+     correcting the stale comment.
+  2. `ingest_source()` only wrapped the parse stage in try/except -- a
+     `fetch()`-level failure (e.g. the already-known EU FSF 403 from
+     non-EU IPs) propagated straight out of `ingest_all()` uncaught,
+     which meant one unreachable source silently prevented every
+     *subsequent* source in `REGISTERED_SOURCES` from refreshing at all,
+     with no audit trail of the failed attempt. Fixed: `fetch()` failures
+     now also produce a `failed` `ListSnapshot` row (empty `content_hash`,
+     `error_detail` set), and `ingest_all()` now iterates every source
+     independently, logging and continuing past a failure instead of
+     aborting the batch. Directly relevant to `sanctions-cron`'s whole
+     purpose -- an unattended job that dies on the first blocked source
+     defeats the point.
+  Verified live: `sanctions-cron` now refreshes `OFAC_SDN` (19,217 records)
+  cleanly every cycle; `EU_FSF` logs its known 403 and gets a `failed`
+  audit row without blocking `OFAC_SDN`, visible in the UI header as
+  "EU_FSF: keine aktive Liste" in red next to a fresh "OFAC_SDN: Liste vor
+  0 Tagen".
+- 6 new tests (`test_sanctions_freshness.py`, plus two `review_ui` header
+  tests and two `ingest.py` resilience tests) -- full suite: 100/100
+  passing.
 
 ## What Is Implemented
 

@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /data && chmod +x docker/entrypoint.sh
+RUN mkdir -p /data && chmod +x docker/entrypoint.sh docker/cron-entrypoint.sh
 
 EXPOSE 8300
 

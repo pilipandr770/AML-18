@@ -22,7 +22,24 @@ REGISTERED_SOURCES = [OFACSDNSource, EUFSFSource]
 
 
 def ingest_source(source) -> ListSnapshot:
-    raw = source.fetch()
+    try:
+        raw = source.fetch()
+    except Exception as exc:
+        # No content was ever downloaded, so there's nothing to hash -- but
+        # still record the attempt so a source that's unreachable (e.g.
+        # geo-blocked) shows up in the audit trail and in the officer UI's
+        # freshness header, instead of just vanishing from the logs.
+        db.session.add(ListSnapshot(
+            source=source.name,
+            source_url=source.source_url,
+            content_hash="",
+            status="failed",
+            error_detail=str(exc),
+        ))
+        db.session.commit()
+        logger.error("sanctions fetch failed for %s: %s", source.name, exc)
+        raise
+
     content_hash = hashlib.sha256(raw).hexdigest()
 
     existing_active = ListSnapshot.query.filter_by(
@@ -104,4 +121,14 @@ def ingest_source(source) -> ListSnapshot:
 
 
 def ingest_all() -> list:
-    return [ingest_source(source_cls()) for source_cls in REGISTERED_SOURCES]
+    """Refreshes every registered source independently -- one source being
+    unreachable (a transient outage, or a permanently geo-blocked endpoint)
+    must not prevent the others from refreshing, since this drives the
+    unattended `sanctions-cron` sidecar as well as the manual CLI command."""
+    results = []
+    for source_cls in REGISTERED_SOURCES:
+        try:
+            results.append(ingest_source(source_cls()))
+        except Exception:
+            logger.exception("skipping %s after ingestion failure", source_cls.name)
+    return results

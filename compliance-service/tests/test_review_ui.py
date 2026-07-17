@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from app.audit.models import AuditLog
 from app.screening.models import ScreeningDecision, ScreeningMatch
 
@@ -94,6 +96,48 @@ def test_override_decision_persists_and_logs_audit(client, app):
         audit_rows = AuditLog.query.filter_by(target_id=str(decision_id)).all()
         assert len(audit_rows) == 1
         assert audit_rows[0].action == "screening_decision_override"
+
+
+def test_header_shows_fresh_sanctions_list_without_warning(client, app):
+    with app.app_context():
+        from app.extensions import db
+        from app.sanctions.models import ListSnapshot
+
+        db.session.add(ListSnapshot(
+            source="OFAC_SDN",
+            source_url="https://example.test/list.xml",
+            content_hash="deadbeef",
+            record_count=10,
+            status="active",
+            activated_at=datetime.now(timezone.utc) - timedelta(days=1),
+        ))
+        db.session.commit()
+
+    resp = client.get("/review/")
+    assert resp.status_code == 200
+    assert b"OFAC_SDN: Liste vor 1 Tag" in resp.data
+    assert b'class="stale"' not in resp.data
+
+
+def test_header_flags_stale_sanctions_list(client, app):
+    with app.app_context():
+        from app.extensions import db
+        from app.sanctions.models import ListSnapshot
+
+        db.session.add(ListSnapshot(
+            source="OFAC_SDN",
+            source_url="https://example.test/list.xml",
+            content_hash="deadbeef",
+            record_count=10,
+            status="active",
+            activated_at=datetime.now(timezone.utc) - timedelta(days=10),
+        ))
+        db.session.commit()
+
+    resp = client.get("/review/")
+    assert resp.status_code == 200
+    assert b"OFAC_SDN: Liste vor 10 Tagen" in resp.data
+    assert b'class="stale"' in resp.data
 
 
 def test_override_decision_requires_all_fields(client, app):

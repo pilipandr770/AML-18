@@ -1,11 +1,12 @@
 from collections import OrderedDict
 from datetime import datetime, timezone
 
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, redirect, render_template, request, url_for
 from sqlalchemy import select
 
 from app.audit.models import AuditLog
 from app.extensions import db
+from app.sanctions.freshness import get_freshness
 from app.screening.models import ScreeningDecision, ScreeningMatch
 
 review_bp = Blueprint("review_ui", __name__, url_prefix="/review", template_folder="templates")
@@ -26,7 +27,12 @@ PARTY_ROLE_LABELS = {
 
 @review_bp.context_processor
 def inject_labels():
-    return {"decision_labels": DECISION_LABELS, "party_role_labels": PARTY_ROLE_LABELS}
+    return {
+        "decision_labels": DECISION_LABELS,
+        "party_role_labels": PARTY_ROLE_LABELS,
+        "sanctions_freshness": get_freshness(),
+        "sanctions_staleness_warning_days": current_app.config["SANCTIONS_STALENESS_WARNING_DAYS"],
+    }
 
 
 @review_bp.get("/health")
