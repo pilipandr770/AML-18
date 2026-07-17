@@ -19,6 +19,45 @@ infrastructure. The Travel Rule pillar now has a real entry-point demo
 (`examples/travel-rule-demo/`) proving that an external project connecting
 over the actual TRISA protocol gets screened automatically.
 
+## 2026-07-17 Update: PostgreSQL + real Alembic migrations
+
+Following an external review (SWOT-style read of the repo), addressed the
+top flagged risk: SQLite as the implicit production datastore for an
+auditable AML service, with no real schema-migration story (`flask
+init-db` was just `db.create_all()` on every container start, no
+versioning, no ALTER-TABLE path for future schema changes).
+
+- Added a `postgres` service to `docker-compose.yml` (postgres:16-alpine,
+  named volume, healthcheck; `compliance.local` now `depends_on:
+  condition: service_healthy` on it) -- Postgres is the new default
+  `DATABASE_URL` for the docker-compose stack. SQLite remains fully
+  supported for local dev outside Docker (just point `DATABASE_URL` at a
+  sqlite file) -- nothing in the ORM layer was Postgres/SQLite-specific
+  (audited: no raw SQL, no SQLite PRAGMA usage, no dialect-specific column
+  types anywhere in the 12 models).
+- Set up real Alembic migrations (`compliance-service/migrations/`):
+  generated the initial schema migration against a live Postgres
+  container (all 12 tables, indexes, and foreign keys came out correct on
+  the first autogenerate), removed the `init-db` CLI command entirely
+  (nothing referenced it outside its own definition), and changed
+  `docker/entrypoint.sh` to run `flask db upgrade` instead.
+- Verified a genuinely fresh deployment, not just an idempotent re-run:
+  deleted the `aml18_postgres-data` volume, rebuilt `compliance.local`,
+  brought the stack up from nothing, and confirmed `flask db upgrade`
+  correctly created all 12 tables via migration history alone. Caught a
+  real bug in the process: the root `.env` file (not `.env.example`) still
+  had the old `DATABASE_URL=sqlite:...` value from before this change, so
+  the `${DATABASE_URL:-postgresql+psycopg://...}` default in
+  `docker-compose.yml` never kicked in until `.env` itself was updated --
+  a reminder that `.env.example` edits don't propagate to an existing
+  `.env`.
+- Full regression after the switch: 91/91 pytest (still against in-memory
+  SQLite, unaffected and intentionally fast), a live developer-portal
+  signup + gated wallet-ownership call verified to actually persist in
+  Postgres (`SELECT` confirmed the row), the Travel Rule demo
+  (`send_transfer.py --clean`) and the AV E2E script both re-run clean
+  against the Postgres-backed stack.
+
 ## What Is Implemented
 
 - **Unified deployment**: `docker-compose.yml` at repo root (5 services),
@@ -168,7 +207,12 @@ over the actual TRISA protocol gets screened automatically.
 
 - Local ports: compliance-service 8300, Envoy web UI 8000, Envoy TRISA node
   8100, Envoy TRP 8200, counterparty web UI 9000/9100, local GDS
-  4433-4435, EU AV verifier 8080.
+  4433-4435, EU AV verifier 8080, Postgres 5432.
+- Schema changes go through Alembic from now on:
+  `flask --app wsgi db migrate -m "..."` to generate, `flask --app wsgi db
+  upgrade` to apply (the Docker entrypoint already does this on every
+  start). Never hand-edit the schema or reach for `db.create_all()` again
+  outside test fixtures.
 - Default adapter for `/age-verify/check` in the Docker stack is
   `eu_oid4vp`; pass `"adapter": "mock"` explicitly for the deterministic
   mock path.

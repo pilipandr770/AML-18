@@ -146,6 +146,23 @@ services:
       - TRISA_TRP_POOL=/run/secrets/localhost.pem.gz
       - TRISA_TRP_CERTS=/run/secrets/server.pem.gz
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: aml18-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-aml18}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aml18}
+      - POSTGRES_DB=${POSTGRES_DB:-aml18}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aml18}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   compliance.local:
     build:
       context: ./compliance-service
@@ -153,7 +170,10 @@ services:
     image: aml18/compliance-service
     container_name: compliance.local
     depends_on:
-      - ageverify-verifier
+      ageverify-verifier:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     ports:
       - "8300:8300"
     volumes:
@@ -161,7 +181,7 @@ services:
     env_file:
       - ./compliance-service/.env
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/compliance.db}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://aml18:aml18@postgres:5432/aml18}
       - WEBHOOK_AUTH_KEY_ID=${WEBHOOK_AUTH_KEY_ID}
       - WEBHOOK_AUTH_KEY_SECRET=${WEBHOOK_AUTH_KEY_SECRET}
       - WEBHOOK_SIGN_REPLIES=${WEBHOOK_SIGN_REPLIES:-false}
@@ -183,6 +203,9 @@ services:
     container_name: ageverify-verifier
     ports:
       - "8080:8080"
+
+volumes:
+  postgres-data:
 
 secrets:
   localhost.pem.gz:

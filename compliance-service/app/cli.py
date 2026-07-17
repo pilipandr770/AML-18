@@ -1,15 +1,5 @@
 import click
 
-from app.extensions import db
-
-
-@click.command("init-db")
-def init_db_command():
-    """Create all tables. A placeholder for proper Alembic migrations,
-    sufficient for Phase 0/1 while the schema is still moving fast."""
-    db.create_all()
-    click.echo("database tables created")
-
 
 @click.command("sanctions-ingest")
 def sanctions_ingest_command():
@@ -22,5 +12,4 @@ def sanctions_ingest_command():
 
 
 def register_cli(app):
-    app.cli.add_command(init_db_command)
     app.cli.add_command(sanctions_ingest_command)

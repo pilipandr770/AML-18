@@ -86,6 +86,13 @@ gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
 - **`examples/travel-rule-demo/`** — Demo-Skripte, die den Travel-Rule-
   Einstiegspunkt end-to-end vorführen (siehe unten).
 
+Datenbank: Postgres ist der Standard-Datenspeicher im Docker-Compose-Stack
+(Service `postgres`, versioniert über Alembic-Migrationen in
+`compliance-service/migrations/`). Für lokale Entwicklung außerhalb von
+Docker funktioniert auch SQLite (`compliance-service/.env.example`) —
+`DATABASE_URL` einfach umbiegen, SQLAlchemy/Alembic ist dabei egal, welche
+Engine dahintersteckt.
+
 ## Schnellstart
 
 Voraussetzungen: Docker, Docker Compose, Go (für `cmd/fsi`, Envoys
@@ -104,8 +111,11 @@ erledigt:
 1. `.env` aus `.env.example` anlegen, `GIT_REVISION` setzen.
 2. Lokale TLS-Sandbox-Zertifikate erzeugen (`envoy/.secret/generate.sh`).
 3. `docker compose build && docker compose up -d` — startet den gesamten
-   Stack: `gds.local`, `envoy.local`, `counterparty.local`,
-   `compliance.local`, `ageverify-verifier`.
+   Stack: `gds.local`, `envoy.local`, `counterparty.local`, `postgres`,
+   `compliance.local`, `ageverify-verifier`. `compliance.local` wartet auf
+   den Postgres-Healthcheck und wendet beim Start automatisch alle
+   Alembic-Migrationen an (`flask db upgrade`, siehe
+   `compliance-service/migrations/`).
 4. Beide TRISA-Knoten bei der lokalen Verzeichnis-Sandbox registrieren
    (`go run ./cmd/fsi gds:init`).
 5. API-Schlüssel für `envoy.local`/`counterparty.local` erzeugen (für
