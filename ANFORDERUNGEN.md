@@ -28,8 +28,8 @@ Jede Aussage ist daher mit einem der folgenden Vertrauensgrade markiert:
 | A1 | Die Verordnung gilt ab **30. Dezember 2024** und erweitert den Rahmen der Verordnung (EU) 2015/847 auf Krypto-Transfers von in der EU registrierten Zahlungs-/Krypto-Dienstleistern. | [EUR-Lex, Zusammenfassung](https://eur-lex.europa.eu/EN/legal-content/summary/information-accompanying-transfers-of-funds-and-certain-crypto-assets.html) | 🟢 |
 | A2 | Krypto-Transfers müssen von Auftraggeber- und Begünstigtenangaben begleitet werden: **Name, DLT-Adresse, Krypto-Konto-Nummer**. | [EUR-Lex, Zusammenfassung](https://eur-lex.europa.eu/EN/legal-content/summary/information-accompanying-transfers-of-funds-and-certain-crypto-assets.html) | 🟢 |
 | A3 | Für Transfers zwischen zwei CASPs gibt es **keine Bagatellgrenze** — vollständige Auftraggeber-/Begünstigtenangaben sind immer erforderlich. Für Transfers von/zu **Self-Hosted-Wallets (unhosted)** gilt ab **€1.000** eine zusätzliche Pflicht: Prüfen, ob der Begünstigte die Adresse tatsächlich besitzt/kontrolliert. | [EUR-Lex](https://eur-lex.europa.eu/EN/legal-content/summary/information-accompanying-transfers-of-funds-and-certain-crypto-assets.html) | 🟢 |
-| A4 | Nach Art. 14(1)–(2) TFR müssen konkret folgende Auftraggeberdaten mitgeführt werden: Name, DLT-Adresse und/oder Krypto-Konto-Nummer, sowie Adresse **oder** amtliche Dokumentennummer **oder** Kundennummer **oder** Geburtsdatum/-ort, zusätzlich LEI (oder gleichwertige Kennung) sofern vorhanden. Entsprechendes gilt für den Begünstigten. | [EUR-Lex, Volltext](https://eur-lex.europa.eu/eli/reg/2023/1113/oj/eng) | 🟡 |
-| A5 | ⚠️ Zum Anwendungsbereich bei CASP-zu-CASP-Transfers gibt es zwei unterschiedliche Lesarten in den Quellen: (a) eine Nulltoleranz-Regel (alle Transfers brauchen volle Daten, unabhängig von der Höhe) versus (b) ein möglicher **Ausschluss** bestimmter CASP-zu-CASP-Transfers vom Anwendungsbereich nach Art. 2(4)(a), wenn beide Seiten im eigenen Namen handeln. **Vor Implementierung den Verordnungstext (Art. 2(4)(a) und Art. 14(5)) direkt prüfen.** | EUR-Lex, zwei widersprüchliche Extraktionen | ⚠️ |
+| A4 | **Präzisiert gegen den Volltext** (vorherige Fassung hatte die Oder-Verknüpfung falsch dargestellt). Nach Art. 14(1) TFR müssen für den Auftraggeber mitgeführt werden: (a) Name; (b) DLT-Adresse (falls DLT-basiert) und Krypto-Konto-Nummer, sofern ein solches Konto existiert und für die Transaktion genutzt wird; (c) Krypto-Konto-Nummer (falls **nicht** DLT-basiert); (d) **entweder** [Adresse inkl. Land + amtliche Dokumentennummer + Kundennummer] **oder alternativ** Geburtsdatum/-ort — diese vier Felder sind kein Blumenstrauß frei kombinierbarer Alternativen, sondern zwei feste Bündel, von denen eines vollständig vorliegen muss; (e) LEI (oder gleichwertige Kennung), sofern im Nachrichtenformat vorgesehen und vom Auftraggeber bereitgestellt. Nach Art. 14(2) sind für den Begünstigten nur Name, DLT-Adresse und/oder Krypto-Konto-Nummer sowie LEI nötig — **kein** Adress-/Geburtsdatum-Bündel wie beim Auftraggeber (die volle Identitätsprüfung nach (d) gilt nur für den Auftraggeber). | [EUR-Lex, konsolidierter Volltext, Art. 14(1)-(2)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32023R1113) | 🟢 |
+| A5 | **Geklärt durch Prüfung des Verordnungsvolltexts (EUR-Lex, konsolidierte Fassung).** Art. 2(4) enthält *zwei getrennte, beide mit „(a)"/„(b)" durchnummerierte* Ausschlusslisten innerhalb desselben Absatzes — eine für Geldtransfers (PSPs), eine eigene für Krypto-Transfers (CASPs). Das ist vermutlich die Ursache des scheinbaren Widerspruchs: je nachdem, welche der beiden „(a)"-Listen eine Quelle gelesen hat, kam sie zu einem anderen Ergebnis. Der krypto-spezifische Ausschluss lautet wörtlich: „This Regulation shall not apply to a transfer of crypto-assets where any of the following conditions is met: (a) both the originator and the beneficiary are crypto-asset service providers acting on their own behalf; (b) the transfer constitutes a person-to-person transfer of crypto-assets carried out without the involvement of a crypto-asset service provider." Ergänzt durch Erwägungsgrund 22, der dieselbe Regel im Vorspann vorwegnimmt. **Praktische Bedeutung:** Das ist **kein** genereller Freibrief für CASP-zu-CASP-Transfers — er greift nur, wenn *beide* Seiten für eigene Rechnung handeln (z. B. Treasury-Bewegungen zwischen den eigenen Wallets zweier Börsen), nicht bei den weitaus häufigeren kundenveranlassten CASP-zu-CASP-Transfers (z. B. Kunde verschiebt Guthaben von Börse A zu Börse B). Für Letztere gilt weiterhin uneingeschränkt die Nulltoleranz-Regel aus Erwägungsgrund 27 („no exemption ... should be granted to domestic low-value transfers of crypto-assets"). Für unseren Envoy-Demo-Flow (kundenveranlasste Transfers zwischen `counterparty.local` und `envoy.local`) ändert sich dadurch **nichts** — der bleibt vollständig im Anwendungsbereich. Der Ausschluss wäre nur relevant, falls das Projekt künftig einen reinen Eigenbestand-Transfer-Anwendungsfall (Proprietary-Treasury-Feature) abbilden wollte, was aktuell nicht geplant ist. | [EUR-Lex, konsolidierter Volltext, Art. 2(4) + Erwägungsgrund 22](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32023R1113) | 🟢 |
 | A6 | Die Verordnung gilt ausdrücklich **unbeschadet** der EU- und nationalen Sanktionsregime (z. B. VO (EG) 1210 xxx, restriktive Maßnahmen). Verpflichtete müssen interne Strategien/Verfahren/Kontrollen zur Umsetzung dieser Sanktionsmaßnahmen unterhalten — **das ist die rechtliche Grundlage für unser Sanktions-Screening**, nicht nur eine Nice-to-have-Ergänzung. | EUR-Lex, Volltext | 🟡 |
 
 ### A.2 EBA Travel-Rule-Leitlinien (Guidelines)
@@ -156,13 +156,22 @@ Recherche-Runde — konkret zu klären:
    verifizierte Zugangsbestätigung.
 5. **GlüStV/Glücksspiel ist komplett offen** — vor jeder Aussage zu
    „Einsatz im Online-Casino" muss diese Lücke geschlossen werden.
-6. Der Punkt A5 (⚠️ widersprüchlich) sollte vor jeder Kommunikation nach
-   außen (Dokumentation, Vertrieb) anhand des Verordnungstexts selbst
-   geklärt werden, um keine falsche Aussage über den Anwendungsbereich zu
-   verbreiten.
+6. ~~Der Punkt A5 (⚠️ widersprüchlich)~~ **A5 ist geklärt** (2026-07-17,
+   siehe Tabelle oben): Art. 2(4) enthält zwei getrennte „(a)"-Ausschlusslisten
+   (Geld vs. Krypto) im selben Absatz — daraus resultierte der scheinbare
+   Widerspruch. Der krypto-spezifische Ausschluss ist real, aber eng gefasst
+   (nur CASP-zu-CASP „on their own behalf", nicht kundenveranlasste
+   Transfers) und betrifft den aktuellen Envoy-Demo-Flow nicht. Nebenbefund:
+   A4 enthielt eine falsche Oder-Verknüpfung der Auftraggeberfelder — jetzt
+   korrigiert. Offener Folgepunkt: prüfen, ob `screening/decision.py` die
+   präzise Bündel-Logik aus Art. 14(1)(d) (Adresse+Land+Dokumentnummer+
+   Kundennummer **oder** Geburtsdatum/-ort, nicht freie Einzelfeld-Alternative)
+   tatsächlich so validiert, statt nur „irgendein Feld vorhanden".
 
 ---
 
-*Letzte Aktualisierung: 2026-07-15. Nächster Recherche-Schritt: GlüStV-Vorschriften
-gezielt nachrecherchieren; Art. 2(4)(a)/Art. 14(5) TFR-Volltext direkt gegen
-die widersprüchliche Aussage (A5) prüfen.*
+*Letzte Aktualisierung: 2026-07-17. A5 und A4 gegen den konsolidierten
+EUR-Lex-Volltext von VO (EU) 2023/1113 geprüft und korrigiert/bestätigt
+(🟢). Nächster Recherche-Schritt: GlüStV-Vorschriften gezielt
+nachrecherchieren; prüfen, ob die Art.-14(1)(d)-Bündel-Logik im
+Screening-Code korrekt abgebildet ist.*
