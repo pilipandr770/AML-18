@@ -34,6 +34,11 @@ def corroborating_fields(party: dict, entity) -> dict:
     if party_lei and entity.lei and party_lei == entity.lei:
         matched["lei"] = party_lei
 
+    party_dob = (party.get("date_of_birth") or "").strip()
+    entity_dob = (getattr(entity, "date_of_birth", None) or "").strip()
+    if party_dob and entity_dob and party_dob == entity_dob:
+        matched["date_of_birth"] = party_dob
+
     return matched
 
 

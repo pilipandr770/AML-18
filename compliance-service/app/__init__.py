@@ -32,6 +32,9 @@ def create_app(config_class=Config):
     from app.webhook.routes import webhook_bp
     app.register_blueprint(webhook_bp)
 
+    from app.screening.routes import screening_bp
+    app.register_blueprint(screening_bp)
+
     from app.review_ui.routes import review_bp
     app.register_blueprint(review_bp)
 
