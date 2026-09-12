@@ -17,6 +17,7 @@ class AgeVerification(db.Model):
     __tablename__ = "age_verifications"
 
     id = db.Column(db.Integer, primary_key=True)
+    developer_project_id = db.Column(db.Integer, db.ForeignKey("developer_projects.id"), nullable=False, index=True)
     subject_reference = db.Column(db.String(128), nullable=False, index=True)  # opaque platform-side user ref
     adapter = db.Column(db.String(32), nullable=False)  # "mock" | "zyphe" | "eu_oid4vp" (future)
     verified = db.Column(db.Boolean, nullable=False)
@@ -32,6 +33,7 @@ class AgeVerificationSession(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(32), nullable=False, unique=True, default=lambda: uuid4().hex)
+    developer_project_id = db.Column(db.Integer, db.ForeignKey("developer_projects.id"), nullable=False, index=True)
     subject_reference = db.Column(db.String(128), nullable=False, index=True)
     adapter = db.Column(db.String(32), nullable=False)
     min_age = db.Column(db.Integer, nullable=False)

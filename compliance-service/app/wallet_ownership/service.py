@@ -31,13 +31,14 @@ def is_verification_required(transfer_amount_eur, threshold_eur) -> bool:
     return transfer_amount_eur is not None and transfer_amount_eur >= threshold_eur
 
 
-def create_challenge(network: str, address: str, ttl_seconds: int) -> WalletOwnershipChallenge:
+def create_challenge(network: str, address: str, ttl_seconds: int, developer_project_id: int) -> WalletOwnershipChallenge:
     nonce = uuid4().hex
     issued_at = _utcnow()
     message = build_challenge_message(
         network=network, address=address, nonce=nonce, issued_at=issued_at.isoformat()
     )
     row = WalletOwnershipChallenge(
+        developer_project_id=developer_project_id,
         network=network,
         address=address,
         nonce=nonce,
@@ -55,8 +56,11 @@ def verify_signed_message(
     transfer_amount_eur,
     transaction_id,
     threshold_eur: float,
+    developer_project_id: int,
 ) -> WalletOwnershipVerification:
-    challenge = WalletOwnershipChallenge.query.filter_by(public_id=challenge_public_id).first()
+    challenge = WalletOwnershipChallenge.query.filter_by(
+        public_id=challenge_public_id, developer_project_id=developer_project_id
+    ).first()
     if challenge is None:
         raise AdapterError("unknown challenge")
     if challenge.consumed:
@@ -76,6 +80,7 @@ def verify_signed_message(
     verified = recovered.lower() == challenge.address.lower()
 
     row = WalletOwnershipVerification(
+        developer_project_id=developer_project_id,
         transaction_id=transaction_id,
         network=challenge.network,
         address=challenge.address,
@@ -99,10 +104,12 @@ def start_test_transfer(
     transaction_id,
     threshold_eur: float,
     config,
+    developer_project_id: int,
 ) -> WalletOwnershipVerification:
     adapter = get_test_transfer_adapter(config)
 
     row = WalletOwnershipVerification(
+        developer_project_id=developer_project_id,
         transaction_id=transaction_id,
         network=network,
         address=address,
@@ -129,8 +136,10 @@ def start_test_transfer(
     return row
 
 
-def refresh_test_transfer(public_id: str, config) -> WalletOwnershipVerification | None:
-    row = WalletOwnershipVerification.query.filter_by(public_id=public_id).first()
+def refresh_test_transfer(public_id: str, config, developer_project_id: int) -> WalletOwnershipVerification | None:
+    row = WalletOwnershipVerification.query.filter_by(
+        public_id=public_id, developer_project_id=developer_project_id
+    ).first()
     if row is None:
         return None
     if row.method != "test_transfer" or row.status != "pending":

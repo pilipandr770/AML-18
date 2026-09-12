@@ -26,22 +26,42 @@ def client(app):
     return app.test_client()
 
 
-@pytest.fixture
-def auth_headers(app):
-    """A valid Authorization header for a freshly registered developer
-    project -- required by every gated wallet-ownership/age-verify route."""
+def _mint_project(app, name="Test Project", contact_email="dev@example.com", **overrides):
+    """Registers a DeveloperProject and returns (project, auth_headers).
+    Shared by every fixture/test that needs a project -- pass **overrides
+    for billing-state fields (e.g. plan_status="active")."""
     from app.developer_portal.auth import generate_api_key, hash_api_key
     from app.developer_portal.models import DeveloperProject
     from app.extensions import db
 
     with app.app_context():
         api_key = generate_api_key()
-        db.session.add(DeveloperProject(
-            name="Test Project",
-            contact_email="dev@example.com",
+        project = DeveloperProject(
+            name=name,
+            contact_email=contact_email,
             api_key_prefix=api_key[:16],
             api_key_hash=hash_api_key(api_key),
-        ))
+            **overrides,
+        )
+        db.session.add(project)
         db.session.commit()
+        project_id = project.id
 
-    return {"Authorization": f"Bearer {api_key}"}
+    return project_id, {"Authorization": f"Bearer {api_key}"}
+
+
+@pytest.fixture
+def auth_headers(app):
+    """A valid Authorization header for a freshly registered developer
+    project -- required by every gated wallet-ownership/age-verify route."""
+    _project_id, headers = _mint_project(app)
+    return headers
+
+
+@pytest.fixture
+def other_auth_headers(app):
+    """A second, independent project's Authorization header -- used to
+    prove that one project's key can never read or act on another
+    project's wallet-ownership/age-verify rows."""
+    _project_id, headers = _mint_project(app, name="Other Project", contact_email="other@example.com")
+    return headers

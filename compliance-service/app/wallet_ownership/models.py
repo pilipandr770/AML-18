@@ -18,6 +18,7 @@ class WalletOwnershipChallenge(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(32), nullable=False, unique=True, default=lambda: uuid4().hex)
+    developer_project_id = db.Column(db.Integer, db.ForeignKey("developer_projects.id"), nullable=False, index=True)
     network = db.Column(db.String(16), nullable=False)
     address = db.Column(db.String(128), nullable=False, index=True)
     nonce = db.Column(db.String(64), nullable=False, default=lambda: uuid4().hex)
@@ -38,6 +39,7 @@ class WalletOwnershipVerification(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(32), nullable=False, unique=True, default=lambda: uuid4().hex)
+    developer_project_id = db.Column(db.Integer, db.ForeignKey("developer_projects.id"), nullable=False, index=True)
     transaction_id = db.Column(db.String(36), nullable=True, index=True)  # Envoy transfer this check relates to, if any
     network = db.Column(db.String(16), nullable=False)
     address = db.Column(db.String(128), nullable=False, index=True)

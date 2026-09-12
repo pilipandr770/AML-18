@@ -65,3 +65,14 @@ class Config:
     WALLET_OWNERSHIP_TEST_TRANSFER_MIN_CONFIRMATIONS = int(
         os.environ.get("WALLET_OWNERSHIP_TEST_TRANSFER_MIN_CONFIRMATIONS", "1")
     )
+
+    # Hosted-SaaS billing (see app/billing/). Off by default -- a
+    # self-hosted deployment needs zero Stripe setup and never has its
+    # wallet-ownership/age-verify calls metered or quota-limited.
+    BILLING_ENABLED = os.environ.get("BILLING_ENABLED", "false").lower() == "true"
+    STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+    STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID", "")
+    STRIPE_CHECKOUT_SUCCESS_URL = os.environ.get("STRIPE_CHECKOUT_SUCCESS_URL", "http://localhost:8300/developer/")
+    STRIPE_CHECKOUT_CANCEL_URL = os.environ.get("STRIPE_CHECKOUT_CANCEL_URL", "http://localhost:8300/developer/")
+    FREE_TIER_MONTHLY_CALL_LIMIT = int(os.environ.get("FREE_TIER_MONTHLY_CALL_LIMIT", "1000"))

@@ -3,11 +3,14 @@ from app.ageverify.models import AgeVerification
 from app.extensions import db
 
 
-def verify_and_persist(subject_reference: str, proof_token: str, adapter_name: str, min_age: int, config) -> AgeVerification:
+def verify_and_persist(
+    subject_reference: str, proof_token: str, adapter_name: str, min_age: int, config, developer_project_id: int
+) -> AgeVerification:
     adapter = get_adapter(adapter_name, config=config)
     result = adapter.verify(proof_token=proof_token, min_age=min_age)
 
     row = AgeVerification(
+        developer_project_id=developer_project_id,
         subject_reference=subject_reference,
         adapter=adapter_name,
         verified=result.verified,

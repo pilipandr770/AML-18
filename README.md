@@ -32,11 +32,13 @@ EBA-Leitlinien sind unterschiedliche Regelungsregime, die nicht in einem
 Datensatz vermischt werden dürfen. Details und Rechtsgrundlagen:
 `ANFORDERUNGEN.md`.
 
-**Strategie:** Zuerst ein wirklich nützliches, einfach einzusetzendes
-Werkzeug schaffen, das kleine CASPs organisch übernehmen — mit offenem,
-nachvollziehbarem Code, klarer Dokumentation und einer Oberfläche, die ein
-Compliance-Officer tatsächlich benutzen kann. Monetarisierung kommt erst
-danach.
+**Strategie:** Open Core. Die selbst gehostete Version bleibt komplett
+kostenlos und quelloffen — das war und bleibt der Weg, mit dem kleine
+CASPs den Baustein organisch übernehmen. Zusätzlich gibt es optional eine
+von uns zentral gehostete SaaS-Variante der beiden REST-APIs
+(Wallet-Ownership, Altersverifikation) für alle, die keine eigene
+Infrastruktur betreiben wollen — mit Free-Tier und kostenpflichtigem
+Plan bei höherem Volumen, siehe „Hosted-SaaS & Billing" unten.
 
 ## Die drei Einstiegspunkte
 
@@ -86,6 +88,9 @@ gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
     Deutsch (die drei regulatorischen Pflichten und wie die drei Module
     sie abdecken), verlinkt weiter zu Entwicklerportal, Compliance-
     Officer-Oberfläche und GitHub.
+  - `billing/` — Metering, Free-Tier-Quota und Stripe-Checkout/-Webhooks
+    für die gehostete SaaS-Variante. Komplett inaktiv (`BILLING_ENABLED=false`,
+    Standard), wenn Sie selbst hosten — siehe „Hosted-SaaS & Billing" unten.
 - **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
   EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
   Verifier-Backend, technische Spezifikation).
@@ -191,6 +196,52 @@ Integrationsbeispielen: `http://localhost:8300/developer/`.
 Beide folgenden REST-APIs verlangen den Schlüssel als Bearer-Token — ohne
 gültigen, aktiven Schlüssel antworten sie mit `401`.
 
+## Hosted-SaaS & Billing
+
+Derselbe Code läuft in zwei Betriebsarten, gesteuert allein über
+`BILLING_ENABLED` (Standard: `false`):
+
+- **Selbst gehostet** (`BILLING_ENABLED=false`): keine Nutzungsbeschränkung,
+  kein Stripe-Setup nötig, `/billing/*` antwortet mit `404`.
+- **Zentral gehostet** (`BILLING_ENABLED=true`, z. B. über
+  `docker-compose.hosted.yml`): `wallet_ownership`- und `ageverify`-Aufrufe
+  werden pro Projekt gezählt; oberhalb von `FREE_TIER_MONTHLY_CALL_LIMIT`
+  (Standard: 1000/Monat) antworten sie mit `402`, bis das Projekt ein
+  aktives Stripe-Abo hat.
+
+```
+POST /billing/checkout   # Bearer-Token erforderlich -> gibt eine Stripe-Checkout-URL zurück
+POST /billing/webhook    # von Stripe aufgerufen, signaturgeprüft
+GET  /billing/usage      # Bearer-Token erforderlich -> aktueller Verbrauch + Plan-Status
+```
+
+Jedes Projekt (`DeveloperProject`) ist bereits heute der Mandanten-
+Grenzwert: `wallet_ownership`- und `ageverify`-Datensätze tragen eine
+`developer_project_id` und sind pro Schlüssel isoliert — ein Schlüssel
+kann nie Daten eines anderen Projekts lesen oder verändern (siehe
+`tests/test_tenant_isolation.py`). Die Travel-Rule/TRISA-Säule ist davon
+bewusst ausgenommen: Jeder TRISA-Knoten ist eine eigene VASP-Identität mit
+eigenen Zertifikaten und GDS-Registrierung — Multi-Tenancy dafür wäre ein
+eigenständiges, deutlich größeres Vorhaben und ist nicht Teil dieses
+Angebots. Wer Travel-Rule-Screening braucht, betreibt weiterhin einen
+eigenen TRISA-Knoten (self-hosted).
+
+Für einen echten öffentlichen Auftritt mit eigener Domain und
+automatischem HTTPS gibt es das additive Compose-Overlay
+`docker-compose.hosted.yml` (Caddy als Reverse-Proxy):
+
+```
+docker compose -f docker-compose.yml -f docker-compose.hosted.yml up -d
+```
+
+Die Basis-`docker-compose.yml` bleibt dabei komplett unverändert — Self-
+Hoster merken von dieser Datei nichts. **Wichtig:** Compose kann den
+direkten Port-Publish von `compliance.local` (`8300:8300`) aus der
+Basisdatei nicht per Overlay zurücknehmen — die Firewall der gehosteten
+Umgebung muss deshalb ausschließlich 80/443 öffentlich freigeben und
+8300/5432/etc. privat halten, sonst ist `compliance.local` direkt und
+unverschlüsselt erreichbar, an Caddy vorbei.
+
 ## Wallet-Ownership-Verification API
 
 ```
@@ -281,6 +332,19 @@ den lokalen Stack.
   Entwicklerportal weiterzuleiten — das Entwicklerportal bleibt der
   technische Einstieg für bereits entschlossene Entwickler, die Startseite
   ist der allgemeine Erklärtext davor.
+- **Hosted-SaaS & Billing**: Open-Core-Modell umgesetzt — `wallet_ownership`
+  und `ageverify` sind jetzt mandantenfähig (`developer_project_id` auf
+  allen vier betroffenen Tabellen, Lese-/Schreibzugriff pro API-Schlüssel
+  isoliert, live gegen Postgres verifiziert), plus Free-Tier-Metering und
+  Stripe-Checkout/-Webhook-Integration (`app/billing/`), beides nur aktiv
+  bei `BILLING_ENABLED=true`. Travel-Rule/TRISA bleibt bewusst
+  self-host-only (siehe „Hosted-SaaS & Billing" oben für die Begründung).
+  Zwei reale Bugs beim Aufbau gefunden und behoben: eine neue `NOT NULL`-
+  Spalte gegen eine Postgres-Tabelle mit bereits vorhandenen (lokalen
+  Test-)Zeilen bricht ohne Backfill/`server_default` ab; von Alembic
+  automatisch erzeugte unbenannte Constraints scheitern unter SQLites
+  Batch-Modus, obwohl sie gegen Postgres klaglos funktionieren — beide
+  Migrationsschritte entsprechend nachgebessert.
 - **Offen**: GlüStV-Rechtsgrundlagen für den Glücksspiel-Anwendungsfall
   (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
   Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad

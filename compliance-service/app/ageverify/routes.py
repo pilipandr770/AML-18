@@ -61,7 +61,7 @@ def _load_session_or_404(session_id):
 
 @ageverify_bp.post("/check")
 def age_verify_check():
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
@@ -80,6 +80,7 @@ def age_verify_check():
             adapter_name=adapter_name,
             min_age=min_age,
             config=current_app.config,
+            developer_project_id=project.id,
         )
     except AdapterNotConfiguredError as exc:
         logger.warning("age verification adapter not configured: %s", exc)
@@ -103,7 +104,7 @@ def age_verify_check():
 
 @ageverify_bp.post("/sessions")
 def age_verify_start_session():
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
@@ -121,6 +122,7 @@ def age_verify_start_session():
             adapter_name=adapter_name,
             min_age=min_age,
             config=current_app.config,
+            developer_project_id=project.id,
         )
     except AdapterNotConfiguredError as exc:
         logger.warning("age verification adapter not configured: %s", exc)
@@ -134,12 +136,12 @@ def age_verify_start_session():
 
 @ageverify_bp.get("/sessions/<session_id>")
 def age_verify_get_session(session_id):
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
     try:
-        row = refresh_session(session_id, config=current_app.config)
+        row = refresh_session(session_id, config=current_app.config, developer_project_id=project.id)
     except AdapterNotConfiguredError as exc:
         logger.warning("age verification adapter not configured: %s", exc)
         return jsonify({"error": "adapter not configured"}), 503

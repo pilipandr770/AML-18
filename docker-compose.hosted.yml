@@ -1,0 +1,44 @@
+# Optional overlay for running AML+18 as the centrally-hosted, paid SaaS
+# tier on a real public domain -- self-hosted users never need this file
+# and the default docker-compose.yml is completely untouched by it.
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.hosted.yml up -d
+#
+# Requires HOSTED_DOMAIN plus the STRIPE_*/BILLING_ENABLED vars (see
+# .env.example) in the root .env.
+#
+# IMPORTANT -- this overlay is additive only. Compose merges list-type keys
+# (like `ports:`) by concatenation, not override, so it CANNOT retract the
+# base file's `compliance.local` port publish ("8300:8300"). The hosted
+# environment's firewall/security-group MUST expose only 80/443 publicly
+# and keep 8300, 5432, and every other base-file port private -- otherwise
+# compliance.local stays reachable unencrypted, bypassing Caddy entirely.
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: aml18-caddy
+    depends_on:
+      - compliance.local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - HOSTED_DOMAIN=${HOSTED_DOMAIN}
+
+  compliance.local:
+    environment:
+      - BILLING_ENABLED=${BILLING_ENABLED:-true}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_PRICE_ID=${STRIPE_PRICE_ID:-}
+      - STRIPE_CHECKOUT_SUCCESS_URL=${STRIPE_CHECKOUT_SUCCESS_URL:-}
+      - STRIPE_CHECKOUT_CANCEL_URL=${STRIPE_CHECKOUT_CANCEL_URL:-}
+      - FREE_TIER_MONTHLY_CALL_LIMIT=${FREE_TIER_MONTHLY_CALL_LIMIT:-1000}
+
+volumes:
+  caddy-data:
+  caddy-config:

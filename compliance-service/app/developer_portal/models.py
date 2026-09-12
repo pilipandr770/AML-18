@@ -28,3 +28,14 @@ class DeveloperProject(db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
     last_used_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    # Billing (see app/billing/). Only meaningful when the deployment has
+    # BILLING_ENABLED=true (the hosted SaaS instance) -- on a self-hosted
+    # deployment these stay at their defaults and are never read.
+    # plan_status is a cache of the last processed Stripe webhook, not a
+    # live lookup: require_api_key() reads it on every gated request and
+    # must never make a network call to Stripe just to check quota.
+    plan_status = db.Column(db.String(16), nullable=False, default="free")  # free | active | trialing | past_due | canceled
+    stripe_customer_id = db.Column(db.String(64), nullable=True, unique=True, index=True)
+    stripe_subscription_id = db.Column(db.String(64), nullable=True, unique=True)
+    plan_updated_at = db.Column(db.DateTime(timezone=True), nullable=True)

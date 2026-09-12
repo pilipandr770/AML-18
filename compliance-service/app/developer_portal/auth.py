@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import datetime, timezone
 
-from flask import g, jsonify, request
+from flask import current_app, g, jsonify, request
 
 from app.developer_portal.models import DeveloperProject
 from app.extensions import db
@@ -43,6 +43,17 @@ def require_api_key():
         return None, (jsonify({"error": "invalid or revoked API key"}), 401)
 
     project.last_used_at = _utcnow()
+
+    if current_app.config.get("BILLING_ENABLED"):
+        # Local import: self-hosted deployments (BILLING_ENABLED=False, the
+        # default) never import app.billing at all on this hot path, so
+        # they pay zero cost for a feature they don't use.
+        from app.billing.metering import enforce_quota_and_record
+        quota_error = enforce_quota_and_record(project)
+        if quota_error:
+            db.session.commit()  # still persist last_used_at even when quota-blocked
+            return None, quota_error
+
     db.session.commit()
     g.current_project = project
     return project, None

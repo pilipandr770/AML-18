@@ -13,6 +13,21 @@ def test_signup_form_renders(client):
     assert resp.status_code == 200
 
 
+def test_pricing_page_shows_self_hosted_copy_when_billing_disabled(client):
+    resp = client.get("/developer/pricing")
+    assert resp.status_code == 200
+    assert "keine Nutzungsbeschränkung".encode() in resp.data
+
+
+def test_pricing_page_shows_plans_when_billing_enabled(client, app):
+    app.config["BILLING_ENABLED"] = True
+    app.config["FREE_TIER_MONTHLY_CALL_LIMIT"] = 500
+    resp = client.get("/developer/pricing")
+    assert resp.status_code == 200
+    assert b"500" in resp.data
+    assert "Kostenpflichtig".encode() in resp.data
+
+
 def test_signup_creates_project_and_returns_key_once(client, app):
     resp = client.post("/developer/signup", data={
         "name": "Acme Wallet",

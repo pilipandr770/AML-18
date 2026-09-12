@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, current_app, jsonify, render_template, request
 
 from app.developer_portal.auth import generate_api_key, hash_api_key, require_api_key
 from app.developer_portal.models import DeveloperProject
@@ -22,6 +22,15 @@ def landing():
 @developer_portal_bp.get("/signup")
 def signup_form():
     return render_template("signup.html")
+
+
+@developer_portal_bp.get("/pricing")
+def pricing():
+    return render_template(
+        "pricing.html",
+        billing_enabled=current_app.config["BILLING_ENABLED"],
+        free_tier_monthly_call_limit=current_app.config["FREE_TIER_MONTHLY_CALL_LIMIT"],
+    )
 
 
 @developer_portal_bp.post("/signup")

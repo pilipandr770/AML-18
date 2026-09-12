@@ -9,13 +9,16 @@ def _utcnow():
     return datetime.now(timezone.utc)
 
 
-def create_session(subject_reference: str, adapter_name: str, min_age: int, config) -> AgeVerificationSession:
+def create_session(
+    subject_reference: str, adapter_name: str, min_age: int, config, developer_project_id: int
+) -> AgeVerificationSession:
     adapter = get_adapter(adapter_name, config=config)
     if not adapter.supports_sessions:
         raise AdapterError(f"adapter {adapter_name} does not support interactive sessions")
 
     started = adapter.start_session(min_age=min_age)
     row = AgeVerificationSession(
+        developer_project_id=developer_project_id,
         subject_reference=subject_reference,
         adapter=adapter_name,
         min_age=min_age,
@@ -28,8 +31,11 @@ def create_session(subject_reference: str, adapter_name: str, min_age: int, conf
     return row
 
 
-def refresh_session(public_id: str, config) -> AgeVerificationSession | None:
-    row = AgeVerificationSession.query.filter_by(public_id=public_id).first()
+def refresh_session(public_id: str, config, developer_project_id: int | None = None) -> AgeVerificationSession | None:
+    query = AgeVerificationSession.query.filter_by(public_id=public_id)
+    if developer_project_id is not None:
+        query = query.filter_by(developer_project_id=developer_project_id)
+    row = query.first()
     if row is None:
         return None
 
@@ -59,6 +65,7 @@ def refresh_session(public_id: str, config) -> AgeVerificationSession | None:
         return row
 
     verification = AgeVerification(
+        developer_project_id=row.developer_project_id,
         subject_reference=row.subject_reference,
         adapter=row.adapter,
         verified=result.verified,

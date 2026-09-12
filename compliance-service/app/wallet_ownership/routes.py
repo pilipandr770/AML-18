@@ -63,7 +63,7 @@ def check_requirement_route():
 
 @wallet_ownership_bp.post("/challenges")
 def create_challenge_route():
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
@@ -73,7 +73,9 @@ def create_challenge_route():
         return jsonify({"error": "bad request"}), 400
 
     ttl_seconds = current_app.config["WALLET_OWNERSHIP_CHALLENGE_TTL_SECONDS"]
-    row = create_challenge(network=body.network, address=body.address, ttl_seconds=ttl_seconds)
+    row = create_challenge(
+        network=body.network, address=body.address, ttl_seconds=ttl_seconds, developer_project_id=project.id
+    )
 
     reply = ChallengeReply(
         challenge_id=row.public_id,
@@ -87,7 +89,7 @@ def create_challenge_route():
 
 @wallet_ownership_bp.post("/verifications")
 def create_verification_route():
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
@@ -107,6 +109,7 @@ def create_verification_route():
                 transfer_amount_eur=body.transfer_amount_eur,
                 transaction_id=body.transaction_id,
                 threshold_eur=threshold_eur,
+                developer_project_id=project.id,
             )
         except AdapterError as exc:
             return jsonify({"error": str(exc)}), 400
@@ -125,6 +128,7 @@ def create_verification_route():
                 transaction_id=body.transaction_id,
                 threshold_eur=threshold_eur,
                 config=current_app.config,
+                developer_project_id=project.id,
             )
         except AdapterNotConfiguredError as exc:
             logger.warning("wallet ownership test-transfer adapter not configured: %s", exc)
@@ -136,12 +140,12 @@ def create_verification_route():
 
 @wallet_ownership_bp.get("/verifications/<verification_id>")
 def get_verification_route(verification_id):
-    _project, error = require_api_key()
+    project, error = require_api_key()
     if error:
         return error
 
     try:
-        row = refresh_test_transfer(verification_id, config=current_app.config)
+        row = refresh_test_transfer(verification_id, config=current_app.config, developer_project_id=project.id)
     except AdapterNotConfiguredError as exc:
         logger.warning("wallet ownership test-transfer adapter not configured: %s", exc)
         return jsonify({"error": "test_transfer adapter not configured"}), 400

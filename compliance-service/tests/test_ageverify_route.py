@@ -274,10 +274,12 @@ def test_ageverify_session_poll_eu_adapter_surfaces_validation_error_detail(clie
     assert data["last_error"] == "eu_oid4vp device response validation failed: InvalidDocuments: ExpiredValidityInfo"
 
 
-def test_ageverify_launch_page_renders_av_uri_and_qr(client, app):
-    # Deliberately no auth_headers: /launch and /qr.svg are browser/wallet-
-    # facing capability URLs (opened by a QR scan or deep link, no way to
-    # attach an Authorization header) and must stay unauthenticated.
+def test_ageverify_launch_page_renders_av_uri_and_qr(client, app, auth_headers):
+    # auth_headers is only used to mint the owning project below, for the
+    # NOT NULL developer_project_id column -- the actual /launch and
+    # /qr.svg requests deliberately carry no Authorization header: they're
+    # browser/wallet-facing capability URLs (opened by a QR scan or deep
+    # link, no way to attach one) and must stay unauthenticated.
     payload = {
         "response_type": "vp_token",
         "response_mode": "direct_post",
@@ -298,9 +300,12 @@ def test_ageverify_launch_page_renders_av_uri_and_qr(client, app):
 
     with app.app_context():
         from app.ageverify.models import AgeVerificationSession
+        from app.developer_portal.models import DeveloperProject
         from app.extensions import db
 
+        project = DeveloperProject.query.first()
         row = AgeVerificationSession(
+            developer_project_id=project.id,
             subject_reference="user-launch",
             adapter="eu_oid4vp",
             min_age=18,
