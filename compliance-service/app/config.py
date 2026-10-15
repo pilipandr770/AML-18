@@ -75,6 +75,12 @@ class Config:
     ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "")
     AGENT_LLM_TIMEOUT_SECONDS = float(os.environ.get("AGENT_LLM_TIMEOUT_SECONDS", "20"))
     AGENT_LLM_MAX_CALLS_PER_MINUTE = int(os.environ.get("AGENT_LLM_MAX_CALLS_PER_MINUTE", "30"))
+    # Chain adapter for verify_incoming_funds / the deposit monitor: "mock"
+    # (default, deterministic) or "evm" (read-only JSON-RPC, testnet only).
+    AGENT_CHAIN_ADAPTER = os.environ.get("AGENT_CHAIN_ADAPTER", "mock")
+    AGENT_EVM_RPC_URL = os.environ.get("AGENT_EVM_RPC_URL", "")
+    AGENT_MIN_CONFIRMATIONS = int(os.environ.get("AGENT_MIN_CONFIRMATIONS", "3"))
+    AGENT_EVM_RPC_TIMEOUT_SECONDS = float(os.environ.get("AGENT_EVM_RPC_TIMEOUT_SECONDS", "10"))
     # en (default) or de; applies to the agent UI and shared templates.
     UI_LOCALE = os.environ.get("UI_LOCALE", "en")
 

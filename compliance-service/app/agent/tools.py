@@ -82,6 +82,10 @@ def _spent_today(project_id: int) -> Decimal:
 
 def screen_transfer(ctx: ToolContext, args: dict) -> dict:
     case = ctx.case
+    if not (case.counterparty_name or "").strip():
+        # Nothing to screen (e.g. a deposit seen on-chain with no KYC data from
+        # the client): that is not a clean result, it needs a human.
+        return {"decision": "review", "rule_branch": "counterparty_unidentified", "top_candidates": [], "counterparty": None}
     result = screen_parties(
         [{"name": case.counterparty_name or "", "country": case.counterparty_country, "role": "originator",
           "national_ids": [], "lei": None, "date_of_birth": None}],

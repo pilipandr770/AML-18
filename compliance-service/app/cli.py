@@ -11,5 +11,46 @@ def sanctions_ingest_command():
         click.echo(f"{snapshot.source}: {snapshot.record_count} records, status={snapshot.status}")
 
 
+@click.command("agent-monitor")
+@click.option("--once", is_flag=True, help="Scan once and exit instead of looping.")
+@click.option("--interval", default=15, show_default=True, help="Seconds between scans.")
+def agent_monitor_command(once, interval):
+    """Watch registered deposit addresses (EVM testnet) and run the agent on new deposits."""
+    import time
+
+    from flask import current_app
+
+    from app.agent.chain import EvmRpcLedger
+    from app.agent.factory import get_runtime
+    from app.agent.models import DepositAddress
+    from app.agent.monitor import scan_address
+    from app.agent.runner import process_case
+    from app.developer_portal.models import DeveloperProject
+    from app.extensions import db
+
+    if not current_app.config["AGENT_ENABLED"]:
+        raise click.ClickException("AGENT_ENABLED is false")
+    rt = get_runtime(current_app)
+    rpc = EvmRpcLedger(
+        current_app.config["AGENT_EVM_RPC_URL"], timeout_seconds=current_app.config["AGENT_EVM_RPC_TIMEOUT_SECONDS"]
+    )._rpc
+    while True:
+        for dep in DepositAddress.query.all():
+            project = db.session.get(DeveloperProject, dep.developer_project_id)
+            try:
+                cases = scan_address(rpc, dep)
+            except Exception as exc:
+                click.echo(f"scan failed for {dep.address}: {type(exc).__name__}")
+                db.session.rollback()
+                continue
+            for case in cases:
+                process_case(case, project, current_app.config, rt.llm, rt.ledger, rt.executor)
+                click.echo(f"case {case.public_id}: {case.status}")
+        if once:
+            return
+        time.sleep(interval)
+
+
 def register_cli(app):
     app.cli.add_command(sanctions_ingest_command)
+    app.cli.add_command(agent_monitor_command)

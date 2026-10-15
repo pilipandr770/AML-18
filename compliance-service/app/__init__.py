@@ -53,6 +53,9 @@ def create_app(config_class=Config):
     from app.billing.routes import billing_bp
     app.register_blueprint(billing_bp)
 
+    from app.agent.routes import agent_bp
+    app.register_blueprint(agent_bp)
+
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
     from app.sanctions import models as _sanctions_models  # noqa: F401

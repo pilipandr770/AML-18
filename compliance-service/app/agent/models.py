@@ -119,3 +119,19 @@ class AgentAuditEntry(db.Model):
     entry_hash = db.Column(db.String(64), nullable=False, unique=True)
 
     __table_args__ = (db.UniqueConstraint("developer_project_id", "seq", name="uq_agent_audit_project_seq"),)
+
+
+class DepositAddress(db.Model):
+    """A client deposit address the chain monitor watches (testnet only)."""
+
+    __tablename__ = "agent_deposit_addresses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    developer_project_id = db.Column(db.Integer, db.ForeignKey("developer_projects.id"), nullable=False, index=True)
+    chain = db.Column(db.String(32), nullable=False)
+    asset = db.Column(db.String(16), nullable=False, default="ETH")
+    address = db.Column(db.String(128), nullable=False)
+    last_scanned_block = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
+
+    __table_args__ = (db.UniqueConstraint("developer_project_id", "chain", "address", name="uq_agent_deposit_project_chain_addr"),)
