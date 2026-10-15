@@ -156,8 +156,9 @@ Real issues found and fixed while building (kept for the record):
 
 Not done / open:
 
-- Migration `db5f209dbbd8` was generated against a temporary SQLite database and exercised by `test_migrations.py`
-  (Docker Desktop was not running); it still needs `flask db upgrade` verification against Postgres.
+- Migration `db5f209dbbd8` was generated on a temporary SQLite database; once Docker was available it was applied to the
+  dev Postgres (`flask db upgrade`, head = `db5f209dbbd8`) and the full five-case demo (both modes, 54 journal entries,
+  chain verified) was run on a throwaway Postgres database.
 - No mainnet, address-level sanctions screening, or legal review of jurisdiction texts (marked REQUIRES COUNSEL REVIEW).
 - Application text has [FOUNDER INPUT] placeholders; no email or application has been sent.
 
