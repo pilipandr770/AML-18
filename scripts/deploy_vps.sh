@@ -20,7 +20,7 @@ cd "$(dirname "$0")/.."
 SSH=(ssh -o BatchMode=yes ${KEY:+-i "$KEY" -o IdentitiesOnly=yes})
 
 echo "==> uploading sources (git HEAD: $(git rev-parse --short HEAD))"
-git archive HEAD compliance-service docker-compose.vps.yml .env.vps.example \
+git -c core.autocrlf=false archive HEAD compliance-service docker-compose.vps.yml .env.vps.example \
   | "${SSH[@]}" "$TARGET" "mkdir -p $REMOTE_DIR && tar -x -C $REMOTE_DIR"
 
 echo "==> configuring environment"
