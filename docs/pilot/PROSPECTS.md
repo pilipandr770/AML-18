@@ -179,3 +179,11 @@ Round 2 would be the next 70 names, and it is expensive in search calls, so it s
 Large licensed players will not switch for a free pilot. The realistic first customers are very small teams without a
 compliance stack, or teams that want a second screening layer. Track every contact and objection; the feedback itself is
 the output of this phase, and it is what the YC application should be built on.
+
+## Contact log
+
+- 2026-10-15: e-mail sent to hello@bitcoinwell.com from pylypchukandrii770@gmail.com (Gmail message id 1a13fecddc77d73a),
+  subject "Sanctions screening for your US expansion (free pilot)". Text as in docs/pilot/SUBMISSIONS.md item 1.
+  Reply: none yet.
+- Dakota (Talk to Sales form): not submitted. Needs a business e-mail; see docs/pilot/SUBMISSIONS.md item 2.
+- Digital Wallet US: no business channel published; not contacted.
