@@ -1,0 +1,17 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Sign in") }}{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:440px;margin:0 auto">
+  <h2>{{ _("Owner sign in") }}</h2>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="email">{{ _("Email") }}</label><input type="email" id="email" name="email" required autocomplete="username">
+    <label for="password">{{ _("Password") }}</label><input type="password" id="password" name="password" required autocomplete="current-password">
+    <label for="code">{{ _("Authenticator code") }} <span class="muted">({{ _("leave empty on first sign-in") }})</span></label>
+    <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code">
+    <p><button type="submit">{{ _("Sign in") }}</button></p>
+  </form>
+  <p class="muted">{{ _("No account yet?") }} <a href="{{ url_for('owner.register') }}">{{ _("Create the owner account") }}</a></p>
+</div>
+{% endblock %}

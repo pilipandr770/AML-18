@@ -29,6 +29,9 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from app import i18n
+    i18n.init_app(app)
+
     from app.webhook.routes import webhook_bp
     app.register_blueprint(webhook_bp)
 
@@ -55,6 +58,9 @@ def create_app(config_class=Config):
 
     from app.agent.routes import agent_bp
     app.register_blueprint(agent_bp)
+
+    from app.agent.owner import owner_bp
+    app.register_blueprint(owner_bp)
 
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401

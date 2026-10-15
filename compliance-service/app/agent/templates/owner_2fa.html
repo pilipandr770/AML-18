@@ -1,0 +1,16 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Set up two-factor authentication") }}{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:480px;margin:0 auto">
+  <h2>{{ _("Set up two-factor authentication") }}</h2>
+  <p>{{ _("Scan this QR code with an authenticator app, then enter the 6-digit code.") }}</p>
+  <img src="{{ url_for('owner.qr') }}" alt="QR" width="220" height="220">
+  <p class="muted">{{ _("Or enter this key manually:") }} <code>{{ secret }}</code></p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="code">{{ _("Authenticator code") }}</label><input type="text" id="code" name="code" inputmode="numeric" required autocomplete="one-time-code">
+    <p><button type="submit">{{ _("Enable and sign in") }}</button></p>
+  </form>
+</div>
+{% endblock %}

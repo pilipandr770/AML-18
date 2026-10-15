@@ -1,0 +1,24 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Live feed") }}{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>{{ _("Live feed") }}</h2>
+  <p>
+    {{ _("Mode") }}: <span class="badge b-{{ mode }}">{{ mode|upper }}</span>
+    {% if kill %}<span class="badge b-bad">{{ _("KILL SWITCH ENGAGED") }}</span>{% endif %}
+    &nbsp; {{ _("Journal integrity") }}:
+    {% if chain_ok %}<span class="badge b-ok">{{ _("verified") }}</span>{% else %}<span class="badge b-bad">{{ _("TAMPERED at entry") }} #{{ chain_bad }}</span>{% endif %}
+  </p>
+  <table>
+    <tr><th>#</th><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Event") }}</th><th>{{ _("Details") }}</th></tr>
+    {% for e in entries %}
+    <tr>
+      <td>{{ e.seq }}</td><td class="muted">{{ e.occurred_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+      <td>{{ e.actor }}</td>
+      <td>{% if e.case_public_id %}<a href="{{ url_for('owner.report_detail', case_id=e.case_public_id) }}">{{ e.event_type }}</a>{% else %}{{ e.event_type }}{% endif %}</td>
+      <td class="muted">{{ describe(e) }}</td>
+    </tr>
+    {% else %}<tr><td colspan="5" class="muted">{{ _("No activity yet.") }}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

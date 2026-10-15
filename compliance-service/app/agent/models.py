@@ -38,6 +38,8 @@ class AgentSettings(db.Model):
     # Instant stop: while true the agent can only record recommendations,
     # whatever the mode. Cleared only by the authenticated owner.
     kill_switch = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    # HMAC secret used to sign operation webhooks to the client's system.
+    webhook_secret = db.Column(db.String(64), nullable=True)
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow)
 
 

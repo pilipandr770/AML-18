@@ -94,6 +94,7 @@ def upgrade():
     sa.Column('policy', sa.JSON(), nullable=False),
     sa.Column('policy_version', sa.Integer(), nullable=False),
     sa.Column('kill_switch', sa.Boolean(), server_default=sa.false(), nullable=False),
+    sa.Column('webhook_secret', sa.String(length=64), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['developer_project_id'], ['developer_projects.id'], ),
     sa.PrimaryKeyConstraint('id'),

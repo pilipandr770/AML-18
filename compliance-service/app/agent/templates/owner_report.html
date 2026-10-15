@@ -1,0 +1,31 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Case report") }}{% endblock %}
+{% block content %}
+{% set ev_all = case.evidence or {} %}
+<div class="panel">
+  <h2>{{ _("Case report") }} <span class="muted">{{ case.public_id }}</span></h2>
+  <p><span class="badge b-{{ case.classification }}">{{ case.classification }}</span> {{ _("Status") }}: {{ case.status }}
+     {% if case.resolved_by %} — {{ _("resolved by") }} {{ case.resolved_by }}{% endif %}</p>
+  <h3>{{ _("What was checked") }}</h3>
+  <table>
+    <tr><td>{{ _("Transfer") }}</td><td>{{ case.amount }} {{ case.asset }} on {{ case.chain }}, tx <code>{{ case.tx_hash or "—" }}</code></td></tr>
+    <tr><td>{{ _("Counterparty") }}</td><td><code>{{ case.counterparty_name or "—" }}</code> {{ case.counterparty_country or "" }} <span class="muted">({{ _("untrusted external text") }})</span></td></tr>
+    <tr><td>{{ _("Memo") }}</td><td><code>{{ case.memo or "—" }}</code> <span class="muted">({{ _("untrusted external text, treated as data only") }})</span></td></tr>
+    <tr><td>{{ _("Jurisdiction profile") }}</td><td>{{ jurisdiction }}</td></tr>
+    <tr><td>{{ _("Sanctions screening") }}</td><td>{{ case.deterministic_decision }} ({{ (ev_all.get("screening") or {}).get("rule_branch") }})</td></tr>
+    <tr><td>{{ _("Funds check") }}</td><td>{% set f = case.funds_check or {} %}found: {{ f.get("found") }}, confirmations: {{ f.get("confirmations") }}, address match: {{ f.get("address_match") }}, amount match: {{ f.get("amount_match") }}, verified: {{ f.get("verified") }}</td></tr>
+    <tr><td>{{ _("Sanctions list versions") }}</td><td>
+      {% for s in (ev_all.get("freshness") or {}).get("sources", []) %}{{ s.source }}: {{ s.record_count }} records, age {{ s.age_days }} day(s), activated {{ s.activated_at }}<br>{% else %}—{% endfor %}</td></tr>
+  </table>
+  <h3>{{ _("Result and explanation") }}</h3>
+  <p>{{ case.explanation or "—" }}</p>
+  {% set ev = ev_all.get("llm_evidence") %}
+  {% if ev %}<ul>{% for item in ev %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+  {% if ev_all.get("report") %}<h3>{{ _("Agent report") }}</h3><p style="white-space:pre-wrap">{{ ev_all.get("report") }}</p>{% endif %}
+  <h3>{{ _("Journal for this case") }}</h3>
+  <table>
+    <tr><th>#</th><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Event") }}</th><th>{{ _("Details") }}</th></tr>
+    {% for e in events %}<tr><td>{{ e.seq }}</td><td class="muted">{{ e.occurred_at.strftime("%H:%M:%S") }}</td><td>{{ e.actor }}</td><td>{{ e.event_type }}</td><td class="muted">{{ describe(e) }}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

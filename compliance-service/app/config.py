@@ -83,6 +83,16 @@ class Config:
     AGENT_EVM_RPC_TIMEOUT_SECONDS = float(os.environ.get("AGENT_EVM_RPC_TIMEOUT_SECONDS", "10"))
     # en (default) or de; applies to the agent UI and shared templates.
     UI_LOCALE = os.environ.get("UI_LOCALE", "en")
+    # Flask session signing key for the owner dashboard. No default: owner
+    # login is refused until a real secret is configured.
+    SECRET_KEY = os.environ.get("SECRET_KEY", "")
+    OWNER_COOKIE_SECURE = os.environ.get("OWNER_COOKIE_SECURE", "false").lower() == "true"
+    SESSION_COOKIE_SECURE = OWNER_COOKIE_SECURE
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    # "recording" (default) only records instructions; "webhook" sends them,
+    # HMAC-signed, to the project's webhook_url.
+    AGENT_EXECUTOR = os.environ.get("AGENT_EXECUTOR", "recording")
 
     # Hosted-SaaS billing (see app/billing/). Off by default -- a
     # self-hosted deployment needs zero Stripe setup and never has its

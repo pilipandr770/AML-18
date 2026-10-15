@@ -206,7 +206,14 @@ def execute_operation(ctx: ToolContext, args: dict) -> dict:
         case.public_id,
     )
     if verdict.outcome == EXECUTE:
-        result = ctx.executor.execute(operation, case, ctx.project)
+        try:
+            result = ctx.executor.execute(operation, case, ctx.project)
+        except Exception as exc:  # delivery failure must never look like success
+            case.status = "awaiting_human"
+            db.session.commit()
+            journal.append(ctx.project.id, "system", "operation_failed",
+                           {"operation": operation, "error": type(exc).__name__}, case.public_id)
+            return {"outcome": NEEDS_HUMAN, "reasons": ["delivery_failed"]}
         case.status = "operated"
         case.resolution = operation
         db.session.commit()

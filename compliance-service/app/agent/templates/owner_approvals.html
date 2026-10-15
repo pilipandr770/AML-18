@@ -1,0 +1,24 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Pending approvals") }}{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>{{ _("Pending approvals") }}</h2>
+  <p class="muted">{{ _("Cases the agent could not or may not decide on its own. Sanctions and fuzzy matches always land here.") }}</p>
+  {% for c in cases %}
+  <div class="panel" style="margin-top:12px">
+    <p><strong>{{ c.amount }} {{ c.asset }}</strong> ({{ c.chain }}) &nbsp;
+       <span class="badge b-{{ c.classification }}">{{ c.classification }}</span>
+       <span class="muted">{{ _("sanctions screening") }}: {{ c.deterministic_decision }}</span></p>
+    <p class="muted">{{ _("Counterparty (untrusted external text)") }}: <code>{{ c.counterparty_name or "—" }}</code></p>
+    <p>{{ c.explanation }}</p>
+    <p><a href="{{ url_for('owner.report_detail', case_id=c.public_id) }}">{{ _("Full report") }}</a></p>
+    <form method="post" action="{{ url_for('owner.decide', case_id=c.public_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="note" placeholder="{{ _('Note for the audit trail (optional)') }}" maxlength="500">
+      <p><button name="decision" value="approve" type="submit">{{ _("Approve") }}</button>
+         <button name="decision" value="reject" class="danger" type="submit">{{ _("Reject") }}</button></p>
+    </form>
+  </div>
+  {% else %}<p class="muted">{{ _("Nothing is waiting for you.") }}</p>{% endfor %}
+</div>
+{% endblock %}

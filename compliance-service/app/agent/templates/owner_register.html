@@ -1,0 +1,17 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Create owner account") }}{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:480px;margin:0 auto">
+  <h2>{{ _("Create the owner account") }}</h2>
+  <p class="muted">{{ _("One owner per project. Proving ownership requires the project's API key. You will set up a two-factor authenticator next.") }}</p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="api_key">{{ _("Project API key") }}</label><input type="password" id="api_key" name="api_key" required autocomplete="off">
+    <label for="email">{{ _("Email") }}</label><input type="email" id="email" name="email" required>
+    <label for="password">{{ _("Password") }} <span class="muted">({{ _("at least 12 characters") }})</span></label>
+    <input type="password" id="password" name="password" required minlength="12" autocomplete="new-password">
+    <p><button type="submit">{{ _("Continue") }}</button></p>
+  </form>
+</div>
+{% endblock %}

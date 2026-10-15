@@ -1,0 +1,42 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Mode & Policy") }}{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>{{ _("Mode") }}</h2>
+  <p>{{ _("Current mode") }}: <span class="badge b-{{ row.mode }}">{{ row.mode|upper }}</span>
+     {% if row.kill_switch %}<span class="badge b-bad">{{ _("KILL SWITCH ENGAGED") }}</span>{% endif %}</p>
+  <p class="muted">{{ _("MONITOR: the agent screens, explains and recommends; it changes nothing in your systems. OPERATE: after your explicit consent, it may send signed instructions to your system for the operations you select, only within the policy below. Sanctions and fuzzy matches are never handled automatically.") }}</p>
+  {% if consent %}<p class="muted">{{ _("Consent on record") }}: {{ consent.operations|join(", ") }} — {{ consent.granted_at.strftime("%Y-%m-%d %H:%M UTC") }}</p>{% endif %}
+  {% if row.kill_switch %}
+  <form method="post" action="{{ url_for('owner.clear_kill') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>{{ _("Authenticator code") }}</label><input type="text" name="code" inputmode="numeric" required style="max-width:200px">
+    <p><button type="submit">{{ _("Clear kill switch") }}</button></p>
+  </form>
+  {% endif %}
+  {% if row.mode == "operate" %}
+  <form method="post" action="{{ url_for('owner.set_mode') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button name="mode" value="monitor" class="secondary" type="submit">{{ _("Switch to MONITOR") }}</button>
+  </form>
+  {% else %}
+  <form method="post" action="{{ url_for('owner.set_mode') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="mode" value="operate">
+    <p><strong>{{ _("Enable OPERATE for:") }}</strong></p>
+    {% for op in operations %}<label style="font-weight:400"><input type="checkbox" name="operations" value="{{ op }}"> {{ op }}</label>{% endfor %}
+    <label style="font-weight:400"><input type="checkbox" name="consent" value="yes"> {{ _("I authorise the agent to send these instructions to my systems within my policy, and I understand it never holds keys or moves funds.") }}</label>
+    <label>{{ _("Authenticator code") }}</label><input type="text" name="code" inputmode="numeric" required style="max-width:200px">
+    <p><button type="submit">{{ _("Enable OPERATE") }}</button></p>
+  </form>
+  {% endif %}
+</div>
+<div class="panel">
+  <h2>{{ _("Policy") }} <span class="muted">v{{ row.policy_version }}</span></h2>
+  <form method="post" action="{{ url_for('owner.save_policy') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <textarea name="policy" spellcheck="false">{{ policy_json }}</textarea>
+    <p><button type="submit">{{ _("Save policy") }}</button></p>
+  </form>
+</div>
+{% endblock %}
