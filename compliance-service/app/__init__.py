@@ -82,6 +82,9 @@ def create_app(config_class=Config):
     from app.assistant.routes import assistant_bp
     app.register_blueprint(assistant_bp)
 
+    from app.legal.routes import legal_bp
+    app.register_blueprint(legal_bp)
+
     from app.docs_site.routes import docs_bp
     app.register_blueprint(docs_bp)
 

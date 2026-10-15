@@ -49,3 +49,10 @@ def test_assistant_rate_limit(app, client):
     body = {"messages": [{"role": "user", "content": "hi"}]}
     codes = [client.post("/assistant/chat", json=body).status_code for _ in range(3)]
     assert codes == [200, 200, 429]
+
+
+def test_legal_pages(client):
+    imp = client.get("/impressum").get_data(as_text=True)
+    assert "Andrii Pylypchuk" in imp and "DE456902445" in imp and "65934 Frankfurt am Main" in imp
+    assert client.get("/datenschutz").status_code == 200
+    assert b"/impressum" in client.get("/").data

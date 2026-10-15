@@ -19,6 +19,7 @@
   <aside>
     {% for slug, label in pages %}<a href="/docs/{{ '' if slug == 'overview' else slug }}" class="{{ 'on' if slug == current }}">{{ label }}</a>{% endfor %}
     <a href="https://github.com/pilipandr770/AML-18" style="margin-top:14px">GitHub ↗</a>
+    <a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a>
   </aside>
   <article>{% block body %}{% endblock %}</article>
 </div>
