@@ -1,0 +1,84 @@
+# Lean production stack for a SHARED single-host VPS that already runs a Traefik
+# reverse proxy on ports 80/443 (the case on the Hostinger KVM 2 host).
+#
+#   docker compose -f docker-compose.vps.yml --env-file .env.vps up -d --build
+#
+# Differences from the full dev stack (docker-compose.yml):
+#  - only what the hosted agent/screening/portal needs: Postgres, the app, and the sanctions refresher.
+#    No Envoy/TRISA sandbox, no EU age-verifier (Java), no Caddy (Traefik already owns 80/443).
+#  - nothing publishes a host port; Traefik reaches the app over the compose network via labels.
+#  - hard memory/CPU limits so neighbours on the same host are not starved.
+#
+# Required in .env.vps: AML_DOMAIN, POSTGRES_PASSWORD, SECRET_KEY (see .env.vps.example).
+name: aml18
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=aml18
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.vps}
+      - POSTGRES_DB=aml18
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aml18"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 768m
+    cpus: 0.7
+    networks: [aml18]
+
+  app:
+    build: &appbuild
+      context: ./compliance-service
+      dockerfile: ./docker/Dockerfile
+    image: aml18/compliance-service:vps
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: [.env.vps]
+    environment:
+      - DATABASE_URL=postgresql+psycopg://aml18:${POSTGRES_PASSWORD}@postgres:5432/aml18
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8300/review/health', timeout=4).status==200 else 1)"]
+      interval: 30s
+      timeout: 6s
+      retries: 5
+      start_period: 40s
+    mem_limit: 1g
+    cpus: 1.0
+    networks: [aml18]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=aml18_aml18
+      - traefik.http.routers.aml18.rule=Host(`${AML_DOMAIN:?set AML_DOMAIN in .env.vps}`)
+      - traefik.http.routers.aml18.entrypoints=websecure
+      - traefik.http.routers.aml18.tls=true
+      - traefik.http.routers.aml18.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.aml18.loadbalancer.server.port=8300
+
+  # Refreshes all eight sanctions lists (first run starts immediately, then every interval).
+  sanctions-cron:
+    build: *appbuild
+    image: aml18/compliance-service:vps
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["./docker/cron-entrypoint.sh"]
+    env_file: [.env.vps]
+    environment:
+      - DATABASE_URL=postgresql+psycopg://aml18:${POSTGRES_PASSWORD}@postgres:5432/aml18
+    mem_limit: 1g
+    cpus: 0.5
+    networks: [aml18]
+
+volumes:
+  postgres-data:
+
+networks:
+  aml18:
