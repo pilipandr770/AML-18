@@ -93,3 +93,45 @@ Subject: Sanktionsprüfung für Krypto-Automaten: kostenloser Pilot
 > Mit freundlichen Grüßen
 > Andrii Pylypchuk, Frankfurt am Main
 > https://andrii-it.de
+
+## 5. 1Money: contact form at 1money.com/contact-us (form has "How can 1Money help your business", 250 characters)
+
+Fields: first name, last name, e-mail, company, job title, type of company (dropdown), help text. Use the
+founder's name; company: AML+18 (open-source, pilot phase); e-mail: the address you choose for business (not Gmail
+if you want the form to look professional; Gmail is acceptable if you decide so).
+
+Help text (193 characters, within the 250 limit):
+
+> Free design-partner pilot of AML+18: open-source (MIT) OFAC/EU/UN/UK screening with explainable decisions and an AI agent that stays within your limits. Integration guide: aml.andrii-it.de/docs
+
+Why 1Money: a licensed US money transmitter network (30+ state licences, secondhand) that is hiring a BSA/AML Officer.
+Partners of licence holders need sanctions screening from day one.
+
+## 6. OpenFX: e-mail to hello@openfx.com (published, the only contact address on the site)
+
+Why: hiring a Compliance Manager and BSA Officer for the US, Canada and Latin America (posting on web3.career). The
+address is general; the letter asks for forwarding.
+
+Subject: Sanctions screening for your BSA Officer hire (free pilot)
+
+> Hello OpenFX team,
+>
+> Your opening for a Compliance Manager and BSA Officer covering the US, Canada and Latin America suggests your
+> screening process is about to be built out or reviewed. An independent, explainable screening layer can support that
+> work from the start.
+>
+> I am Andrii Pylypchuk, a Ukrainian developer now in Frankfurt. AML+18 is open-source (MIT) and screens people and
+> wallet addresses against OFAC, EU, UN and UK lists. Every decision comes with reasons and a tamper-evident audit trail.
+> The AI agent cannot act outside the limits you set. Your developers call a REST API; we never touch your systems.
+>
+> Integration guide: https://aml.andrii-it.de/docs/
+> Project: https://aml.andrii-it.de
+>
+> I am looking for three design partners for a free pilot, in exchange for honest feedback. I am applying to Y Combinator
+> and will mention pilot partners in the application and the pitch.
+>
+> If this is not relevant, a one-line reply "no thanks" is enough and I will not write again. Could you forward this to
+> your BSA Officer candidate or compliance lead?
+>
+> Andrii Pylypchuk, Frankfurt am Main
+> https://andrii-it.de
