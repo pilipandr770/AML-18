@@ -69,7 +69,9 @@ The UI is English by default; set `UI_LOCALE=de` for German.
 
 ## Keeping sanctions lists current
 
-The `sanctions-cron` service refreshes OFAC SDN and the EU consolidated list on an interval
+All open lists are ingested: OFAC SDN and Consolidated, EU FSF, UN Security Council, UK Sanctions List, Swiss SECO, Canada SEMA and
+Australia DFAT (50k entities, ~1,100 listed crypto addresses); see [docs/SANCTIONS_LISTS.md](docs/SANCTIONS_LISTS.md). Names and
+wallet addresses are screened against all of them. The `sanctions-cron` service refreshes every list on an interval
 (`SANCTIONS_CRON_INTERVAL_SECONDS`, default daily), each source independently. Both consoles show the age of each active list,
 in red once older than `SANCTIONS_STALENESS_WARNING_DAYS` (default 7). The agent additionally refuses to clear a transfer if a
 list required by the project's jurisdiction profile (US: OFAC SDN; EU: EU FSF + OFAC SDN) is missing or stale.
@@ -87,7 +89,7 @@ Tenant isolation is enforced per API key (`tests/test_tenant_isolation.py`).
   age verification (EU OID4VP verified end-to-end), developer portal, Postgres + Alembic migrations, CI, multi-tenancy + billing: done.
 - Agent: MONITOR/OPERATE, policy engine, journal, owner console with 2FA, signed operation webhooks, jurisdiction profiles,
   daily digest, English/German UI, one-command demo: done. **Testnet / mock ledger only.**
-- Open: address-level (wallet) sanctions screening, mainnet support (intentionally absent), authentication on the Travel Rule review console,
+- Open: Canada JVCFOA (no separate machine-readable file found), mainnet support (intentionally absent), authentication on the Travel Rule review console,
   automatic link between wallet-ownership checks and the Travel Rule decision path, and legal review of the jurisdiction texts
   (all marked REQUIRES COUNSEL REVIEW).
 

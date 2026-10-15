@@ -154,6 +154,19 @@ Real issues found and fixed while building (kept for the record):
 - Appending to `.env` glued a new variable onto the last line (file had no trailing newline) and corrupted the API key; caught by a
   length check and repaired. Lesson: always ensure a trailing newline before appending.
 
+Follow-up the same day: all open sanctions lists + wallet-address screening (commits 0143381 .. 5d01583):
+
+- Exact-match screening of listed crypto addresses (`sanctioned_addresses`, 1,118 from the real lists, `POST /screening/check-address`,
+  agent screens the sender address; a hit is `recommend_block`, never automatic).
+- New sources, each verified against the real published file: OFAC Consolidated, UN, UK Sanctions List, Swiss SECO, Canada SEMA,
+  Australia DFAT; EU FSF parser rewritten (the old one had never seen a real file and would have found zero records: namespaced XML,
+  `person`/`enterprise` codes). All XML parsed with defusedxml. Details: `docs/SANCTIONS_LISTS.md`.
+- Real-data testing found and fixed matcher defects: blocking on the last token missed "Coral Energy" -> "Coral Energy PTE Ltd" and reversed names;
+  WRatio's partial matching scored one-word aliases ("John", "MARIA") at 90 against every "John ..." (dozens of false hits per ordinary name).
+  Now token-based scoring with legal-suffix/generic-word stripping and first+last-token blocking; ordinary names give 0-1 weak hits.
+- Postgres again caught what SQLite hides: AU_DFAT birth-year lists overflowed VARCHAR(32). Column widened, all text clamped at ingest.
+- Not found: a separate machine-readable Canada JVCFOA file.
+
 Not done / open:
 
 - Migration `db5f209dbbd8` was generated on a temporary SQLite database; once Docker was available it was applied to the
