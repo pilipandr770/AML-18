@@ -1,0 +1,47 @@
+{% extends "admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="grid">
+  <div class="stat"><b>{{ platform.projects }}</b>clients</div>
+  <div class="stat"><b>{{ platform.pending }}</b>inactive / awaiting approval</div>
+  <div class="stat"><b>{{ 'on' if platform.agent_enabled else 'off' }}</b>agent</div>
+  <div class="stat"><b>{{ 'on' if platform.billing else 'off' }}</b>billing</div>
+  <div class="stat"><b>{{ 'yes' if platform.approval_required else 'no' }}</b>signup needs approval</div>
+  <div class="stat"><b style="font-size:14px">{{ platform.model }}</b>model {% if not platform.llm_key %}<span class="badge bad">no API key</span>{% endif %}</div>
+</div>
+
+<div class="panel" style="margin-top:16px">
+  <h3 style="margin-top:0">Sanctions lists</h3>
+  <table>
+    <tr><th>Source</th><th>Records</th><th>Age (days)</th><th>Activated</th></tr>
+    {% for f in freshness %}
+    <tr><td>{{ f.source }}</td><td>{{ f.record_count if f.record_count is not none else '—' }}</td>
+        <td>{% if f.age_days is none %}<span class="badge bad">no active list</span>{% elif f.age_days > max_age %}<span class="badge bad">{{ f.age_days }}</span>{% else %}<span class="badge ok">{{ f.age_days }}</span>{% endif %}</td>
+        <td class="muted">{{ f.activated_at.strftime('%Y-%m-%d %H:%M UTC') if f.activated_at else '—' }}</td></tr>
+    {% else %}<tr><td colspan="4" class="muted">No lists ingested yet. Run <code>flask sanctions-ingest</code>.</td></tr>{% endfor %}
+  </table>
+  {% if failed %}<p><strong>Recent failed refreshes (7 days)</strong></p>
+  <table><tr><th>Source</th><th>When</th><th>Error</th></tr>
+  {% for s in failed %}<tr><td>{{ s.source }}</td><td class="muted">{{ s.fetched_at.strftime('%Y-%m-%d %H:%M') }}</td><td class="muted">{{ (s.error_detail or '')[:140] }}</td></tr>{% endfor %}</table>{% endif %}
+</div>
+
+<div class="panel">
+  <h3 style="margin-top:0">Clients
+    <a href="{{ url_for('platform_admin.dashboard', verify=1) }}" style="font-size:13px;font-weight:400">verify all journals</a></h3>
+  <table>
+    <tr><th>Client</th><th>Jurisdiction</th><th>Status</th><th>Plan</th><th>Agent</th><th>Cases 30d</th><th>Pending</th><th>API calls (month)</th><th>Journal</th><th>Last used</th></tr>
+    {% for r in rows %}{% set p = r.project %}
+    <tr>
+      <td><a href="{{ url_for('platform_admin.tenant', public_id=p.public_id) }}">{{ p.name }}</a><br><span class="muted">{{ p.contact_email }}</span></td>
+      <td>{{ p.jurisdiction }}</td>
+      <td>{% if p.is_active %}<span class="badge ok">active</span>{% else %}<span class="badge warn">inactive</span>{% endif %}</td>
+      <td>{{ p.plan_status }}</td>
+      <td>{{ r.mode }}{% if r.kill %} <span class="badge bad">kill</span>{% endif %}</td>
+      <td>{{ r.cases_30d }}</td><td>{{ r.pending }}</td><td>{{ r.usage_month }}</td>
+      <td>{{ r.journal_entries }}{% if r.journal_ok is not none %} {% if r.journal_ok %}<span class="badge ok">ok</span>{% else %}<span class="badge bad">TAMPERED</span>{% endif %}{% endif %}</td>
+      <td class="muted">{{ p.last_used_at.strftime('%Y-%m-%d %H:%M') if p.last_used_at else '—' }}</td>
+    </tr>
+    {% else %}<tr><td colspan="10" class="muted">No clients yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

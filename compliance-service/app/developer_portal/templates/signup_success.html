@@ -9,6 +9,7 @@
     {{ _("This key is shown only now and stored nowhere — copy it immediately. If you lose it: request a new key via POST /developer/api-key/rotate with the current key, or register a new project.") }}
   </div>
 
+  {% if pending %}<div class="warning">{{ _("Your registration awaits approval. The key below becomes active once an operator approves your project; we will contact you at the email you gave.") }}</div>{% endif %}
   <div class="key-box">{{ api_key }}</div>
 
   <h3>{{ _("Next step") }}</h3>

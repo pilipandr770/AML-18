@@ -32,6 +32,11 @@ def create_app(config_class=Config):
     from app import i18n
     i18n.init_app(app)
 
+    if app.config.get("TRUSTED_PROXIES"):
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        n = app.config["TRUSTED_PROXIES"]
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=n, x_proto=n, x_host=n)
+
     from app.webhook.routes import webhook_bp
     app.register_blueprint(webhook_bp)
 
@@ -62,6 +67,9 @@ def create_app(config_class=Config):
     from app.agent.owner import owner_bp
     app.register_blueprint(owner_bp)
 
+    from app.platform_admin.routes import admin_bp
+    app.register_blueprint(admin_bp)
+
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
     from app.sanctions import models as _sanctions_models  # noqa: F401
@@ -71,6 +79,7 @@ def create_app(config_class=Config):
     from app.developer_portal import models as _developer_portal_models  # noqa: F401
     from app.billing import models as _billing_models  # noqa: F401
     from app.agent import models as _agent_models  # noqa: F401
+    from app.platform_admin import models as _platform_admin_models  # noqa: F401
 
     from app.cli import register_cli
     register_cli(app)

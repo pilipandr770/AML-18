@@ -51,6 +51,31 @@ def agent_monitor_command(once, interval):
         time.sleep(interval)
 
 
+@click.command("platform-create-operator")
+@click.option("--email", prompt=True)
+@click.password_option(envvar="AML18_OPERATOR_PASSWORD")
+def platform_create_operator_command(email, password):
+    """Create a platform operator (super-admin) account and print its authenticator secret once."""
+    import pyotp
+    from werkzeug.security import generate_password_hash
+
+    from app.extensions import db
+    from app.platform_admin.models import PlatformOperator
+
+    email = email.strip().lower()
+    if len(password) < 12:
+        raise click.ClickException("password must be at least 12 characters")
+    if PlatformOperator.query.filter_by(email=email).first():
+        raise click.ClickException("operator already exists")
+    secret = pyotp.random_base32()
+    db.session.add(PlatformOperator(email=email, password_hash=generate_password_hash(password), totp_secret=secret))
+    db.session.commit()
+    click.echo(f"Operator created: {email}")
+    click.echo(f"Authenticator secret (shown once, add to a TOTP app): {secret}")
+    click.echo(pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name="AML+18 Platform"))
+
+
 def register_cli(app):
     app.cli.add_command(sanctions_ingest_command)
     app.cli.add_command(agent_monitor_command)
+    app.cli.add_command(platform_create_operator_command)

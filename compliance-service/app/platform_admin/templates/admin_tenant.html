@@ -1,0 +1,47 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('platform_admin.dashboard') }}">&larr; All clients</a></p>
+<div class="panel">
+  <h2 style="margin-top:0">{{ p.name }} <span class="muted">{{ p.public_id }}</span></h2>
+  <table>
+    <tr><td>Contact</td><td>{{ p.contact_email }}</td></tr>
+    <tr><td>Jurisdiction</td><td>{{ p.jurisdiction }}</td></tr>
+    <tr><td>Status</td><td>{% if p.is_active %}<span class="badge ok">active</span>{% else %}<span class="badge warn">inactive</span>{% endif %}</td></tr>
+    <tr><td>Plan</td><td>{{ p.plan_status }}</td></tr>
+    <tr><td>API key prefix</td><td><code>{{ p.api_key_prefix }}…</code> <span class="muted">(full key is never stored)</span></td></tr>
+    <tr><td>Agent mode</td><td>{{ row.mode }}{% if row.kill %} <span class="badge bad">kill switch engaged</span>{% endif %}{% if consent %} · consent on record for {{ consent.operations|join(', ') }}{% endif %}</td></tr>
+    <tr><td>Cases (30d) / pending</td><td>{{ row.cases_30d }} / {{ row.pending }}</td></tr>
+    <tr><td>API calls this month</td><td>{{ row.usage_month }}</td></tr>
+    <tr><td>Journal</td><td>{{ row.journal_entries }} entries {% if row.journal_ok %}<span class="badge ok">chain verified</span>{% else %}<span class="badge bad">TAMPERED</span>{% endif %}</td></tr>
+  </table>
+  <p class="muted">Case contents are not shown here. Operators see metadata and counts only.</p>
+</div>
+
+<div class="panel">
+  <h3 style="margin-top:0">Actions <span class="muted">(each is written to the client's journal and the platform audit log)</span></h3>
+  <form method="post" action="{{ url_for('platform_admin.set_active', public_id=p.public_id) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+    <input type="hidden" name="csrf_token" value="{{ admin_csrf() }}">
+    <div style="flex:1;min-width:220px"><label>Reason</label><input type="text" name="reason" maxlength="300"></div>
+    {% if p.is_active %}<button class="danger" name="active" value="0" type="submit">Suspend client</button>
+    {% else %}<button name="active" value="1" type="submit">Activate client</button>{% endif %}
+  </form>
+  <form method="post" action="{{ url_for('platform_admin.kill', public_id=p.public_id) }}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+    <input type="hidden" name="csrf_token" value="{{ admin_csrf() }}">
+    <div style="flex:1;min-width:220px"><label>Reason</label><input type="text" name="reason" maxlength="300"></div>
+    <button class="danger" type="submit">Engage kill switch</button>
+  </form>
+  <form method="post" action="{{ url_for('platform_admin.set_plan', public_id=p.public_id) }}" style="display:flex;gap:8px;align-items:end">
+    <input type="hidden" name="csrf_token" value="{{ admin_csrf() }}">
+    <div><label>Plan status</label><select name="plan_status">{% for s in plans %}<option {{ 'selected' if s == p.plan_status }}>{{ s }}</option>{% endfor %}</select></div>
+    <button class="secondary" type="submit">Set</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h3 style="margin-top:0">Recent journal events (metadata only)</h3>
+  <table><tr><th>#</th><th>Time (UTC)</th><th>Actor</th><th>Event</th></tr>
+  {% for e in events %}<tr><td>{{ e.seq }}</td><td class="muted">{{ e.occurred_at.strftime('%Y-%m-%d %H:%M:%S') }}</td><td>{{ e.actor }}</td><td>{{ e.event_type }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">No events.</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}

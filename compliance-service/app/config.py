@@ -87,6 +87,19 @@ class Config:
     # login is refused until a real secret is configured.
     SECRET_KEY = os.environ.get("SECRET_KEY", "")
     OWNER_COOKIE_SECURE = os.environ.get("OWNER_COOKIE_SECURE", "false").lower() == "true"
+
+    # Hosted-platform controls (all off/neutral by default, so self-hosted is unchanged).
+    # Operator console at /admin (accounts are created from the CLI only).
+    PLATFORM_ADMIN_ENABLED = os.environ.get("PLATFORM_ADMIN_ENABLED", "false").lower() == "true"
+    # The Travel Rule review console has no per-client scoping; on a shared host only operators may open it.
+    REVIEW_UI_REQUIRE_OPERATOR = os.environ.get("REVIEW_UI_REQUIRE_OPERATOR", "false").lower() == "true"
+    # New developer projects stay inactive until an operator approves them (invite-only pilots).
+    SIGNUP_APPROVAL_REQUIRED = os.environ.get("SIGNUP_APPROVAL_REQUIRED", "false").lower() == "true"
+    SIGNUP_RATE_LIMIT_PER_HOUR = int(os.environ.get("SIGNUP_RATE_LIMIT_PER_HOUR", "30"))
+    # Hard daily ceiling of agent cases per project, so one client cannot burn the LLM budget.
+    AGENT_MAX_CASES_PER_DAY = int(os.environ.get("AGENT_MAX_CASES_PER_DAY", "200"))
+    # Number of reverse proxies in front of the app (Traefik = 1) so client IPs and https are read correctly.
+    TRUSTED_PROXIES = int(os.environ.get("TRUSTED_PROXIES", "0"))
     SESSION_COOKIE_SECURE = OWNER_COOKIE_SECURE
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

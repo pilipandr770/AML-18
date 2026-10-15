@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
@@ -69,6 +70,11 @@ def submit_transfer():
         existing = AgentCase.query.filter_by(developer_project_id=project.id, tx_hash=body.tx_hash).first()
         if existing:
             return jsonify(case_summary(existing)), 200
+
+    since = datetime.now(timezone.utc) - timedelta(days=1)
+    if AgentCase.query.filter(AgentCase.developer_project_id == project.id, AgentCase.created_at >= since).count() \
+            >= current_app.config["AGENT_MAX_CASES_PER_DAY"]:
+        return jsonify({"error": "daily case limit reached for this project"}), 429
 
     case = AgentCase(
         developer_project_id=project.id, external_ref=body.external_ref, chain=body.chain, asset=body.asset,

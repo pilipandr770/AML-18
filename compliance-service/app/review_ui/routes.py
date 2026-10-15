@@ -26,6 +26,20 @@ PARTY_ROLE_LABELS = {
 }
 
 
+@review_bp.before_request
+def _require_operator_when_hosted():
+    """On a shared/hosted deployment this console shows every Travel Rule
+    decision (it has no per-client scoping), so only platform operators may open it."""
+    if not current_app.config["REVIEW_UI_REQUIRE_OPERATOR"] or request.path.endswith("/health"):
+        return None
+    if not current_app.config["PLATFORM_ADMIN_ENABLED"]:
+        abort(403)
+    from app.platform_admin.routes import current_operator_or_none
+    if current_operator_or_none() is None:
+        return redirect(url_for("platform_admin.login"))
+    return None
+
+
 @review_bp.context_processor
 def inject_labels():
     return {
