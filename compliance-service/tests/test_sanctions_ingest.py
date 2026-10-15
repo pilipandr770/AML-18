@@ -96,3 +96,21 @@ def test_ingest_all_continues_past_an_unreachable_source(app, monkeypatch):
 
     failed = ListSnapshot.query.filter_by(source="TEST_UNREACHABLE").one()
     assert failed.status == "failed"
+
+
+def test_overlong_field_values_are_clamped_not_fatal(app):
+    from app.sanctions.sources.base import NormalizedRecord
+
+    class _LongSource(_FixtureOFACSource):
+        def parse(self, raw):
+            yield NormalizedRecord(
+                source="OFAC_SDN", source_entity_id="x" * 300, entity_type="person", primary_name="N" * 400,
+                aliases=["A" * 400], date_of_birth=", ".join(str(y) for y in range(1900, 2000)),
+                nationality="C" * 400, place_of_birth="P" * 400,
+            )
+
+    snap = ingest_source(_LongSource())
+    assert snap.status == "active" and snap.record_count == 1
+    entity = SanctionedEntity.query.one()
+    assert len(entity.primary_name) == 256 and len(entity.source_entity_id) == 128
+    assert max(len(n.name_text) for n in EntityNameIndex.query.all()) == 256

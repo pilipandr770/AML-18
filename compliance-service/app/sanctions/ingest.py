@@ -32,6 +32,12 @@ REGISTERED_SOURCES = [
 ]
 
 
+def _fit(value, limit: int):
+    """Clamp text to its column width. Postgres enforces VARCHAR length (SQLite
+    does not), and a single odd record must not abort a whole list refresh."""
+    return value[:limit] if isinstance(value, str) else value
+
+
 def ingest_source(source) -> ListSnapshot:
     try:
         raw = source.fetch()
@@ -76,17 +82,17 @@ def ingest_source(source) -> ListSnapshot:
             entity = SanctionedEntity(
                 list_snapshot_id=snapshot.id,
                 source=record.source,
-                source_entity_id=record.source_entity_id,
+                source_entity_id=_fit(record.source_entity_id, 128),
                 entity_type=record.entity_type,
-                primary_name=record.primary_name,
-                date_of_birth=record.date_of_birth,
-                place_of_birth=record.place_of_birth,
-                nationality=record.nationality,
-                country_of_residence=record.country_of_residence,
+                primary_name=_fit(record.primary_name, 256),
+                date_of_birth=_fit(record.date_of_birth, 256),
+                place_of_birth=_fit(record.place_of_birth, 256),
+                nationality=_fit(record.nationality, 256),
+                country_of_residence=_fit(record.country_of_residence, 256),
                 national_ids=record.national_ids,
                 addresses=record.addresses,
                 programs=record.programs,
-                lei=record.lei,
+                lei=_fit(record.lei, 32),
                 raw_record=record.raw_record,
             )
             db.session.add(entity)
@@ -95,8 +101,8 @@ def ingest_source(source) -> ListSnapshot:
             for variant in name_variants(record):
                 db.session.add(EntityNameIndex(
                     entity_id=entity.id,
-                    name_text=variant["name_text"],
-                    name_normalized=variant["name_text"].lower(),
+                    name_text=_fit(variant["name_text"], 256),
+                    name_normalized=_fit(variant["name_text"].lower(), 256),
                     phonetic_key=variant["phonetic_key"],
                     name_type=variant["name_type"],
                 ))

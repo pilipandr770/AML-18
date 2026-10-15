@@ -36,7 +36,7 @@ class SanctionedEntity(db.Model):
     source_entity_id = db.Column(db.String(128), nullable=False)  # the source's own record ID
     entity_type = db.Column(db.String(16), nullable=False)  # "person" | "legal_entity"
     primary_name = db.Column(db.String(256), nullable=False)
-    date_of_birth = db.Column(db.String(32), nullable=True)  # kept as string: sources give partial/fuzzy DOBs
+    date_of_birth = db.Column(db.String(256), nullable=True)  # kept as string: sources give partial/fuzzy DOBs and lists of years
     place_of_birth = db.Column(db.String(256), nullable=True)
     # Sources hand back whatever form they use internally -- OFAC SDN and the
     # EU FSF both give full country names ("United Kingdom"), not ISO 3166-1
