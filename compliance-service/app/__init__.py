@@ -79,6 +79,12 @@ def create_app(config_class=Config):
     from app.platform_admin.routes import admin_bp
     app.register_blueprint(admin_bp)
 
+    from app.assistant.routes import assistant_bp
+    app.register_blueprint(assistant_bp)
+
+    from app.docs_site.routes import docs_bp
+    app.register_blueprint(docs_bp)
+
     # Import models so Alembic/SQLAlchemy metadata picks them up.
     from app.screening import models as _screening_models  # noqa: F401
     from app.sanctions import models as _sanctions_models  # noqa: F401

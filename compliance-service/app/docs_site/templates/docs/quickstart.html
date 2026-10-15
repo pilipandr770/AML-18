@@ -1,0 +1,82 @@
+{% extends "docs/base.html" %}
+{% block body %}
+<h1>Quickstart</h1>
+<p>From zero to a screened transfer in about 15 minutes. You need a backend that can make HTTPS requests.</p>
+
+<h2>1. Get an API key</h2>
+<p>Register at <a href="/developer/signup">/developer/signup</a> (name, contact email, optional webhook URL). The key looks like <code>aml18_sk_…</code> and is shown once. Keep it in an environment variable:</p>
+<pre><code>export AML18_KEY="aml18_sk_..."
+export AML18_URL="https://{{ request.host }}"</code></pre>
+<div class="callout warn">The key is a secret. Call the API from your <strong>server</strong>, never from browser or app code. If it leaks, rotate it with <code>POST /developer/api-key/rotate</code>.</div>
+
+<h2>2. Screen a person</h2>
+<pre><code>curl -s -X POST "$AML18_URL/screening/check-name" \
+  -H "Authorization: Bearer $AML18_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Viktor Bout", "date_of_birth": "1967-01-13", "country": "RU"}'</code></pre>
+<p>Response (shortened): <code>{"decision": "review", "score": 90.0, "matches": [{"sanctioned_name": "Viktor Anatolijevitch BOUT", "name_score": 90.0, "rule_branch": "…"}]}</code>. Date of birth and country are optional but corroborate a match and cut false positives.</p>
+
+<h2>3. Screen a wallet address</h2>
+<pre><code>curl -s -X POST "$AML18_URL/screening/check-address" \
+  -H "Authorization: Bearer $AML18_KEY" -H "Content-Type: application/json" \
+  -d '{"address": "0x8576acc5c05d6ce88f4e49bf65bdf0c62f91353c"}'</code></pre>
+<p>Response: <code>{"listed": true, "decision": "rejected", "matches": [{"source": "OFAC_SDN", …}]}</code>. An exact listed-address match returns <code>rejected</code>; a human still confirms.</p>
+
+<h2>4. Send an incoming transfer to the agent</h2>
+<p>This is the call most companies wire into their deposit handler.</p>
+<pre><code>curl -s -X POST "$AML18_URL/agent/transfers" \
+  -H "Authorization: Bearer $AML18_KEY" -H "Content-Type: application/json" \
+  -d '{
+    "external_ref": "deposit-48213",
+    "chain": "sepolia", "asset": "ETH", "amount": "0.5",
+    "tx_hash": "0x…", "deposit_address": "0x…your deposit address…",
+    "counterparty_name": "Maria Schneider", "counterparty_country": "DE",
+    "counterparty_address": "0x…sender…", "memo": "invoice 2026-114"
+  }'</code></pre>
+<p>You get <code>201</code> with the case: <code>case_id</code>, <code>status</code> (<code>auto_cleared</code> or <code>awaiting_human</code>), <code>classification</code>, the deterministic result, a plain-language <code>explanation</code> and whether the on-chain funds were verified. Sending the same <code>tx_hash</code> again returns the existing case with <code>200</code>, so retries are safe.</p>
+
+<h3>The same in Python</h3>
+<pre><code>import os, requests
+
+def screen_deposit(deposit):
+    r = requests.post(
+        f"{os.environ['AML18_URL']}/agent/transfers",
+        headers={"Authorization": f"Bearer {os.environ['AML18_KEY']}"},
+        json={
+            "external_ref": deposit.id, "chain": deposit.chain, "asset": deposit.asset,
+            "amount": str(deposit.amount), "tx_hash": deposit.tx_hash,
+            "deposit_address": deposit.to_address,
+            "counterparty_name": deposit.sender_name,
+            "counterparty_address": deposit.from_address,
+        },
+        timeout=30,
+    )
+    r.raise_for_status()
+    case = r.json()
+    if case["status"] != "auto_cleared":
+        hold_funds(deposit)            # your system: wait for a human decision
+    return case</code></pre>
+
+<h3>And in Node.js</h3>
+<pre><code>async function screenDeposit(d) {
+  const r = await fetch(`${process.env.AML18_URL}/agent/transfers`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.AML18_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ external_ref: d.id, chain: d.chain, asset: d.asset, amount: String(d.amount),
+      tx_hash: d.txHash, deposit_address: d.toAddress, counterparty_name: d.senderName,
+      counterparty_address: d.fromAddress }),
+  });
+  if (!r.ok) throw new Error(`AML+18 ${r.status}`);
+  const c = await r.json();
+  if (c.status !== "auto_cleared") await holdFunds(d);
+  return c;
+}</code></pre>
+
+<h2>5. Look up a case later</h2>
+<pre><code>curl -s "$AML18_URL/agent/cases/&lt;case_id&gt;" -H "Authorization: Bearer $AML18_KEY"</code></pre>
+
+<h2>What happens when it is down?</h2>
+<p><strong>Design for failure on your side.</strong> If a call times out or returns <code>5xx</code>, treat the deposit as <em>not cleared</em> and retry; do not release funds on silence. The agent itself fails closed: if the AI model is unavailable the case becomes <code>awaiting_human</code>, never cleared.</p>
+
+<div class="callout">Next: <a href="/docs/api">API reference</a> for every field and error code, or <a href="/docs/agent">The AI agent and webhooks</a> to let the agent act.</div>
+{% endblock %}

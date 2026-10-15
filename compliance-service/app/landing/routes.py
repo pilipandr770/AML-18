@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 
-from app.i18n import localized
+from app.landing.copy import COPY
 
 landing_bp = Blueprint("landing", __name__, template_folder="templates")
 
 
 @landing_bp.get("/")
 def index():
-    return render_template(localized("index.html"))
+    t = COPY.get(current_app.config.get("UI_LOCALE", "en"), COPY["en"])
+    return render_template("index.html", t=t)

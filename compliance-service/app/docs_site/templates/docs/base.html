@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} – AML+18 docs</title>
+  <meta name="theme-color" content="#060a13">
+  <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body>
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="/">AML<b>+18</b></a>
+  <a class="l" href="/docs/">Docs</a>
+  <a class="l" href="/#plans">Pricing</a>
+  <span class="sp"></span>
+  <a class="btn btn-p" href="/developer/signup">Start a pilot</a>
+</div></nav>
+<div class="wrap docs">
+  <aside>
+    {% for slug, label in pages %}<a href="/docs/{{ '' if slug == 'overview' else slug }}" class="{{ 'on' if slug == current }}">{{ label }}</a>{% endfor %}
+    <a href="https://github.com/pilipandr770/AML-18" style="margin-top:14px">GitHub ↗</a>
+  </aside>
+  <article>{% block body %}{% endblock %}</article>
+</div>
+{% if config.ASSISTANT_ENABLED %}
+<button id="chat-fab" aria-label="Ask the assistant">💬</button>
+<div id="chat" role="dialog" aria-label="Ask about AML+18" data-hello="Hi! Ask me anything about connecting AML+18 to your product.">
+  <header><div>Ask about AML+18 <span>· AI assistant</span></div><button id="chat-close" aria-label="Close" style="background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer">×</button></header>
+  <div id="chat-log"></div>
+  <div class="chips" id="chat-chips"><button type="button">How do we connect?</button><button type="button">How do I verify the webhook signature?</button><button type="button">What does OPERATE mode do?</button></div>
+  <form id="chat-form" autocomplete="off"><input id="chat-input" maxlength="600" placeholder="Ask a question…"><button>Send</button></form>
+</div>
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+{% endif %}
+</body>
+</html>

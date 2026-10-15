@@ -71,6 +71,9 @@ class Config:
     # Secrets come from the environment only; there is deliberately no
     # default model id -- set ANTHROPIC_MODEL explicitly.
     AGENT_ENABLED = os.environ.get("AGENT_ENABLED", "false").lower() == "true"
+    ASSISTANT_ENABLED = os.environ.get("ASSISTANT_ENABLED", "false").lower() == "true"
+    ASSISTANT_PER_MINUTE = int(os.environ.get("ASSISTANT_PER_MINUTE", "8"))
+    ASSISTANT_DAILY_CAP = int(os.environ.get("ASSISTANT_DAILY_CAP", "300"))
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
     ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "")
     AGENT_LLM_TIMEOUT_SECONDS = float(os.environ.get("AGENT_LLM_TIMEOUT_SECONDS", "20"))

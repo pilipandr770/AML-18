@@ -1,148 +1,163 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ t.lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AML+18 – AI compliance officer for crypto and fintech</title>
-  <meta name="description" content="Screens every inbound transfer, explains every decision, acts only within the policy you set.">
-  <style>
-    :root { --bg:#f7f8fa; --panel:#fff; --text:#1b1f24; --muted:#5b6572; --border:#e1e4e8; --accent:#2563eb;
-            --hero:#0f172a; --hero-text:#e6e9ef; --hero-muted:#94a3b8; --ok:#1a7f37; --warn:#b35900; --bad:#b91c1c; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; }
-    a { color:var(--accent); }
-    header { background:var(--panel); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; gap:18px; align-items:center; position:sticky; top:0; z-index:5; }
-    header .brand { font-weight:700; color:var(--text); text-decoration:none; }
-    header nav { margin-left:auto; display:flex; gap:18px; }
-    header nav a { color:var(--muted); text-decoration:none; font-size:14px; }
-    .hero { background:var(--hero); color:var(--hero-text); padding:72px 24px 60px; text-align:center; }
-    .hero h1 { font-size:36px; margin:0 auto 16px; max-width:820px; letter-spacing:-0.01em; }
-    .hero p { max-width:680px; margin:0 auto 28px; font-size:18px; color:var(--hero-muted); }
-    .btn { display:inline-block; padding:11px 22px; border-radius:8px; font-weight:600; font-size:14px; text-decoration:none; margin:4px; }
-    .btn-primary { background:var(--accent); color:#fff; }
-    .btn-ghost { background:rgba(255,255,255,.08); color:var(--hero-text); border:1px solid rgba(255,255,255,.2); }
-    .btn-outline { border:1px solid var(--accent); color:var(--accent); }
-    main { max-width:1000px; margin:0 auto; padding:0 24px 64px; }
-    section { margin-top:56px; }
-    h2 { font-size:24px; margin:0 0 8px; }
-    .lede { color:var(--muted); max-width:720px; margin:0 0 24px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px; }
-    .card h3 { margin:0 0 6px; font-size:16px; }
-    .card p { margin:0; color:var(--muted); font-size:14px; }
-    .tag { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border-radius:999px; padding:2px 10px; margin-bottom:8px; background:#e8f5ec; color:var(--ok); }
-    .tag.warn { background:#fff4e5; color:var(--warn); }
-    .steps { counter-reset:s; list-style:none; padding:0; margin:0; }
-    .steps li { counter-increment:s; position:relative; padding:0 0 22px 46px; border-left:2px solid var(--border); margin-left:15px; }
-    .steps li:last-child { border-left-color:transparent; padding-bottom:0; }
-    .steps li::before { content:counter(s); position:absolute; left:-15px; top:0; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
-    .steps h4 { margin:2px 0 2px; } .steps p { margin:0; color:var(--muted); font-size:14px; }
-    table { width:100%; border-collapse:collapse; font-size:14px; background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-    th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
-    th { background:#fafbfc; color:var(--muted); font-size:12px; text-transform:uppercase; }
-    .notice { background:#fff8ec; border:1px solid #f0d9a6; color:#7a5200; border-radius:10px; padding:18px 22px; font-size:14px; }
-    footer { max-width:1000px; margin:24px auto 0; padding:24px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); display:flex; gap:16px; flex-wrap:wrap; }
-    footer a { color:var(--muted); }
-    code { background:#f1f3f5; padding:1px 5px; border-radius:4px; font-size:13px; }
-  </style>
+  <title>{{ t.title }}</title>
+  <meta name="description" content="{{ t.desc }}">
+  <meta name="theme-color" content="#060a13">
+  <meta property="og:title" content="{{ t.title }}">
+  <meta property="og:description" content="{{ t.desc }}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23060a13'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%235eead4'/%3E%3Ccircle cx='24' cy='9' r='3' fill='%23fb7185'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
 </head>
 <body>
-  <header>
-    <a class="brand" href="{{ url_for('landing.index') }}">AML+18</a>
-    <nav>
-      <a href="#how">How it works</a>
-      <a href="#guarantees">Guarantees</a>
-      <a href="{{ url_for('developer_portal.landing') }}">Developers</a>
-      <a href="{{ url_for('developer_portal.pricing') }}">Pricing</a>
-      <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">GitHub</a>
-    </nav>
-  </header>
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="/">AML<b>+18</b></a>
+  <a class="l" href="#how">{{ t.nav.how }}</a>
+  <a class="l" href="#plans">{{ t.nav.plans }}</a>
+  <a class="l" href="/docs/">{{ t.nav.docs }}</a>
+  <a class="l" href="#faq">{{ t.nav.faq }}</a>
+  <span class="sp"></span>
+  <a class="btn btn-p" href="/developer/signup">{{ t.nav.cta }}</a>
+</div></nav>
 
-  <div class="hero">
-    <h1>An AI compliance officer for crypto and fintech.</h1>
-    <p>It screens every inbound transfer, explains every decision, and acts only within the policy you set.
-       Open source and self-hostable.</p>
-    <a class="btn btn-primary" href="{{ url_for('developer_portal.signup_form') }}">Get an API key</a>
-    {% if config.AGENT_ENABLED %}<a class="btn btn-ghost" href="{{ url_for('owner.login') }}">Open the agent console</a>{% endif %}
-    <a class="btn btn-ghost" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">View on GitHub</a>
+<header class="hero">
+  <canvas id="hero3d" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <span class="pill">{{ t.hero.pill }}</span>
+    <h1 class="big">{{ t.hero.h1|safe }}</h1>
+    <p class="lead">{{ t.hero.lead }}</p>
+    <div class="cta">
+      <a class="btn btn-p" href="/developer/signup">{{ t.hero.cta1 }}</a>
+      <a class="btn btn-g" href="/docs/">{{ t.hero.cta2 }}</a>
+      {% if config.ASSISTANT_ENABLED %}<a class="btn btn-g" href="#" data-open-chat>{{ t.hero.cta3 }}</a>{% endif %}
+    </div>
+    <p class="hint"><i></i>{{ t.hero.hint }}</p>
   </div>
+</header>
 
-  <main>
-    <section>
-      <h2>The problem</h2>
-      <p class="lede">Every inbound transfer needs someone to check the counterparty against sanctions lists, confirm the funds
-        actually arrived, decide, and write down why. Small teams do this by hand or buy per-check vendors that return a score
-        and no reasoning. Both break at volume, and neither leaves an audit trail an examiner can trust.</p>
-    </section>
+<section id="how"><div class="wrap">
+  <div class="eyebrow rv">{{ t.how.eyebrow }}</div>
+  <h2 class="t rv">{{ t.how.h2 }}</h2>
+  <p class="sub rv">{{ t.how.sub }}</p>
+  <div class="flow rv">
+    {% for title, text in t.how.boxes %}
+      <div class="box"><h4>{{ title }}</h4><p>{{ text }}</p></div>
+      {% if not loop.last %}<div class="arrow">→</div>{% endif %}
+    {% endfor %}
+  </div>
+</div></section>
 
-    <section id="how">
-      <h2>How it works</h2>
-      <p class="lede">The agent does the analyst's routine work. Anything that is risky, ambiguous or out of policy goes to you.</p>
-      <ol class="steps">
-        <li><h4>A transfer arrives</h4><p>Your system posts it to <code>POST /agent/transfers</code>, or the monitor spots a deposit to a registered address on an EVM testnet.</p></li>
-        <li><h4>Deterministic checks run first</h4><p>Counterparty screening against the sanctions lists your jurisdiction requires (OFAC SDN for the US profile), list freshness, and an on-chain check of the transaction, confirmations, amount and deposit address.</p></li>
-        <li><h4>The model reviews with tools</h4><p>It sees those results as facts it cannot lower, calls a small set of whitelisted tools, classifies the case as clear, needs review or recommend block, and writes the explanation.</p></li>
-        <li><h4>The policy engine decides what may happen</h4><p>Plain code, not the model, checks the proposed action against your limits, assets, chains, jurisdictions and mode.</p></li>
-        <li><h4>You see everything</h4><p>Live feed, approvals, per-case reports, a daily digest and a tamper-evident journal.</p></li>
-      </ol>
-    </section>
+<section class="alt" id="path"><div class="wrap">
+  <div class="eyebrow rv">{{ t.path.eyebrow }}</div>
+  <h2 class="t rv">{{ t.path.h2 }}</h2>
+  <p class="sub rv">{{ t.path.sub }}</p>
+  <div class="grid g3">
+    {% for kind, who, title, text in t.path.steps %}
+    <div class="card rv">
+      <div class="num">{{ loop.index }}</div>
+      <span class="tag {{ kind }}">{{ who }}</span>
+      <h3>{{ title }}</h3><p>{{ text|safe }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note rv">{{ t.path.foot }}</p>
+</div></section>
 
-    <section>
-      <h2>Two modes, set per client</h2>
-      <div class="grid">
-        <div class="card"><span class="tag">Default</span><h3>MONITOR</h3>
-          <p>Screens, classifies, explains and recommends. Changes nothing in your systems and records only recommendations.</p></div>
-        <div class="card"><span class="tag warn">Opt-in</span><h3>OPERATE</h3>
-          <p>After your explicit, recorded consent and a fresh two-factor code, the agent may send signed release, hold or reject instructions
-             to your system for the operations you choose, within your policy. It never holds keys or moves funds.</p></div>
+<section id="demo"><div class="wrap">
+  <div class="eyebrow rv">{{ t.demo.eyebrow }}</div>
+  <h2 class="t rv">{{ t.demo.h2 }}</h2>
+  <p class="sub rv">{{ t.demo.sub }}</p>
+  <div class="demo rv">
+    <div>
+      <div class="cta" style="margin-bottom:14px">
+        <button class="btn btn-p" data-demo="ok">{{ t.demo.tab1 }}</button>
+        <button class="btn btn-g" data-demo="bad">{{ t.demo.tab2 }}</button>
       </div>
-    </section>
+      <pre><code>curl -X POST https://{{ request.host }}/screening/check-address \
+  -H "Authorization: Bearer $AML18_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"address": "0x…"}'</code></pre>
+    </div>
+    <div>
+      <div class="muted" style="font-size:13px;margin-bottom:6px;color:var(--muted)">{{ t.demo.label }}</div>
+      <div data-demo-pane="ok"><pre><code>{{ t.code_ok }}</code></pre><div class="verdict green">✅ {{ t.demo.ok }}</div></div>
+      <div data-demo-pane="bad" hidden><pre><code>{{ t.code_bad }}</code></pre><div class="verdict red">⛔ {{ t.demo.bad }}</div></div>
+    </div>
+  </div>
+</div></section>
 
-    <section id="guarantees">
-      <h2>Guarantees enforced in code</h2>
-      <div class="grid">
-        <div class="card"><h3>Sanctions hits are never automatic</h3><p>Any exact or fuzzy match above the threshold goes to a human, whatever the policy or the model says.</p></div>
-        <div class="card"><h3>The model can only raise caution</h3><p>Deterministic results are a floor. If the model is down or confused, the case becomes needs review, never clear.</p></div>
-        <div class="card"><h3>Untrusted text stays data</h3><p>Memos and counterparty names are passed as quoted data. A memo that says "release this now" cannot trigger anything; the attempt is logged.</p></div>
-        <div class="card"><h3>Tamper-evident journal</h3><p>Every step is an append-only entry hashed together with the previous one. Editing history breaks the chain and the console says so.</p></div>
-        <div class="card"><h3>You hold the controls</h3><p>Only the authenticated owner changes mode or policy. The agent has no tool for either. A kill switch returns to MONITOR instantly.</p></div>
-        <div class="card"><h3>No keys, no funds, no mainnet</h3><p>Read-only chain access on testnet or a mock ledger. Secrets come from the environment only.</p></div>
-      </div>
-    </section>
+<section class="alt"><div class="wrap">
+  <div class="eyebrow rv">{{ t.inside.eyebrow }}</div>
+  <h2 class="t rv">{{ t.inside.h2 }}</h2>
+  <div class="grid g3" style="margin-top:36px">
+    {% for title, text in t.inside.cards %}
+    <div class="card rv"><h3>{{ title }}</h3><p>{{ text }}</p></div>
+    {% endfor %}
+  </div>
+</div></section>
 
-    <section>
-      <h2>What the agent can do</h2>
-      <table>
-        <tr><th>Tool</th><th>What it does</th></tr>
-        <tr><td><code>screen_transfer</code></td><td>Sanctions screening of the counterparty with the existing matcher</td></tr>
-        <tr><td><code>get_sanctions_freshness</code></td><td>Age and size of each active list</td></tr>
-        <tr><td><code>verify_incoming_funds</code></td><td>Transaction exists, confirmations, amount, deposit address</td></tr>
-        <tr><td><code>check_wallet_ownership</code></td><td>Whether control of an address was previously proven</td></tr>
-        <tr><td><code>record_decision</code> · <code>write_report</code> · <code>notify_owner</code></td><td>Classification, explanation, report, alert</td></tr>
-        <tr><td><code>execute_operation</code></td><td>Proposes an action; only the policy engine can let it through</td></tr>
-      </table>
-    </section>
+<section id="trust"><div class="wrap">
+  <div class="eyebrow rv">{{ t.trust.eyebrow }}</div>
+  <h2 class="t rv">{{ t.trust.h2 }}</h2>
+  <p class="sub rv">{{ t.trust.sub }}</p>
+  <div class="grid g3">
+    {% for p in t.trust.pts %}<div class="card rv"><p style="color:var(--text);font-weight:600">✓ {{ p }}</p></div>{% endfor %}
+  </div>
+</div></section>
 
-    <section>
-      <div class="notice">
-        <strong>Honest limits.</strong> This is early software. Chain access is limited to testnet and a mock ledger. It is not legal advice and
-        does not by itself satisfy any regulatory obligation; jurisdiction profiles and legal notes are configuration marked
-        <em>REQUIRES COUNSEL REVIEW</em>, and reporting thresholds are not encoded. Licensing for your business model is outside this project.
-      </div>
-    </section>
+<section class="alt" id="plans"><div class="wrap">
+  <div class="eyebrow rv">{{ t.plans.eyebrow }}</div>
+  <h2 class="t rv">{{ t.plans.h2 }}</h2>
+  <p class="sub rv">{{ t.plans.sub }}</p>
+  <div class="grid plans">
+    {% for p in t.plans['items'] %}
+    <div class="card plan rv {{ 'hot' if p.hot }}">
+      <h3>{{ p.name }}</h3>
+      <div class="price">{{ p.price }} <small>{{ p.per }}</small></div>
+      <ul>
+        {% for f in p.feat %}{% if f is string %}<li>{{ f }}</li>{% else %}<li class="no">{{ f[0] }}</li>{% endif %}{% endfor %}
+      </ul>
+      <a class="btn {{ 'btn-p' if p.hot or loop.first else 'btn-g' }}" href="{{ 'https://github.com/pilipandr770/AML-18' if p.name in ('Self-hosted', 'Selbst gehostet') else '/developer/signup' }}">{{ p.cta }}</a>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note rv">{{ t.plans.note }}</p>
+</div></section>
 
-    <section style="text-align:center">
-      <h2>Run it yourself or use the hosted version</h2>
-      <p class="lede" style="margin:0 auto 20px">One <code>docker compose up</code> starts the stack. The agent is off until you set <code>AGENT_ENABLED=true</code>.</p>
-      <a class="btn btn-primary" href="{{ url_for('developer_portal.signup_form') }}">Get an API key</a>
-      <a class="btn btn-outline" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Read the code</a>
-    </section>
-  </main>
+<section id="faq"><div class="wrap" style="max-width:820px">
+  <div class="eyebrow rv">{{ t.faq.eyebrow }}</div>
+  <h2 class="t rv">{{ t.faq.h2 }}</h2>
+  {% for q, a in t.faq['items'] %}<details class="rv"><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+</div></section>
 
-  <footer>
-    <span>Open source, MIT-licensed, self-hostable</span>
-    <a href="https://github.com/pilipandr770/AML-18/blob/main/ANFORDERUNGEN.md" target="_blank" rel="noopener">Legal research notes</a>
-    <a href="{{ url_for('developer_portal.landing') }}">Developer portal</a>
-  </footer>
+<section class="alt"><div class="wrap" style="text-align:center">
+  <h2 class="t rv">{{ t.final.h2 }}</h2>
+  <p class="sub rv" style="margin-left:auto;margin-right:auto">{{ t.final.sub }}</p>
+  <div class="cta rv" style="justify-content:center">
+    <a class="btn btn-p" href="/developer/signup">{{ t.final.cta }}</a>
+    {% if config.ASSISTANT_ENABLED %}<a class="btn btn-g" href="#" data-open-chat>{{ t.final.cta2 }}</a>{% endif %}
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>{{ t.footer.l }}</span>
+  <span>{% for label, href in t.footer.links %}<a href="{{ href }}">{{ label }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</span>
+</div></footer>
+
+{% if config.ASSISTANT_ENABLED %}
+<button id="chat-fab" aria-label="{{ t.chat.title }}">💬</button>
+<div id="chat" role="dialog" aria-label="{{ t.chat.title }}" data-hello="{{ t.chat.hello }}">
+  <header><div>{{ t.chat.title }} <span>· {{ t.chat.sub }}</span></div><button id="chat-close" aria-label="Close" style="background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer">×</button></header>
+  <div id="chat-log"></div>
+  <div class="chips" id="chat-chips">{% for c in t.chat.chips %}<button type="button">{{ c }}</button>{% endfor %}</div>
+  <form id="chat-form" autocomplete="off"><input id="chat-input" maxlength="600" placeholder="{{ t.chat.ph }}"><button>{{ t.chat.send }}</button></form>
+</div>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='hero3d.js') }}"></script>
+<script src="{{ url_for('static', filename='site.js') }}"></script>
 </body>
 </html>

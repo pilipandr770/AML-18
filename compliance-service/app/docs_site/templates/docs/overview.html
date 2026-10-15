@@ -1,0 +1,47 @@
+{% extends "docs/base.html" %}
+{% block body %}
+<h1>How AML+18 fits into your product</h1>
+<p class="sub" style="margin-bottom:24px">Short answer: <strong>your developers call our API</strong>. You do not give us access to your systems or to your own API.</p>
+
+<div class="flow">
+  <div class="box"><h4>Your backend</h4><p>A customer signs up or a deposit arrives.</p></div>
+  <div class="arrow">→</div>
+  <div class="box"><h4>AML+18 API</h4><p>Sanctions lists, address match, on-chain check, AI review.</p></div>
+  <div class="arrow">→</div>
+  <div class="box"><h4>Decision + reasons</h4><p>accepted, review or rejected. You act on it.</p></div>
+</div>
+
+<h2>What goes where</h2>
+<table>
+  <tr><th>Direction</th><th>What</th><th>Required?</th></tr>
+  <tr><td>You → us</td><td>HTTPS calls with <code>Authorization: Bearer &lt;API key&gt;</code>. Only the data of the person, wallet or transfer being checked.</td><td>Yes</td></tr>
+  <tr><td>Us → you</td><td>The JSON response to each call.</td><td>Yes (it is the response)</td></tr>
+  <tr><td>Us → you</td><td>One signed webhook to a URL you provide, carrying release / hold / reject instructions.</td><td><strong>Only</strong> if you enable OPERATE mode</td></tr>
+  <tr><td>You → us</td><td>Nothing else. No database access, no keys, no admin credentials.</td><td>—</td></tr>
+</table>
+
+<h2>The five steps</h2>
+<ol>
+  <li><strong>Register a project</strong> at <a href="/developer/signup">/developer/signup</a>. You receive an API key, shown <em>once</em>; store it in your secrets manager. On the hosted service a new project is reviewed and activated by the operator (usually within one working day). Until then the key returns <code>401</code>.</li>
+  <li><strong>Call the API from your backend</strong>, never from a browser or mobile app (the key is a secret). See the <a href="/docs/quickstart">Quickstart</a>.</li>
+  <li><strong>Act on the decision in your own system</strong>: hold the deposit, ask for more information, or proceed.</li>
+  <li><strong>Optional: owner dashboard.</strong> Open <a href="/owner/register">/owner/register</a> with your API key, set a password and enrol an authenticator app. You can then read every explanation, approve held cases, set the policy and download reports.</li>
+  <li><strong>Optional: OPERATE mode.</strong> Give the agent permission to send signed instructions to your webhook URL, inside limits you set. See <a href="/docs/agent">The AI agent and webhooks</a>.</li>
+</ol>
+
+<div class="callout"><strong>Which integration do I need?</strong><br>
+<strong>Onboarding customers or running a name check:</strong> <code>POST /screening/check-name</code>.<br>
+<strong>Checking a wallet address before crediting or paying out:</strong> <code>POST /screening/check-address</code>.<br>
+<strong>Reviewing every incoming transfer with explanations:</strong> <code>POST /agent/transfers</code> (includes the checks above).<br>
+<strong>Proving a customer controls a wallet, or 18+ checks:</strong> <code>/wallet-ownership/*</code>, <code>/age-verify/*</code>.</div>
+
+<h2>What you get back</h2>
+<ul>
+  <li><code>accepted</code> – no match worth acting on.</li>
+  <li><code>review</code> – a possible match; <strong>a human must look</strong>. We show the list entry, the score and the reasons.</li>
+  <li><code>rejected</code> – an exact hit (for example a sanctioned wallet address). Never released automatically; a human confirms.</li>
+</ul>
+
+<h2>Data and safety in one paragraph</h2>
+<p>Every decision is written to an append-only, hash-chained journal. The AI model can only <em>raise</em> caution: a deterministic sanctions floor and a policy engine written as ordinary code sit between the model and any action. Text from counterparties (names, memos) is treated as untrusted data. The agent holds no keys and cannot move funds. Early software, testnet and mock ledger only for on-chain checks, not legal advice.</p>
+{% endblock %}

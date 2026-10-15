@@ -51,6 +51,12 @@ else
   sed -i "s|^AML_DOMAIN=.*|AML_DOMAIN=$DOMAIN|" .env.vps
   echo ".env.vps exists, kept secrets (domain updated)"
 fi
+# settings added after the first deploy: append to an existing .env.vps if missing
+[ -n "$(tail -c1 .env.vps)" ] && echo >> .env.vps
+grep -q '^ASSISTANT_ENABLED=' .env.vps || printf 'ASSISTANT_ENABLED=true
+ASSISTANT_PER_MINUTE=8
+ASSISTANT_DAILY_CAP=300
+' >> .env.vps
 if [ -n "$API_KEY" ] && ! grep -q '^ANTHROPIC_API_KEY=.\+' .env.vps; then
   sed -i "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=$API_KEY|" .env.vps
   echo "ANTHROPIC_API_KEY installed"

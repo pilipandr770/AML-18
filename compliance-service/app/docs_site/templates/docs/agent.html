@@ -1,0 +1,74 @@
+{% extends "docs/base.html" %}
+{% block body %}
+<h1>The AI agent and webhooks</h1>
+<p>The agent reviews each transfer you send it. In its default <strong>MONITOR</strong> mode it only recommends and explains. You decide in your own system. <strong>OPERATE</strong> mode is optional.</p>
+
+<h2>MONITOR vs OPERATE</h2>
+<table>
+  <tr><th></th><th>MONITOR (default)</th><th>OPERATE</th></tr>
+  <tr><td>Screens, classifies, explains</td><td>yes</td><td>yes</td></tr>
+  <tr><td>Changes anything in your systems</td><td><strong>never</strong></td><td>only signed instructions, only for operations you allowed, only inside your policy</td></tr>
+  <tr><td>How to enable</td><td>default</td><td>owner dashboard: fresh authenticator code + explicit consent record</td></tr>
+  <tr><td>Needs a webhook URL</td><td>no</td><td>yes</td></tr>
+</table>
+<p>Operations the agent may be allowed to request: <code>release</code>, <code>hold</code>, <code>reject</code>, <code>confirm_wallet_ownership</code>, <code>reject_wallet_ownership</code>, <code>close_simple_review</code>. Sanctions matches and ambiguous matches are <strong>never</strong> executed automatically, whatever the policy says. A <strong>kill switch</strong> in the dashboard returns to MONITOR instantly and revokes consent.</p>
+
+<h2>Owner dashboard</h2>
+<ol>
+  <li>Open <a href="/owner/register">/owner/register</a>, enter your project API key, an email and a password (12+ characters).</li>
+  <li>Scan the QR code with an authenticator app and confirm one code. From then on login needs password + code.</li>
+  <li>Use <em>Approvals</em> for held cases, <em>Policy</em> for limits (<code>max_amount_per_operation</code>, <code>daily_cap</code>, <code>allowed_assets</code>, <code>allowed_chains</code>, <code>blocked_jurisdictions</code>, <code>require_human_above</code>, <code>new_counterparty_rule</code>), <em>Reports</em> for the explanation of each case and the journal integrity check, and <em>Digest</em> for a daily summary (CSV export available).</li>
+</ol>
+
+<h2>The operation webhook (OPERATE mode only)</h2>
+<p>We send <code>POST &lt;your webhook URL&gt;</code> with this JSON body:</p>
+<pre><code>{"operation": "release", "case_id": "…", "external_ref": "deposit-48213",
+ "tx_hash": "0x…", "amount": "0.5", "asset": "ETH", "chain": "sepolia"}</code></pre>
+<p>Headers: <code>X-AML18-Signature: t=&lt;unix seconds&gt;,v1=&lt;hex&gt;</code> and <code>Idempotency-Key: &lt;case_id&gt;:&lt;operation&gt;</code>. <code>v1</code> is the hex HMAC-SHA256 of the string <code>"&lt;t&gt;.&lt;raw body&gt;"</code> using your per-project secret, shown <strong>once</strong> in the dashboard when OPERATE is first enabled.</p>
+
+<h3>Verify it (Python / Flask)</h3>
+<pre><code>import hmac, hashlib, os, time
+from flask import request, abort
+
+SECRET = os.environ["AML18_WEBHOOK_SECRET"].encode()
+
+@app.post("/aml18/webhook")
+def aml18_webhook():
+    raw = request.get_data()                      # the exact bytes, before any JSON parsing
+    parts = dict(p.split("=", 1) for p in request.headers["X-AML18-Signature"].split(","))
+    if abs(time.time() - int(parts["t"])) &gt; 300:  # reject replays older than 5 minutes
+        abort(400)
+    expected = hmac.new(SECRET, f"{parts['t']}.".encode() + raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, parts["v1"]):
+        abort(401)
+    key = request.headers["Idempotency-Key"]
+    if already_processed(key):                    # your own table of seen keys
+        return "", 200
+    apply_operation(request.get_json())           # release / hold / reject in your system
+    mark_processed(key)
+    return "", 200</code></pre>
+
+<h3>Verify it (Node.js / Express)</h3>
+<pre><code>const crypto = require("crypto");
+app.post("/aml18/webhook", express.raw({ type: "application/json" }), (req, res) =&gt; {
+  const p = Object.fromEntries(req.get("X-AML18-Signature").split(",").map(s =&gt; s.split("=")));
+  if (Math.abs(Date.now() / 1000 - Number(p.t)) &gt; 300) return res.sendStatus(400);
+  const expected = crypto.createHmac("sha256", process.env.AML18_WEBHOOK_SECRET)
+    .update(`${p.t}.`).update(req.body).digest("hex");
+  const ok = expected.length === p.v1.length &amp;&amp; crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(p.v1));
+  if (!ok) return res.sendStatus(401);
+  // idempotency: skip if req.get("Idempotency-Key") was seen
+  applyOperation(JSON.parse(req.body));
+  res.sendStatus(200);
+});</code></pre>
+
+<div class="callout warn"><strong>Be conservative.</strong> Treat the webhook as a <em>request</em> from a compliance officer: log it, check it against your own business rules, and make your handler idempotent. The agent holds no keys and cannot move funds; your system performs the action.</div>
+
+<h2>What the agent will not do</h2>
+<ul>
+  <li>Change its own policy or mode. Only the authenticated owner can.</li>
+  <li>Clear a sanctions or fuzzy-match hit, or any transfer where the model did not say <code>clear</code> explicitly.</li>
+  <li>Act when the sanctions lists required for your jurisdiction (US: OFAC; EU: EU list + OFAC) are stale.</li>
+  <li>Auto-clear when the model is unavailable: the case goes to a human.</li>
+</ul>
+{% endblock %}

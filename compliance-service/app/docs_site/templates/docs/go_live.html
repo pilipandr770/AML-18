@@ -1,0 +1,47 @@
+{% extends "docs/base.html" %}
+{% block body %}
+<h1>Going live checklist</h1>
+<p>AML+18 is early software in a pilot programme. Work through this list with us before you rely on it.</p>
+
+<h2>Before you connect</h2>
+<ul>
+  <li>☐ Registered a project and received the API key (stored in a secrets manager, not in code).</li>
+  <li>☐ Project activated (a test call returns <code>200/201</code>, not <code>401</code>).</li>
+  <li>☐ Jurisdiction profile agreed with us: <strong>US</strong> (OFAC) or <strong>EU</strong> (EU list + OFAC). Default is EU.</li>
+  <li>☐ Counsel has reviewed which duties apply to <em>you</em>. AML+18 is a tool, not legal advice, and does not encode reporting duties.</li>
+</ul>
+
+<h2>Integration</h2>
+<ul>
+  <li>☐ Calls come from your server, never from browser or app code.</li>
+  <li>☐ Timeouts set (we suggest 30 s) and retries with backoff. On error or timeout the item is treated as <strong>not cleared</strong>.</li>
+  <li>☐ <code>tx_hash</code> and <code>external_ref</code> sent on every transfer (idempotent retries).</li>
+  <li>☐ Anything other than <code>auto_cleared</code> is held in your system until a human decides.</li>
+  <li>☐ <code>review</code> and <code>rejected</code> results reach a person (email, ticket, chat), with the case link.</li>
+  <li>☐ Sender name, country and address sent whenever you have them (more data means fewer false alarms).</li>
+</ul>
+
+<h2>Owner dashboard</h2>
+<ul>
+  <li>☐ Owner account created with an authenticator app; recovery of the authenticator is your responsibility.</li>
+  <li>☐ Policy set explicitly (an empty policy denies every automated operation).</li>
+  <li>☐ Journal integrity check shows <em>OK</em>.</li>
+  <li>☐ Someone is assigned to the <em>Approvals</em> queue and knows the response time you promise customers.</li>
+</ul>
+
+<h2>Before enabling OPERATE mode</h2>
+<ul>
+  <li>☐ Webhook endpoint verifies the HMAC signature and the timestamp, and is idempotent.</li>
+  <li>☐ Webhook secret stored securely (shown once).</li>
+  <li>☐ Limits set low first (<code>max_amount_per_operation</code>, <code>daily_cap</code>); run MONITOR for at least two weeks and compare recommendations with your own decisions.</li>
+  <li>☐ Everyone knows where the <strong>kill switch</strong> is.</li>
+</ul>
+
+<h2>Known limits</h2>
+<ul>
+  <li>On-chain verification works on testnet (Sepolia) and a mock ledger only. No mainnet yet.</li>
+  <li>Name screening is fuzzy by nature: expect <code>review</code> results that a human clears.</li>
+  <li>No formal certification or audit yet.</li>
+</ul>
+<div class="callout">Questions? Ask the assistant (bottom right) or open an issue on <a href="https://github.com/pilipandr770/AML-18/issues">GitHub</a>.</div>
+{% endblock %}
