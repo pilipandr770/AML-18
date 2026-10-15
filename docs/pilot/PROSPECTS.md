@@ -75,6 +75,53 @@ Betreff: Sanktions-Screening für ein kleines Compliance-Team (kostenloser Pilot
 > 20 Minuten Gespräch, oder ich schicke Ihnen den Integrationsleitfaden: https://aml.andrii-it.de/docs/
 > Andrii Pylypchuk, Frankfurt am Main, andrii-it.de
 
+## Worldwide: United States and other markets
+
+Decision (2026-10-15): the pilot is not limited to Germany. The product already covers OFAC, EU, UN, UK, Swiss,
+Canadian and Australian lists and has US and EU jurisdiction profiles, so it fits any company with exposure to those
+regimes. Hosting is in Frankfurt; US customers who care can self-host (MIT licence).
+
+### Why the US angle is strong (secondhand, check the sources)
+
+- OFAC settled with **ShapeShift** (Sept 2025, USD 750,000): no sanctions compliance programme at all, users in Cuba,
+  Iran, Sudan and Syria. OFAC treats sanctions as strict liability.
+- OFAC settled with **Exodus** (Dec 2025, USD 3.1 million): a *non-custodial* wallet software provider, so "we do not
+  touch the funds" did not protect it.
+- A rough price anchor for the incumbents: one commercial sanctions-screening vendor lists about EUR 1,500 per month
+  (standard) and EUR 5,000 per month (extended) before per-user fees. Our indicative EUR 49 and EUR 199 plans are
+  far below that; do not fix prices until pilots show what the product is worth.
+- FinCEN proposed (April 2026, not final) that an MSB's AML/CFT officer be located in the United States.
+
+Sources: DLA Piper, "OFAC sanctions enforcement in fintech and crypto" (11 Feb 2026); OFAC enforcement release on
+ShapeShift; FinCEN MSB rulemaking coverage; vendor pricing page from sanctions-screening comparison articles.
+
+### Segments to target
+
+| Segment | Why | Where to find them |
+|---|---|---|
+| Small US crypto software and wallet providers | Exodus showed that non-custodial still means exposure | GitHub, app stores, crypto directories |
+| Small exchanges, OTC desks, payment startups | Need a sanctions programme from day one; cannot afford EUR 1,500 per month tools | FinCEN MSB registrant search, Y Combinator / Techstars crypto batches |
+| Crypto ATM operators | Heavy enforcement attention in the US and EU | state licensing lists, operator websites |
+| Online gambling and sweepstakes operators with crypto deposits | Need sanctions plus age checks (our age module) | regulator licensee lists |
+| Canada, UK, Australia | Same lists already loaded | FINTRAC MSB registry (monthly, downloadable), FCA cryptoasset register, AUSTRAC Digital Currency Exchange Register (427 registered in 2025, many inactive) |
+
+Public registers worth pulling (each needs a download, so ask before fetching): FinCEN MSB Registrant Search,
+FINTRAC MSB Registry (fintrac-canafe.canada.ca/msb-esm/reg-eng), AUSTRAC DCE register, FCA register, ESMA CASP register.
+Registered does not mean active or small; filter by name and website, then look at each site.
+
+### Contact rules by country (practical notes, not legal advice)
+
+- **United States:** B2B cold e-mail is generally allowed under CAN-SPAM if you identify yourself, include a physical
+  address and a working opt-out, and honour it. LinkedIn messages and warm intros still convert better.
+- **Canada:** CASL is stricter than CAN-SPAM and generally needs consent for commercial messages; prefer warm intros.
+- **UK:** corporate e-mail addresses are less restricted than personal ones, but check current ICO guidance first.
+- **Germany / EU:** see above (UWG, GDPR).
+
+### Product honesty for non-EU customers
+
+The agent does not encode US reporting duties (SARs, travel rule thresholds, state licensing). Say so in every
+conversation: it screens, explains and keeps an audit trail; the customer's counsel decides what the law requires.
+
 ## Honest expectations
 
 Large licensed players will not switch for a free pilot. The realistic first customers are very small teams without a
