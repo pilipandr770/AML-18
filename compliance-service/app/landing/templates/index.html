@@ -1,292 +1,148 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AML+18 – Der offene Compliance-Baustein für EU-Krypto-Projekte</title>
+  <title>AML+18 – AI compliance officer for crypto and fintech</title>
+  <meta name="description" content="Screens every inbound transfer, explains every decision, acts only within the policy you set.">
   <style>
-    :root {
-      --bg: #f7f8fa; --panel: #ffffff; --text: #1b1f24; --muted: #5b6572;
-      --border: #e1e4e8; --accent: #2563eb; --accent-dark: #1d4ed8;
-      --accepted: #1a7f37; --review: #b35900; --rejected: #b91c1c;
-      --hero-bg: #0f172a; --hero-text: #e6e9ef; --hero-muted: #94a3b8;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg); color: var(--text); line-height: 1.55;
-    }
-    a { color: var(--accent); }
-    header {
-      background: var(--panel); border-bottom: 1px solid var(--border);
-      padding: 14px 24px; display: flex; align-items: center; gap: 16px;
-      position: sticky; top: 0; z-index: 10;
-    }
-    header .brand { font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; }
-    header nav { margin-left: auto; display: flex; gap: 18px; }
-    header nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
-    header nav a:hover { color: var(--accent); }
-
-    .hero {
-      background: var(--hero-bg); color: var(--hero-text);
-      padding: 64px 24px 56px; text-align: center;
-    }
-    .hero h1 { font-size: 34px; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.01em; }
-    .hero p.lede {
-      max-width: 640px; margin: 0 auto 28px; font-size: 17px; color: var(--hero-muted);
-    }
-    .hero .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn {
-      display: inline-block; padding: 11px 22px; border-radius: 8px; border: none;
-      font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-dark); }
-    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--hero-text); border: 1px solid rgba(255,255,255,0.18); }
-    .btn-secondary:hover { background: rgba(255,255,255,0.14); }
-
-    main { max-width: 1000px; margin: 0 auto; padding: 0 24px 64px; }
-    section { margin-top: 56px; }
-    section h2 { font-size: 22px; margin: 0 0 8px; }
-    section p.section-lede { color: var(--muted); font-size: 15px; max-width: 720px; margin: 0 0 28px; }
-
-    .problems { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .problem {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 22px;
-    }
-    .problem .tag {
-      display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.04em; color: var(--rejected); background: #fdecec;
-      border-radius: 999px; padding: 3px 10px; margin-bottom: 10px;
-    }
-    .problem h3 { font-size: 16px; margin: 0 0 8px; }
-    .problem p { font-size: 14px; color: var(--muted); margin: 0; }
-
-    .arrow { text-align: center; font-size: 22px; color: var(--muted); margin: 24px 0; }
-
-    .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .pillar {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 22px;
-    }
-    .pillar .tag {
-      display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.04em; color: var(--accepted); background: #e8f5ec;
-      border-radius: 999px; padding: 3px 10px; margin-bottom: 10px;
-    }
-    .pillar h3 { font-size: 16px; margin: 0 0 8px; }
-    .pillar p { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
-    .pillar code { font-size: 12px; background: #f1f3f5; padding: 1px 5px; border-radius: 4px; }
-
-    .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; }
-    .steps li {
-      counter-increment: step; position: relative; padding: 0 0 24px 44px;
-      border-left: 2px solid var(--border); margin-left: 15px;
-    }
-    .steps li:last-child { border-left-color: transparent; padding-bottom: 0; }
-    .steps li::before {
-      content: counter(step); position: absolute; left: -15px; top: 0;
-      width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff;
-      font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
-    }
-    .steps h4 { margin: 2px 0 4px; font-size: 15px; }
-    .steps p { margin: 0; font-size: 14px; color: var(--muted); }
-    .steps code { font-size: 12px; background: #f1f3f5; padding: 1px 5px; border-radius: 4px; }
-
-    .scope-box {
-      background: #fff8ec; border: 1px solid #f0d9a6; color: #7a5200;
-      border-radius: 10px; padding: 20px 24px; font-size: 14px;
-    }
-    .scope-box strong { color: #5c3d00; }
-
-    .cta-panel {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-      padding: 32px; text-align: center;
-    }
-    .cta-panel h2 { margin-bottom: 8px; }
-    .cta-panel p { color: var(--muted); margin: 0 0 20px; }
-    .cta-panel .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-    .btn-outline:hover { background: #eef3ff; }
-
-    footer {
-      max-width: 1000px; margin: 0 auto; padding: 24px 24px 40px;
-      font-size: 12px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap;
-      border-top: 1px solid var(--border); margin-top: 24px;
-    }
-    footer a { color: var(--muted); }
-    footer a:hover { color: var(--accent); }
+    :root { --bg:#f7f8fa; --panel:#fff; --text:#1b1f24; --muted:#5b6572; --border:#e1e4e8; --accent:#2563eb;
+            --hero:#0f172a; --hero-text:#e6e9ef; --hero-muted:#94a3b8; --ok:#1a7f37; --warn:#b35900; --bad:#b91c1c; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; }
+    a { color:var(--accent); }
+    header { background:var(--panel); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; gap:18px; align-items:center; position:sticky; top:0; z-index:5; }
+    header .brand { font-weight:700; color:var(--text); text-decoration:none; }
+    header nav { margin-left:auto; display:flex; gap:18px; }
+    header nav a { color:var(--muted); text-decoration:none; font-size:14px; }
+    .hero { background:var(--hero); color:var(--hero-text); padding:72px 24px 60px; text-align:center; }
+    .hero h1 { font-size:36px; margin:0 auto 16px; max-width:820px; letter-spacing:-0.01em; }
+    .hero p { max-width:680px; margin:0 auto 28px; font-size:18px; color:var(--hero-muted); }
+    .btn { display:inline-block; padding:11px 22px; border-radius:8px; font-weight:600; font-size:14px; text-decoration:none; margin:4px; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-ghost { background:rgba(255,255,255,.08); color:var(--hero-text); border:1px solid rgba(255,255,255,.2); }
+    .btn-outline { border:1px solid var(--accent); color:var(--accent); }
+    main { max-width:1000px; margin:0 auto; padding:0 24px 64px; }
+    section { margin-top:56px; }
+    h2 { font-size:24px; margin:0 0 8px; }
+    .lede { color:var(--muted); max-width:720px; margin:0 0 24px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px; }
+    .card h3 { margin:0 0 6px; font-size:16px; }
+    .card p { margin:0; color:var(--muted); font-size:14px; }
+    .tag { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border-radius:999px; padding:2px 10px; margin-bottom:8px; background:#e8f5ec; color:var(--ok); }
+    .tag.warn { background:#fff4e5; color:var(--warn); }
+    .steps { counter-reset:s; list-style:none; padding:0; margin:0; }
+    .steps li { counter-increment:s; position:relative; padding:0 0 22px 46px; border-left:2px solid var(--border); margin-left:15px; }
+    .steps li:last-child { border-left-color:transparent; padding-bottom:0; }
+    .steps li::before { content:counter(s); position:absolute; left:-15px; top:0; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+    .steps h4 { margin:2px 0 2px; } .steps p { margin:0; color:var(--muted); font-size:14px; }
+    table { width:100%; border-collapse:collapse; font-size:14px; background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+    th { background:#fafbfc; color:var(--muted); font-size:12px; text-transform:uppercase; }
+    .notice { background:#fff8ec; border:1px solid #f0d9a6; color:#7a5200; border-radius:10px; padding:18px 22px; font-size:14px; }
+    footer { max-width:1000px; margin:24px auto 0; padding:24px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); display:flex; gap:16px; flex-wrap:wrap; }
+    footer a { color:var(--muted); }
+    code { background:#f1f3f5; padding:1px 5px; border-radius:4px; font-size:13px; }
   </style>
 </head>
 <body>
   <header>
     <a class="brand" href="{{ url_for('landing.index') }}">AML+18</a>
     <nav>
-      <a href="{{ url_for('developer_portal.landing') }}">Entwicklerportal</a>
-      <a href="{{ url_for('developer_portal.pricing') }}">Preise</a>
-      <a href="{{ url_for('review_ui.list_decisions') }}">Compliance-Officer</a>
+      <a href="#how">How it works</a>
+      <a href="#guarantees">Guarantees</a>
+      <a href="{{ url_for('developer_portal.landing') }}">Developers</a>
+      <a href="{{ url_for('developer_portal.pricing') }}">Pricing</a>
       <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
 
   <div class="hero">
-    <h1>Aus einer Blockchain-Adresse eine verifizierte Entität machen</h1>
-    <p class="lede">
-      AML+18 ist der offene, selbst hostbare Compliance-Baustein für
-      Krypto-Projekte in der EU — Sanktionsprüfung, Nachweis der
-      Wallet-Kontrolle und Altersverifikation, fertig implementiert und
-      auf dem tatsächlichen Verordnungstext aufgebaut, nicht auf Annahmen.
-    </p>
-    <div class="ctas">
-      <a class="btn btn-primary" href="{{ url_for('developer_portal.landing') }}">Für Entwickler: loslegen →</a>
-      <a class="btn btn-secondary" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub</a>
-    </div>
+    <h1>An AI compliance officer for crypto and fintech.</h1>
+    <p>It screens every inbound transfer, explains every decision, and acts only within the policy you set.
+       Open source and self-hostable.</p>
+    <a class="btn btn-primary" href="{{ url_for('developer_portal.signup_form') }}">Get an API key</a>
+    {% if config.AGENT_ENABLED %}<a class="btn btn-ghost" href="{{ url_for('owner.login') }}">Open the agent console</a>{% endif %}
+    <a class="btn btn-ghost" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">View on GitHub</a>
   </div>
 
   <main>
-
     <section>
-      <h2>Das Problem: drei Pflichten, die sich niemand aussuchen kann</h2>
-      <p class="section-lede">
-        Wer in der EU Krypto-Transfers abwickelt, Self-Hosted-Wallets bedient
-        oder eine altersbeschränkte Plattform betreibt, muss unabhängig von
-        der eigenen Größe konkrete regulatorische Pflichten erfüllen — sonst
-        drohen Bußgelder, der Verlust der Lizenz oder gar keine Aufnahme des
-        Geschäfts.
-      </p>
-      <div class="problems">
-        <div class="problem">
-          <span class="tag">Travel Rule</span>
-          <h3>Krypto-Transfers ohne Sanktionsprüfung</h3>
-          <p>
-            VO (EU) 2023/1113 verlangt für jeden Krypto-Transfer zwischen
-            zwei Anbietern (CASPs) vollständige Auftraggeber-/Begünstigten-
-            angaben und ein Screening gegen Sanktionslisten — unabhängig
-            von der Transferhöhe, ohne Bagatellgrenze.
-          </p>
-        </div>
-        <div class="problem">
-          <span class="tag">Wallet Ownership</span>
-          <h3>Self-Hosted-Wallets ohne Kontrollnachweis</h3>
-          <p>
-            Ab €1.000 verlangen die EBA-Travel-Rule-Leitlinien und BaFins
-            §15a GwG einen Nachweis, dass der Begünstigte eine Self-Hosted-
-            Adresse tatsächlich besitzt oder kontrolliert — nicht nur, dass
-            sie existiert.
-          </p>
-        </div>
-        <div class="problem">
-          <span class="tag">Altersverifikation</span>
-          <h3>Zugang ohne verlässliche Alterskontrolle</h3>
-          <p>
-            Online-Glücksspiel und Adult-Content-Plattformen benötigen einen
-            belastbaren, datensparsamen 18+-Nachweis — nicht nur ein
-            Selbstauskunfts-Häkchen, das vor keiner Aufsichtsbehörde besteht.
-          </p>
-        </div>
-      </div>
+      <h2>The problem</h2>
+      <p class="lede">Every inbound transfer needs someone to check the counterparty against sanctions lists, confirm the funds
+        actually arrived, decide, and write down why. Small teams do this by hand or buy per-check vendors that return a score
+        and no reasoning. Both break at volume, and neither leaves an audit trail an examiner can trust.</p>
     </section>
 
-    <div class="arrow">↓</div>
-
-    <section style="margin-top: 0;">
-      <h2>Die Lösung: ein Baustein, drei unabhängige Module</h2>
-      <p class="section-lede">
-        Jedes Modul ist eigenständig nutzbar, mit eigenem Einstiegspunkt und
-        eigenen Datenbanktabellen — Sie binden nur das ein, was Ihr Projekt
-        tatsächlich braucht.
-      </p>
-      <div class="pillars">
-        <div class="pillar">
-          <span class="tag">Modul 1</span>
-          <h3>Travel-Rule-Screening</h3>
-          <p>
-            Echtes TRISA-Protokoll (vendoriertes <code>trisacrypto/envoy</code>),
-            Abgleich gegen OFAC-SDN- und EU-Sanktionslisten mit
-            automatischer, planbarer Aktualisierung. Entscheidung
-            Akzeptieren/Prüfen/Ablehnen, nachvollziehbar im
-            Compliance-Dashboard.
-          </p>
-        </div>
-        <div class="pillar">
-          <span class="tag">Modul 2</span>
-          <h3>Wallet-Ownership-Verification</h3>
-          <p>
-            REST-API, sofort einsatzbereit. Zwei EBA-konforme Methoden:
-            signierte Nachricht (keine Blockchain-Infrastruktur nötig) oder
-            kleiner EVM-Testtransfer.
-          </p>
-        </div>
-        <div class="pillar">
-          <span class="tag">Modul 3</span>
-          <h3>Altersverifikation</h3>
-          <p>
-            REST-API, privatsphärenschonend — es wird nur der Ja/Nein-Entscheid
-            gespeichert, nie das Ausweisdokument selbst. Mock-Adapter für
-            lokale Entwicklung, EU-OID4VP-Adapter für den echten Blueprint-Flow.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>So funktioniert es</h2>
+    <section id="how">
+      <h2>How it works</h2>
+      <p class="lede">The agent does the analyst's routine work. Anything that is risky, ambiguous or out of policy goes to you.</p>
       <ol class="steps">
-        <li>
-          <h4>Selbst hosten</h4>
-          <p>Ein <code>docker compose up</code> startet den gesamten Stack —
-          keine Abhängigkeit von einem externen SaaS-Anbieter, Ihre Daten
-          bleiben in Ihrer Infrastruktur.</p>
-        </li>
-        <li>
-          <h4>Projekt registrieren</h4>
-          <p>Im <a href="{{ url_for('developer_portal.landing') }}">Entwicklerportal</a>
-          in wenigen Sekunden einen API-Schlüssel erhalten — keine
-          Freischaltung, keine Wartezeit.</p>
-        </li>
-        <li>
-          <h4>Modul(e) anbinden</h4>
-          <p>REST-Aufrufe für Wallet-Ownership und Altersverifikation, oder
-          ein eigener TRISA-Knoten für Travel-Rule-Screening — je nachdem,
-          was Ihr Projekt tatsächlich braucht.</p>
-        </li>
-        <li>
-          <h4>Ergebnis im Compliance-Dashboard sehen</h4>
-          <p>Jede Entscheidung mit Begründung, Sanktionslisten-Treffer und
-          manueller Prüfmöglichkeit — inklusive Anzeige, wie aktuell die
-          zugrunde liegende Sanktionsliste ist.</p>
-        </li>
+        <li><h4>A transfer arrives</h4><p>Your system posts it to <code>POST /agent/transfers</code>, or the monitor spots a deposit to a registered address on an EVM testnet.</p></li>
+        <li><h4>Deterministic checks run first</h4><p>Counterparty screening against the sanctions lists your jurisdiction requires (OFAC SDN for the US profile), list freshness, and an on-chain check of the transaction, confirmations, amount and deposit address.</p></li>
+        <li><h4>The model reviews with tools</h4><p>It sees those results as facts it cannot lower, calls a small set of whitelisted tools, classifies the case as clear, needs review or recommend block, and writes the explanation.</p></li>
+        <li><h4>The policy engine decides what may happen</h4><p>Plain code, not the model, checks the proposed action against your limits, assets, chains, jurisdictions and mode.</p></li>
+        <li><h4>You see everything</h4><p>Live feed, approvals, per-case reports, a daily digest and a tamper-evident journal.</p></li>
       </ol>
     </section>
 
     <section>
-      <div class="scope-box">
-        <strong>Was AML+18 nicht ist:</strong> ein fertiges Produkt für ein
-        bestimmtes Geschäftsmodell. Es ist das rechtliche Fundament, auf dem
-        Ihr Projekt aufbaut — was Sie danach damit bauen (Börse, Wallet,
-        Umtauschdienst, Glücksspielplattform) und welche Lizenzen und
-        Genehmigungen dafür zusätzlich nötig sind, liegt außerhalb dieses
-        Bausteins.
+      <h2>Two modes, set per client</h2>
+      <div class="grid">
+        <div class="card"><span class="tag">Default</span><h3>MONITOR</h3>
+          <p>Screens, classifies, explains and recommends. Changes nothing in your systems and records only recommendations.</p></div>
+        <div class="card"><span class="tag warn">Opt-in</span><h3>OPERATE</h3>
+          <p>After your explicit, recorded consent and a fresh two-factor code, the agent may send signed release, hold or reject instructions
+             to your system for the operations you choose, within your policy. It never holds keys or moves funds.</p></div>
+      </div>
+    </section>
+
+    <section id="guarantees">
+      <h2>Guarantees enforced in code</h2>
+      <div class="grid">
+        <div class="card"><h3>Sanctions hits are never automatic</h3><p>Any exact or fuzzy match above the threshold goes to a human, whatever the policy or the model says.</p></div>
+        <div class="card"><h3>The model can only raise caution</h3><p>Deterministic results are a floor. If the model is down or confused, the case becomes needs review, never clear.</p></div>
+        <div class="card"><h3>Untrusted text stays data</h3><p>Memos and counterparty names are passed as quoted data. A memo that says "release this now" cannot trigger anything; the attempt is logged.</p></div>
+        <div class="card"><h3>Tamper-evident journal</h3><p>Every step is an append-only entry hashed together with the previous one. Editing history breaks the chain and the console says so.</p></div>
+        <div class="card"><h3>You hold the controls</h3><p>Only the authenticated owner changes mode or policy. The agent has no tool for either. A kill switch returns to MONITOR instantly.</p></div>
+        <div class="card"><h3>No keys, no funds, no mainnet</h3><p>Read-only chain access on testnet or a mock ledger. Secrets come from the environment only.</p></div>
       </div>
     </section>
 
     <section>
-      <div class="cta-panel">
-        <h2>Bereit anzufangen?</h2>
-        <p>Open Source, MIT-lizenziert, in wenigen Minuten lokal lauffähig.</p>
-        <div class="ctas">
-          <a class="btn btn-primary" href="{{ url_for('developer_portal.landing') }}">Zum Entwicklerportal →</a>
-          <a class="btn btn-outline" href="{{ url_for('review_ui.list_decisions') }}">Zum Compliance-Officer-Dashboard →</a>
-          <a class="btn btn-outline" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
-        </div>
+      <h2>What the agent can do</h2>
+      <table>
+        <tr><th>Tool</th><th>What it does</th></tr>
+        <tr><td><code>screen_transfer</code></td><td>Sanctions screening of the counterparty with the existing matcher</td></tr>
+        <tr><td><code>get_sanctions_freshness</code></td><td>Age and size of each active list</td></tr>
+        <tr><td><code>verify_incoming_funds</code></td><td>Transaction exists, confirmations, amount, deposit address</td></tr>
+        <tr><td><code>check_wallet_ownership</code></td><td>Whether control of an address was previously proven</td></tr>
+        <tr><td><code>record_decision</code> · <code>write_report</code> · <code>notify_owner</code></td><td>Classification, explanation, report, alert</td></tr>
+        <tr><td><code>execute_operation</code></td><td>Proposes an action; only the policy engine can let it through</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <div class="notice">
+        <strong>Honest limits.</strong> This is early software. Chain access is limited to testnet and a mock ledger. It is not legal advice and
+        does not by itself satisfy any regulatory obligation; jurisdiction profiles and legal notes are configuration marked
+        <em>REQUIRES COUNSEL REVIEW</em>, and reporting thresholds are not encoded. Licensing for your business model is outside this project.
       </div>
     </section>
 
+    <section style="text-align:center">
+      <h2>Run it yourself or use the hosted version</h2>
+      <p class="lede" style="margin:0 auto 20px">One <code>docker compose up</code> starts the stack. The agent is off until you set <code>AGENT_ENABLED=true</code>.</p>
+      <a class="btn btn-primary" href="{{ url_for('developer_portal.signup_form') }}">Get an API key</a>
+      <a class="btn btn-outline" href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Read the code</a>
+    </section>
   </main>
 
   <footer>
-    <span>Open Source, MIT-lizenziert, selbst hostbar</span>
-    <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
-    <a href="https://github.com/pilipandr770/AML-18/blob/main/ANFORDERUNGEN.md" target="_blank" rel="noopener">Rechtsgrundlagen (ANFORDERUNGEN.md) →</a>
+    <span>Open source, MIT-licensed, self-hostable</span>
+    <a href="https://github.com/pilipandr770/AML-18/blob/main/ANFORDERUNGEN.md" target="_blank" rel="noopener">Legal research notes</a>
+    <a href="{{ url_for('developer_portal.landing') }}">Developer portal</a>
   </footer>
 </body>
 </html>

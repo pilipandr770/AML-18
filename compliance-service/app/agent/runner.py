@@ -11,7 +11,7 @@ from app.agent.jurisdiction import coverage, profile_for
 from app.agent.llm import LLMUnavailable
 from app.agent.models import CLASS_CLEAR, CLASS_NEEDS_REVIEW, MODE_MONITOR, AgentCase
 from app.agent.settings import load_effective
-from app.agent.tools import TOOL_SPECS, TOOLS, ToolContext, _floor, untrusted
+from app.agent.tools import TOOL_SPECS, TOOLS, ToolContext, _floor, fmt_amount, untrusted
 from app.extensions import db
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def _facts(case: AgentCase, ctx: ToolContext, jurisdiction: str) -> dict:
         "case_id": case.public_id,
         "jurisdiction_profile": jurisdiction,
         "mode": ctx.mode,
-        "transfer": {"chain": case.chain, "asset": case.asset, "amount": str(case.amount),
+        "transfer": {"chain": case.chain, "asset": case.asset, "amount": fmt_amount(case.amount),
                      "deposit_address": case.deposit_address, "tx_hash": case.tx_hash},
         "counterparty": {"name": untrusted(case.counterparty_name), "country": case.counterparty_country},
         "memo": untrusted(case.memo, 500),
@@ -70,7 +70,7 @@ def process_case(case: AgentCase, project, config, llm, ledger, executor) -> Age
                       mode=mode, policy=policy, kill_switch=kill)
 
     journal.append(project.id, "system", "case_received", {
-        "chain": case.chain, "asset": case.asset, "amount": str(case.amount), "tx_hash": case.tx_hash,
+        "chain": case.chain, "asset": case.asset, "amount": fmt_amount(case.amount), "tx_hash": case.tx_hash,
         "counterparty": untrusted(case.counterparty_name), "memo": untrusted(case.memo, 500),
     }, case.public_id)
 

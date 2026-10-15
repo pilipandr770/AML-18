@@ -27,6 +27,13 @@ _SEVERITY = {CLASS_CLEAR: 0, CLASS_NEEDS_REVIEW: 1, CLASS_RECOMMEND_BLOCK: 2}
 _FLOOR_FROM_DETERMINISTIC = {"accepted": CLASS_CLEAR, "review": CLASS_NEEDS_REVIEW, "rejected": CLASS_RECOMMEND_BLOCK}
 
 
+def fmt_amount(value) -> str:
+    """Display form of an amount: SQLite returns Numeric columns with float
+    noise (Postgres is exact), so show at most 9 decimals, trimmed."""
+    q = Decimal(str(value)).quantize(Decimal("1e-9")).normalize()
+    return format(q, "f")
+
+
 def untrusted(value, limit: int = 300):
     """Marks and bounds externally supplied text before it reaches the model."""
     if value is None:
@@ -159,7 +166,7 @@ def list_pending_reviews(ctx: ToolContext, args: dict) -> dict:
         .order_by(AgentCase.created_at.desc()).limit(20).all()
     )
     return {"pending": [
-        {"case_id": r.public_id, "classification": r.classification, "amount": str(r.amount), "asset": r.asset,
+        {"case_id": r.public_id, "classification": r.classification, "amount": fmt_amount(r.amount), "asset": r.asset,
          "counterparty": untrusted(r.counterparty_name, 80)}
         for r in rows
     ]}
@@ -191,6 +198,9 @@ def execute_operation(ctx: ToolContext, args: dict) -> dict:
     operation = args.get("operation")
     if operation not in ALL_OPERATIONS:
         return {"error": "unknown operation"}
+    if not ctx.decision_recorded:
+        # No state change, no journal noise: the model is told to fix the order.
+        return {"error": "call record_decision first, then propose an operation"}
     proposal = Proposal(
         operation=operation, amount=Decimal(str(case.amount)), asset=case.asset, chain=case.chain,
         counterparty_country=case.counterparty_country, counterparty_known=_counterparty_known(case),
@@ -200,12 +210,18 @@ def execute_operation(ctx: ToolContext, args: dict) -> dict:
         llm_classification=case.classification if ctx.decision_recorded else None,
     )
     verdict = evaluate(proposal, ctx.policy, ctx.mode, ctx.kill_switch)
-    journal.append(
-        ctx.project.id, "policy_engine", "policy_verdict",
-        {"operation": operation, "outcome": verdict.outcome, "reasons": verdict.reasons, "mode": ctx.mode,
-         "agent_reason": str(args.get("reason", ""))[:500]},
-        case.public_id,
-    )
+    payload = {"operation": operation, "outcome": verdict.outcome, "reasons": verdict.reasons, "mode": ctx.mode,
+               "agent_reason": str(args.get("reason", ""))[:500]}
+    if verdict.outcome == RECOMMEND_ONLY and verdict.reasons == ["inv_monitor_mode"]:
+        # MONITOR never acts, but the recommendation says what the policy would
+        # require in OPERATE mode, so the owner sees limit breaches early.
+        preview = evaluate(proposal, ctx.policy, "operate", False)
+        payload["preview_outcome"] = preview.outcome
+        payload["preview_reasons"] = preview.reasons
+        if preview.outcome != EXECUTE:
+            case.status = "awaiting_human"
+            db.session.commit()
+    journal.append(ctx.project.id, "policy_engine", "policy_verdict", payload, case.public_id)
     if verdict.outcome == EXECUTE:
         try:
             result = ctx.executor.execute(operation, case, ctx.project)
@@ -219,7 +235,7 @@ def execute_operation(ctx: ToolContext, args: dict) -> dict:
         case.resolution = operation
         db.session.commit()
         journal.append(ctx.project.id, "system", "operation_executed",
-                       {"operation": operation, "amount": str(case.amount), "result": result}, case.public_id)
+                       {"operation": operation, "amount": fmt_amount(case.amount), "result": result}, case.public_id)
     elif verdict.outcome == NEEDS_HUMAN:
         case.status = "awaiting_human"
         db.session.commit()

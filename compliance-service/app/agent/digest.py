@@ -12,6 +12,7 @@ from html import escape
 from app.agent import journal
 from app.agent.jurisdiction import profile_for
 from app.agent.models import AgentAuditEntry, AgentCase
+from app.agent.tools import fmt_amount
 from app.sanctions.freshness import get_freshness
 
 
@@ -40,14 +41,14 @@ def to_csv(d: dict) -> str:
     w = csv.writer(out)
     w.writerow(["case_id", "created_utc", "amount", "asset", "chain", "tx_hash", "classification", "status", "sanctions", "explanation"])
     for c in d["cases"]:
-        w.writerow([c.public_id, c.created_at.strftime("%Y-%m-%d %H:%M:%S"), c.amount, c.asset, c.chain, c.tx_hash or "",
+        w.writerow([c.public_id, c.created_at.strftime("%Y-%m-%d %H:%M:%S"), fmt_amount(c.amount), c.asset, c.chain, c.tx_hash or "",
                     c.classification or "", c.status, c.deterministic_decision or "", (c.explanation or "").replace("\n", " ")])
     return out.getvalue()
 
 
 def to_html(d: dict) -> str:
     rows = "".join(
-        f"<tr><td>{escape(c.created_at.strftime('%Y-%m-%d %H:%M'))}</td><td>{escape(str(c.amount))} {escape(c.asset)}</td>"
+        f"<tr><td>{escape(c.created_at.strftime('%Y-%m-%d %H:%M'))}</td><td>{escape(fmt_amount(c.amount))} {escape(c.asset)}</td>"
         f"<td>{escape(c.classification or '-')}</td><td>{escape(c.status)}</td><td>{escape((c.explanation or '')[:160])}</td></tr>"
         for c in d["cases"]
     )

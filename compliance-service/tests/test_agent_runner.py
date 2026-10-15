@@ -205,3 +205,23 @@ def test_digest_html_csv_and_journal_integrity(app, project):
     assert "case_id" in digest.to_csv(d).splitlines()[0]
     assert "AML+18 agent digest" in digest.to_html(d) and "REQUIRES COUNSEL REVIEW" in digest.to_html(d)
     assert digest.send_email({"SMTP_HOST": ""}, "x@y.z", d) is False
+
+
+def test_monitor_recommendation_includes_policy_preview_and_flags_limit_breach(app, project):
+    _settings(project, mode="monitor")
+    case = _case(project, amount="900")
+    ex = _run(app, project, case, _script([CLEAR], [RELEASE]), _ledger("900"))
+    assert ex.executed == []
+    verdict = AgentAuditEntry.query.filter_by(event_type="policy_verdict").one().payload
+    assert verdict["outcome"] == "recommend_only"
+    assert verdict["preview_outcome"] == "needs_human" and "over_require_human_above" in verdict["preview_reasons"]
+    assert case.status == "awaiting_human"
+
+
+def test_operation_before_decision_is_refused_without_side_effects(app, project):
+    _settings(project)
+    case = _case(project)
+    ex = _run(app, project, case, _script([RELEASE], [CLEAR], [RELEASE]))  # wrong order, then corrected
+    assert case.status == "operated" and len(ex.executed) == 1
+    verdicts = AgentAuditEntry.query.filter_by(event_type="policy_verdict").count()
+    assert verdicts == 1  # the premature attempt never reached the policy engine

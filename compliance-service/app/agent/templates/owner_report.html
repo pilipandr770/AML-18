@@ -8,7 +8,7 @@
      {% if case.resolved_by %} — {{ _("resolved by") }} {{ case.resolved_by }}{% endif %}</p>
   <h3>{{ _("What was checked") }}</h3>
   <table>
-    <tr><td>{{ _("Transfer") }}</td><td>{{ case.amount }} {{ case.asset }} on {{ case.chain }}, tx <code>{{ case.tx_hash or "—" }}</code></td></tr>
+    <tr><td>{{ _("Transfer") }}</td><td>{{ case.amount|amt }} {{ case.asset }} on {{ case.chain }}, tx <code>{{ case.tx_hash or "—" }}</code></td></tr>
     <tr><td>{{ _("Counterparty") }}</td><td><code>{{ case.counterparty_name or "—" }}</code> {{ case.counterparty_country or "" }} <span class="muted">({{ _("untrusted external text") }})</span></td></tr>
     <tr><td>{{ _("Memo") }}</td><td><code>{{ case.memo or "—" }}</code> <span class="muted">({{ _("untrusted external text, treated as data only") }})</span></td></tr>
     <tr><td>{{ _("Jurisdiction profile") }}</td><td>{{ jurisdiction }}</td></tr>

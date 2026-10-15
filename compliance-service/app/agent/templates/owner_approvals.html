@@ -6,7 +6,7 @@
   <p class="muted">{{ _("Cases the agent could not or may not decide on its own. Sanctions and fuzzy matches always land here.") }}</p>
   {% for c in cases %}
   <div class="panel" style="margin-top:12px">
-    <p><strong>{{ c.amount }} {{ c.asset }}</strong> ({{ c.chain }}) &nbsp;
+    <p><strong>{{ c.amount|amt }} {{ c.asset }}</strong> ({{ c.chain }}) &nbsp;
        <span class="badge b-{{ c.classification }}">{{ c.classification }}</span>
        <span class="muted">{{ _("sanctions screening") }}: {{ c.deterministic_decision }}</span></p>
     <p class="muted">{{ _("Counterparty (untrusted external text)") }}: <code>{{ c.counterparty_name or "—" }}</code></p>

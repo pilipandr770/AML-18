@@ -39,6 +39,15 @@ class FundsCheck:
         }
 
 
+_TOLERANCE = Decimal("1e-9")
+
+
+def _same_amount(a, b) -> bool:
+    # 1 nano-unit tolerance: SQLite hands Numeric columns back with float
+    # noise (Postgres is exact); the tolerance is far below any real value.
+    return abs(Decimal(str(a)) - Decimal(str(b))) <= _TOLERANCE
+
+
 def _evaluate(found, confirmations, amount, to_address, expected_address, expected_amount, min_confirmations) -> FundsCheck:
     if not found:
         return FundsCheck(found=False, detail="transaction not found")
@@ -48,7 +57,7 @@ def _evaluate(found, confirmations, amount, to_address, expected_address, expect
         amount=amount,
         to_address=to_address,
         address_match=(to_address or "").lower() == (expected_address or "").lower(),
-        amount_match=amount is not None and Decimal(amount) == Decimal(expected_amount),
+        amount_match=amount is not None and _same_amount(amount, expected_amount),
         sufficient_confirmations=confirmations >= min_confirmations,
     )
 

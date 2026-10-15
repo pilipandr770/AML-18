@@ -59,6 +59,12 @@ def _guard():
             abort(400)
 
 
+@owner_bp.app_template_filter("amt")
+def _amt(value):
+    from app.agent.tools import fmt_amount
+    return fmt_amount(value)
+
+
 @owner_bp.app_context_processor
 def _inject():
     def csrf_token():
@@ -200,7 +206,10 @@ def logout():
 def _describe(e: AgentAuditEntry) -> str:
     p = e.payload or {}
     if e.event_type == "policy_verdict":
-        return f"{p.get('operation')} -> {p.get('outcome')} ({', '.join(p.get('reasons', []))})"
+        text = f"{p.get('operation')} -> {p.get('outcome')} ({', '.join(p.get('reasons', []))})"
+        if p.get("preview_outcome"):
+            text += f"; under OPERATE policy: {p['preview_outcome']} ({', '.join(p.get('preview_reasons', []))})"
+        return text
     if e.event_type == "decision_recorded":
         return f"classified {p.get('final')} (floor {p.get('floor')})"
     if e.event_type == "deterministic_checks":

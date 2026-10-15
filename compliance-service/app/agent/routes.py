@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from app.agent.factory import get_runtime
 from app.agent.models import AgentCase, DepositAddress
 from app.agent.runner import process_case
+from app.agent.tools import fmt_amount
 from app.developer_portal.auth import require_api_key
 from app.extensions import db
 
@@ -43,7 +44,7 @@ def case_summary(c: AgentCase) -> dict:
     return {
         "case_id": c.public_id, "status": c.status, "classification": c.classification,
         "deterministic_decision": c.deterministic_decision, "explanation": c.explanation,
-        "funds_verified": bool((c.funds_check or {}).get("verified")), "amount": str(c.amount),
+        "funds_verified": bool((c.funds_check or {}).get("verified")), "amount": fmt_amount(c.amount),
         "asset": c.asset, "chain": c.chain, "tx_hash": c.tx_hash,
     }
 
