@@ -25,7 +25,7 @@ Facts marked (2nd) come from secondary sources; check them before sending.
   facial-recognition onboarding; MoneyGram alliance and PNB link (2nd). Trademark owner: Digital Wallet US LLC.
 - Why us: a new US remittance flow means OFAC screening on every counterparty from day one. Nothing public describes
   their US screening vendor.
-- Contact: US leadership via LinkedIn (search "Smiles Mobile Remittance" + "compliance" or "US").
+- Contact: no compliance or US leader is named publicly. Group CEO and founder: Eiji Miyakawa (2nd). Ask the group for the US compliance lead, or find the US lead on LinkedIn while signed in (not done: LinkedIn blocks logged-out pages).
 - Letter (EN):
 
 > Subject: Sanctions screening for Smiles Mobile Remittance in the US
@@ -46,7 +46,7 @@ Facts marked (2nd) come from secondary sources; check them before sending.
 - Facts: Edmonton-based, listed on TSXV; 2026 US market push, over 30% of new registrations from the US (company claim).
   Compliance language found is Canadian only.
 - Why us: a Canadian company with a US customer base has to show OFAC screening; investors will ask.
-- Contact: CEO Adam O'Brien (public, appears in podcast coverage); general company contact on bitcoinwell.com.
+- Contact: CEO and founder Adam O'Brien, named on bitcoinwell.com/about (verified 2026-10-15). No compliance person is named on the site.
 - Letter (EN):
 
 > Subject: OFAC screening for the US expansion of Bitcoin Well
@@ -134,12 +134,12 @@ would look careless.
   hiring a BSA Officer and a CCO in 2026; existing vendors named in the posting: Sumsub, Unit21, TRM Labs.
 - Why us: they have a stack; the gap we can fill is a second, explainable decision layer and a sanctions-only check for
   the EU entity they are building (EMI / CASP). Lower probability; still a real company with a live hiring signal.
-- Contact: BSA Officer / CCO via LinkedIn; company site dakota.xyz.
+- Contact: Co-Founder & CEO Ryan Bozarth, named on dakota.xyz/about (verified 2026-10-15). Compliance postings are unnamed; the BSA Officer and CCO hires are not yet on the site.
 - Letter (EN):
 
 > Subject: A second opinion for your BSA and sanctions programme
 >
-> Dear {name},
+> Dear Mr Bozarth,
 > Your BSA Officer and CCO postings show a team being built for state examinations and for the EU licence path.
 > You already run Sumsub, Unit21 and TRM. I am not proposing to replace any of them.
 > AML+18 is an open-source screening layer with explainable decisions and a tamper-evident audit trail, which can serve
@@ -204,7 +204,7 @@ would look careless.
 
 ## What to do before sending any letter
 
-1. Check the named person on LinkedIn; replace {name}; confirm the role is still open where a letter mentions one.
+1. Replace {name} where a name is still missing (Digital Wallet US); Bitcoin Well and Dakota letters are addressed to CEOs named on their own sites; confirm the role is still open where a letter mentions one.
 2. Re-check each (2nd) fact on the company's own site or press release.
 3. Send one letter per company, from your own address, with the Impressum data visible on the site.
 4. Log every contact and reply in `docs/pilot/PROSPECTS.md`. Replies are the feedback this phase is for.
