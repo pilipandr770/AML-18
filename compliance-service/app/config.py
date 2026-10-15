@@ -66,6 +66,18 @@ class Config:
         os.environ.get("WALLET_OWNERSHIP_TEST_TRANSFER_MIN_CONFIRMATIONS", "1")
     )
 
+    # AI compliance agent (see app/agent/). Off by default: a deployment
+    # that doesn't opt in never imports the LLM client or exposes /agent/*.
+    # Secrets come from the environment only; there is deliberately no
+    # default model id -- set ANTHROPIC_MODEL explicitly.
+    AGENT_ENABLED = os.environ.get("AGENT_ENABLED", "false").lower() == "true"
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+    ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "")
+    AGENT_LLM_TIMEOUT_SECONDS = float(os.environ.get("AGENT_LLM_TIMEOUT_SECONDS", "20"))
+    AGENT_LLM_MAX_CALLS_PER_MINUTE = int(os.environ.get("AGENT_LLM_MAX_CALLS_PER_MINUTE", "30"))
+    # en (default) or de; applies to the agent UI and shared templates.
+    UI_LOCALE = os.environ.get("UI_LOCALE", "en")
+
     # Hosted-SaaS billing (see app/billing/). Off by default -- a
     # self-hosted deployment needs zero Stripe setup and never has its
     # wallet-ownership/age-verify calls metered or quota-limited.

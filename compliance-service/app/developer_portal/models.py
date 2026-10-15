@@ -39,3 +39,7 @@ class DeveloperProject(db.Model):
     stripe_customer_id = db.Column(db.String(64), nullable=True, unique=True, index=True)
     stripe_subscription_id = db.Column(db.String(64), nullable=True, unique=True)
     plan_updated_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    # Which regulatory profile the project's agent/UI texts follow (US|EU).
+    # Existing and self-hosted projects stay EU unless changed.
+    jurisdiction = db.Column(db.String(4), nullable=False, default="EU", server_default="EU")
