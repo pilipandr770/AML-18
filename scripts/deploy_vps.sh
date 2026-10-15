@@ -51,6 +51,7 @@ else
   sed -i "s|^AML_DOMAIN=.*|AML_DOMAIN=$DOMAIN|" .env.vps
   echo ".env.vps exists, kept secrets (domain updated)"
 fi
+sed -i 's/$//' .env.vps   # tolerate CRLF so an empty value is really empty
 # settings added after the first deploy: append to an existing .env.vps if missing
 [ -n "$(tail -c1 .env.vps)" ] && echo >> .env.vps
 grep -q '^ASSISTANT_ENABLED=' .env.vps || printf 'ASSISTANT_ENABLED=true
