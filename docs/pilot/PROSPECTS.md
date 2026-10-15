@@ -151,6 +151,29 @@ Next step agreed with the founder: enrich the top ~100 by name against their own
 individually to the best 10 to 20. Each letter names the specific fact we found, and states honestly that the author is a
 Ukrainian developer now in Germany, applying to Y Combinator, who promises to mention the partner in the pitch.
 
+## Enrichment round 1: 30 FinCEN-listed companies (2026-10-15)
+
+Method: web search by legal name and DBA. Verdict per company, not per name on the list.
+
+| Verdict | Company (state) | What we found |
+|---|---|---|
+| **Strong** | Digital Wallet US LLC, "Smiles Mobile Remittance" (CA) | US launch 17 June 2026 by Japan's Digital Wallet Group; remittance app; MoneyGram alliance (secondhand). New US money transmitter with cross-border flows: a direct sanctions-screening need. |
+| **Strong** | Dakota Platform, Inc. (Boulder CO) | Business banking for crypto companies, stablecoin accounts; Series A USD 12.5M (Jul 2025); 500+ business customers (mid-2025); registered MSB (aggregators, secondhand). Growing fast, has a visible compliance stack need. |
+| **Strong** | Bitcoin Well / Independent Well USA Corp (Edmonton AB, TSXV: BTCW) | Listed company; reports US expansion for 2026 and 30%+ of new registrations from the US. The only compliance language found is Canadian: a clear gap for a US sanctions programme. |
+| Medium | Coinme Inc. (Seattle WA) | Real company; open role for Chief Compliance Officer / BSA-AML lead (greenhouse posting). Hiring signal is strong. Check whether they already run a vendor. |
+| Medium | Paywaz.com LLC (FL) | Stablecoin and "PZ Gold" payments; only marketing sources; location unverified. Check before any contact. |
+| Low | CypherD Wallet (Fremont CA) | Acquired by Nium (2026): compliance probably sits inside Nium. Conflicting sources; one listing describes a mixer feature (red flag). |
+| Low | Alpaca Crypto, Apex Crypto (Bakkt) | Already have compliance teams or are owned by a larger group. |
+| Not found | Ameri Crypto Exchange, Apex Digital Assets, Autocoin, Bitage Technology, Macro Blockchain Exchange, Flux Private OTC, CoinsToGo (no info), Duewallet, Treo, Wise Wolf Bitcoin, Value Chain Exchange, TAWA Digital Assets, Gold Token, Mobile Wallet, Coinmortgage, Dailytoken, Coinize, Bitiger, Joyful Wallet, Nexcoin, America Bitcoin (= public ABTC, too large), Coin flying, Bithar/CASHMART, JHD Investment, dscrypto, CoinZoom (no jobs found) | No web footprint or wrong location. Not contacted. |
+| Excluded | Liberty Coin Service, Wilshire Coin Exchange (physical coin dealers), Paxos-style large names | Wrong business model or too large. |
+
+Result of round 1: 3 strong leads, 2 medium, the rest do not hold up as operating companies. About 1 in 10 FinCEN-listed names
+is a real, reachable business. This confirms the list is a sourcing aid, not a contact list.
+
+Suggested next: write individual letters to the 3 strong leads (Digital Wallet US, Dakota, Bitcoin Well) after
+checking each one's current US compliance team on LinkedIn; enrich Coinme's compliance role as a hiring-signal lead.
+Round 2 would be the next 70 names, and it is expensive in search calls, so it should wait for pilot feedback.
+
 ## Honest expectations
 
 Large licensed players will not switch for a free pilot. The realistic first customers are very small teams without a
