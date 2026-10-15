@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from flask import Flask
+from flask import Flask, request
 
 from app.config import Config
 from app.extensions import db, migrate
@@ -36,6 +36,15 @@ def create_app(config_class=Config):
         from werkzeug.middleware.proxy_fix import ProxyFix
         n = app.config["TRUSTED_PROXIES"]
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=n, x_proto=n, x_host=n)
+
+    @app.after_request
+    def _security_headers(resp):
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "DENY")
+        resp.headers.setdefault("Referrer-Policy", "same-origin")
+        if request.is_secure:
+            resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+        return resp
 
     from app.webhook.routes import webhook_bp
     app.register_blueprint(webhook_bp)
