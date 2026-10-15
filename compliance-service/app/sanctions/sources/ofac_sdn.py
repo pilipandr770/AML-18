@@ -12,7 +12,7 @@ parsing is namespace-agnostic (tag names are matched by local name only) so
 a future namespace change doesn't silently break ingestion.
 """
 
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET  # untrusted XML from the internet: no entity expansion
 
 import requests
 

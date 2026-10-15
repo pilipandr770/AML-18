@@ -14,12 +14,22 @@ from app.extensions import db
 from app.sanctions.addresses import addresses_from_national_ids, normalize_address
 from app.sanctions.models import EntityNameIndex, ListSnapshot, SanctionedAddress, SanctionedEntity
 from app.sanctions.normalize import name_variants
+from app.sanctions.sources.au_dfat import AustraliaDFATSource
+from app.sanctions.sources.canada_sema import CanadaSEMASource
 from app.sanctions.sources.eu_fsf import EUFSFSource
+from app.sanctions.sources.ofac_consolidated import OFACConsolidatedSource
 from app.sanctions.sources.ofac_sdn import OFACSDNSource
+from app.sanctions.sources.seco import SECOSource
+from app.sanctions.sources.uk_sanctions import UKSanctionsListSource
+from app.sanctions.sources.un_consolidated import UNConsolidatedSource
 
 logger = logging.getLogger(__name__)
 
-REGISTERED_SOURCES = [OFACSDNSource, EUFSFSource]
+# Every open list we ingest. Each refreshes independently (see ingest_all).
+REGISTERED_SOURCES = [
+    OFACSDNSource, OFACConsolidatedSource, EUFSFSource, UNConsolidatedSource,
+    UKSanctionsListSource, SECOSource, CanadaSEMASource, AustraliaDFATSource,
+]
 
 
 def ingest_source(source) -> ListSnapshot:

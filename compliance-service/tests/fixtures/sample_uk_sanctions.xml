@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Designations>
+  <DateGenerated>01/01/2026</DateGenerated>
+  <Designation>
+    <LastUpdated>01/01/2026</LastUpdated>
+    <DateDesignated>01/02/2020</DateDesignated>
+    <UniqueID>TST0001</UniqueID>
+    <OFSIGroupID>90001</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name1>Petr</Name1>
+        <Name2>Ivanovich</Name2>
+        <Name6>SIDOROV</Name6>
+        <NameType>Primary Name</NameType>
+      </Name>
+      <Name>
+        <Name1>Petr</Name1>
+        <Name6>Sidoroff</Name6>
+        <NameType>Alias</NameType>
+        <AliasStrength>Good quality a.k.a</AliasStrength>
+      </Name>
+      <Name>
+        <Name6>SIDOROV Petr</Name6>
+        <NameType>Primary Name Variation</NameType>
+      </Name>
+    </Names>
+    <NonLatinNames>
+      <NonLatinName>
+        <NameNonLatinScript>Пётр Сидоров</NameNonLatinScript>
+      </NonLatinName>
+    </NonLatinNames>
+    <RegimeName>The Testland (Sanctions) Regulations 2020</RegimeName>
+    <IndividualEntityShip>Individual</IndividualEntityShip>
+    <DesignationSource>UK</DesignationSource>
+    <OtherInformation>Fictional test person.</OtherInformation>
+    <Addresses>
+      <Address>
+        <AddressLine1>1 Test Street</AddressLine1>
+        <AddressLine6>Testgrad</AddressLine6>
+        <AddressCountry>Testland</AddressCountry>
+      </Address>
+    </Addresses>
+    <IndividualDetails>
+      <Individual>
+        <DOBs>
+          <DOB>dd/mm/1975</DOB>
+          <DOB>12/03/1980</DOB>
+        </DOBs>
+        <PassportDetails>
+          <Passport><PassportNumber>TP1234567</PassportNumber></Passport>
+          <Passport><PassportNumber>TP1234567</PassportNumber></Passport>
+        </PassportDetails>
+        <Nationalities>
+          <Nationality>Testland</Nationality>
+        </Nationalities>
+        <NationalIdentifierDetails>
+          <NationalIdentifier><NationalIdentifierNumber>NID-555</NationalIdentifierNumber></NationalIdentifier>
+        </NationalIdentifierDetails>
+        <BirthDetails>
+          <Location>
+            <TownOfBirth>Testgrad</TownOfBirth>
+            <CountryOfBirth>Testland</CountryOfBirth>
+          </Location>
+        </BirthDetails>
+      </Individual>
+    </IndividualDetails>
+  </Designation>
+  <Designation>
+    <UniqueID>TST0002</UniqueID>
+    <OFSIGroupID>90002</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name6>Testinvest Group SA</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+      <Name>
+        <Name6>TIG Holdings</Name6>
+        <NameType>Alias</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Testland (Sanctions) Regulations 2020</RegimeName>
+    <IndividualEntityShip>Entity</IndividualEntityShip>
+    <OtherInformation>Fictional entity. It is associated with the following crypto wallet addresses: (1) ETH: 0x1111111111111111111111111111111111111111 and Digital Currency Address: XBT 1FictionalBtcAddressForTestsOnly1234</OtherInformation>
+    <EntityDetails>
+      <Entity>
+        <BusinessRegistrationNumbers>
+          <BusinessRegistrationNumber>REG 998877 (Testland)</BusinessRegistrationNumber>
+        </BusinessRegistrationNumbers>
+      </Entity>
+    </EntityDetails>
+  </Designation>
+  <Designation>
+    <UniqueID>TST0003</UniqueID>
+    <Names>
+      <Name>
+        <Name6>Fictional Star</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Testland Shipping Regulations 2021</RegimeName>
+    <IndividualEntityShip>Ship</IndividualEntityShip>
+    <ShipDetails>
+      <Ship>
+        <IMONumbers><IMONumber>IMO0000001</IMONumber></IMONumbers>
+      </Ship>
+    </ShipDetails>
+  </Designation>
+  <Designation>
+    <UniqueID>TST0004</UniqueID>
+    <OFSIGroupID>90002</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name6>Testinvest Group SA</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+      <Name>
+        <Name6>Testinvest Holdings</Name6>
+        <NameType>Alias</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Testland (Other) Regulations 2022</RegimeName>
+    <IndividualEntityShip>Entity</IndividualEntityShip>
+  </Designation>
+  <Designation>
+    <UniqueID>TST0005</UniqueID>
+    <Names>
+      <Name>
+        <NameType>Primary Name</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Testland (Sanctions) Regulations 2020</RegimeName>
+    <IndividualEntityShip>Individual</IndividualEntityShip>
+  </Designation>
+</Designations>

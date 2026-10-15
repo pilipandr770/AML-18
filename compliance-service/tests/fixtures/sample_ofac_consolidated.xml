@@ -1,0 +1,36 @@
+<?xml version="1.0" standalone="yes"?>
+<!-- FICTIONAL test fixture mimicking the OFAC Consolidated (non-SDN) layout. -->
+<sdnList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <publshInformation><Publish_Date>09/14/2026</Publish_Date><Record_Count>3</Record_Count></publshInformation>
+  <sdnEntry>
+    <uid>900001</uid>
+    <firstName>Anna</firstName>
+    <lastName>TESTOVA</lastName>
+    <sdnType>Individual</sdnType>
+    <programList><program>NS-TEST</program></programList>
+    <akaList>
+      <aka><uid>1</uid><type>a.k.a.</type><category>strong</category><lastName>TESTOVA-X</lastName><firstName>Anya</firstName></aka>
+    </akaList>
+    <dateOfBirthList>
+      <dateOfBirthItem><uid>2</uid><dateOfBirth>1960</dateOfBirth><mainEntry>true</mainEntry></dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem><uid>3</uid><placeOfBirth>Fictoria</placeOfBirth><mainEntry>true</mainEntry></placeOfBirthItem>
+    </placeOfBirthList>
+    <addressList><address><uid>4</uid><city>Faketown</city><country>Fictoria</country></address></addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>900002</uid>
+    <lastName>FAKE HOLDINGS JSC</lastName>
+    <sdnType>Entity</sdnType>
+    <programList><program>RUSSIA-TEST</program></programList>
+    <idList>
+      <id><uid>5</uid><idType>Registration ID</idType><idNumber>REG-0001</idNumber></id>
+    </idList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>900003</uid>
+    <sdnType>Entity</sdnType>
+    <programList><program>NS-TEST</program></programList>
+  </sdnEntry>
+</sdnList>

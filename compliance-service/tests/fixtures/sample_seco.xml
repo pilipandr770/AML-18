@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<swiss-sanctions-list list-type="whole-list" date="2026-01-01">
+  <sanctions-program ssid="900" version-date="2026-01-01" predecessor-version-date="2025-01-01">
+    <program-key lang="eng">Testland</program-key>
+    <program-key lang="ger">Testland</program-key>
+    <program-name lang="eng">Fictional ordinance on measures against Testland</program-name>
+    <sanctions-set ssid="9001" lang="eng">article 1 (Financial sanctions)</sanctions-set>
+    <origin>EU</origin>
+  </sanctions-program>
+  <sanctions-program ssid="901" version-date="2026-01-01" predecessor-version-date="2025-01-01">
+    <program-key lang="eng">Exampleland</program-key>
+    <program-name lang="eng">Fictional ordinance on measures against Exampleland</program-name>
+    <sanctions-set ssid="9101" lang="eng">article 2</sanctions-set>
+    <origin>UN</origin>
+  </sanctions-program>
+
+  <!-- Person: older plain snapshot, then the current version with history -->
+  <target ssid="100">
+    <sanctions-set-id>9001</sanctions-set-id>
+    <individual>
+      <identity ssid="101" main="true">
+        <name ssid="102" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="family-name"><value>Oldsnapshot</value></name-part>
+        </name>
+      </identity>
+      <justification ssid="103">Old version</justification>
+    </individual>
+  </target>
+  <target ssid="100">
+    <sanctions-set-id>9101</sanctions-set-id>
+    <individual>
+      <identity ssid="101" main="true">
+        <name ssid="104" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="title"><value>Dr.</value></name-part>
+          <name-part order="2" name-part-type="family-name"><value>Testov</value>
+            <spelling-variant lang="RUS" script="CYRL" spelling-variant-type="not-defined">Тестов</spelling-variant>
+          </name-part>
+          <name-part order="3" name-part-type="given-name"><value>Anton</value>
+            <spelling-variant lang="RUS" script="CYRL" spelling-variant-type="not-defined">Антон</spelling-variant>
+          </name-part>
+          <name-part order="4" name-part-type="father-name"><value>Petrovich</value>
+            <spelling-variant lang="RUS" script="CYRL" spelling-variant-type="not-defined">Петрович</spelling-variant>
+          </name-part>
+        </name>
+        <name ssid="105" name-type="alias" quality="good" lang="eng">
+          <name-part order="1" name-part-type="whole-name"><value>Tony Test</value></name-part>
+        </name>
+        <name ssid="106" name-type="formerly-known-as" quality="good" lang="eng">
+          <name-part order="1" name-part-type="given-name"><value>Antoine</value></name-part>
+          <name-part order="2" name-part-type="family-name"><value>Testeau</value></name-part>
+        </name>
+        <day-month-year ssid="107" day="23" month="3" year="1970" calendar="Gregorian" quality="good"/>
+        <place-of-birth ssid="108" place-id="501" quality="good"/>
+        <nationality ssid="109"><country iso-code="XT">Testland</country></nationality>
+        <identification-document ssid="110" document-type="passport">
+          <number>TP1234567</number>
+          <issuer code="XT">Testland</issuer>
+        </identification-document>
+        <address ssid="111" place-id="502" quality="good">
+          <address-details>1 Fictional Street</address-details>
+          <zip-code>12345</zip-code>
+        </address>
+      </identity>
+      <identity ssid="112">
+        <name ssid="113" name-type="alias" quality="good" lang="eng">
+          <name-part order="1" name-part-type="given-name"><value>Toni</value></name-part>
+          <name-part order="2" name-part-type="family-name"><value>Testoff</value></name-part>
+        </name>
+        <day-month-year ssid="114" year="1971" calendar="Gregorian" quality="good"/>
+      </identity>
+      <justification ssid="115">Fictional person used for tests.</justification>
+    </individual>
+    <modification modification-type="amended" enactment-date="2025-05-01"/>
+    <modification modification-type="listed" enactment-date="2020-01-01"/>
+  </target>
+  <!-- same person also under a second program (separate target element) -->
+  <target ssid="100">
+    <sanctions-set-id>9001</sanctions-set-id>
+    <individual>
+      <identity ssid="101" main="true">
+        <name ssid="116" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="family-name"><value>Oldsnapshot</value></name-part>
+        </name>
+      </identity>
+    </individual>
+  </target>
+
+  <!-- Entity -->
+  <target ssid="200">
+    <sanctions-set-id>9101</sanctions-set-id>
+    <entity>
+      <identity ssid="201" main="true">
+        <name ssid="202" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="whole-name"><value>Testinvest Holding Ltd</value></name-part>
+        </name>
+        <name ssid="203" name-type="alias" quality="good" lang="eng">
+          <name-part order="1" name-part-type="whole-name"><value>TI Holding</value></name-part>
+        </name>
+        <address ssid="204" place-id="503" quality="good"/>
+      </identity>
+      <other-information ssid="205">Known wallet addresses: ETH: 0x1111111111111111111111111111111111111111; BTC: bc1qtestfictionaladdress0000000000000000abc; TRX: TabcdefghjkmnpqrstuvwxyzABCDEFGHJK</other-information>
+    </entity>
+    <modification modification-type="listed" enactment-date="2021-01-01"/>
+  </target>
+
+  <!-- Vessel -->
+  <target ssid="300">
+    <sanctions-set-id>9001</sanctions-set-id>
+    <object object-type="vessel">
+      <identity ssid="301" main="true">
+        <name ssid="302" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="whole-name"><value>Fictional Star</value></name-part>
+        </name>
+      </identity>
+      <other-information ssid="303">IMO Number: 1234567</other-information>
+    </object>
+    <modification modification-type="listed" enactment-date="2022-01-01"/>
+  </target>
+
+  <!-- De-listed person: must be skipped -->
+  <target ssid="400">
+    <sanctions-set-id>9001</sanctions-set-id>
+    <individual>
+      <identity ssid="401" main="true">
+        <name ssid="402" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="given-name"><value>Delisted</value></name-part>
+          <name-part order="2" name-part-type="family-name"><value>Person</value></name-part>
+        </name>
+      </identity>
+    </individual>
+    <modification modification-type="de-listed" enactment-date="2024-01-01"/>
+    <modification modification-type="listed" enactment-date="2020-01-01"/>
+  </target>
+
+  <!-- Nameless: must be skipped -->
+  <target ssid="500">
+    <sanctions-set-id>9001</sanctions-set-id>
+    <entity>
+      <identity ssid="501" main="true">
+        <name ssid="502" name-type="primary-name" quality="good" lang="eng">
+          <name-part order="1" name-part-type="whole-name"><value>   </value></name-part>
+        </name>
+      </identity>
+    </entity>
+    <modification modification-type="listed" enactment-date="2020-01-01"/>
+  </target>
+
+  <!-- Places come after the targets, as in the real file -->
+  <place ssid="501"><location>Faketown</location><area>Fake district</area><country iso-code="XT">Testland</country></place>
+  <place ssid="502"><location>Capital City</location><country iso-code="XT">Testland</country></place>
+  <place ssid="503"><area>Some Region</area><country iso-code="XE">Exampleland</country></place>
+</swiss-sanctions-list>

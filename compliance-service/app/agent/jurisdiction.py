@@ -12,6 +12,8 @@ PROFILES = {
     "US": {
         "label": "United States profile",
         "required_sources": ["OFAC_SDN"],
+        # Screened when loaded and shown in reports, but a clear does not depend on them.
+        "recommended_sources": ["OFAC_CONSOLIDATED", "UN_CONSOLIDATED", "UK_SANCTIONS_LIST"],
         "notes": [
             "Primary list: OFAC Specially Designated Nationals (SDN). Screening against it does not by itself "
             "discharge any legal obligation of the operator. " + REVIEW_MARKER + ".",
@@ -22,6 +24,7 @@ PROFILES = {
     "EU": {
         "label": "European Union profile",
         "required_sources": ["EU_FSF", "OFAC_SDN"],
+        "recommended_sources": ["UN_CONSOLIDATED", "UK_SANCTIONS_LIST", "CH_SECO", "OFAC_CONSOLIDATED"],
         "notes": [
             "Lists: EU consolidated financial sanctions (FSF) and OFAC SDN. " + REVIEW_MARKER + ".",
             "Travel Rule and wallet-ownership obligations are handled by separate modules, not by the agent. "
@@ -47,4 +50,10 @@ def coverage(jurisdiction: str | None, freshness: dict, max_age_days: int) -> di
             missing.append(src)
         elif s["age_days"] > max_age_days:
             stale.append(src)
-    return {"required": required, "missing": missing, "stale": stale, "ok": not missing and not stale}
+    recommended = profile_for(jurisdiction).get("recommended_sources", [])
+    loaded = [s for s in by_source if by_source[s]["age_days"] is not None]
+    return {
+        "required": required, "missing": missing, "stale": stale, "ok": not missing and not stale,
+        "loaded_sources": sorted(loaded),
+        "recommended_missing": [s for s in recommended if s not in loaded],
+    }

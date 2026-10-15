@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<record>
+		<Country-Pays>Examplestan / Exemplistan</Country-Pays>
+		<LastName-NomDeFamille>Testov</LastName-NomDeFamille>
+		<GivenName-Prenom>Ivan Fictivovich</GivenName-Prenom>
+		<DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>1970-01-02 or 1971</DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>
+		<Aliases-Alias>Ivan Testoff, Russian: Иван Тестов, Ivan Testov</Aliases-Alias>
+		<Schedule-Annexe>1, Part 1</Schedule-Annexe>
+		<Item-NumeroDarticle>1</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2022-01-01</DateOfListing-DateDinscription>
+	</record>
+	<record>
+		<Country-Pays>Examplestan / Exemplistan</Country-Pays>
+		<EntityOrShip-EntiteOuNavire>Fictional Holdings Ltd</EntityOrShip-EntiteOuNavire>
+		<Aliases-Alias>Fiktiv Holding, Co., Ltd, FH Group</Aliases-Alias>
+		<Schedule-Annexe>1, Part 2</Schedule-Annexe>
+		<Item-NumeroDarticle>1</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2022-01-01</DateOfListing-DateDinscription>
+	</record>
+	<record>
+		<Country-Pays>Examplestan / Exemplistan</Country-Pays>
+		<EntityOrShip-EntiteOuNavire>MV Imaginary Star</EntityOrShip-EntiteOuNavire>
+		<DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>2001</DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>
+		<ShipIMONumber-NumeroOMIDuNavire>9999999</ShipIMONumber-NumeroOMIDuNavire>
+		<TitleOrShipType-TitreOuTypeDeNavire>General Cargo | Cargo classique</TitleOrShipType-TitreOuTypeDeNavire>
+		<Schedule-Annexe>1, Part 2</Schedule-Annexe>
+		<Item-NumeroDarticle>2</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2022-01-01</DateOfListing-DateDinscription>
+	</record>
+	<record>
+		<Country-Pays>Otherland</Country-Pays>
+		<LastName-NomDeFamille>Nonexistent</LastName-NomDeFamille>
+		<GivenName-Prenom>Anna</GivenName-Prenom>
+		<ShipIMONumber-NumeroOMIDuNavire>آنا ناموجود</ShipIMONumber-NumeroOMIDuNavire>
+		<Item-NumeroDarticle>1</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2023-01-01</DateOfListing-DateDinscription>
+	</record>
+	<record>
+		<Country-Pays>Otherland</Country-Pays>
+		<Item-NumeroDarticle>2</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2023-01-01</DateOfListing-DateDinscription>
+	</record>
+</data-set>

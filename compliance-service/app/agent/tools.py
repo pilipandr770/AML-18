@@ -20,6 +20,7 @@ from app.agent.policy import (
 from app.extensions import db
 from app.sanctions.addresses import match_address
 from app.sanctions.freshness import get_freshness
+from app.sanctions.models import SanctionedEntity
 from app.screening.engine import screen_parties
 from app.wallet_ownership.models import WalletOwnershipVerification
 
@@ -124,8 +125,9 @@ def screen_transfer(ctx: ToolContext, args: dict) -> dict:
         "decision": decision,
         "rule_branch": rule_branch,
         "top_candidates": [
-            {"sanctioned_name": c["sanctioned_name"], "score": round(c["name_score"], 1), "name_type": c["name_type"]}
-            for c in party["candidates"][:3]
+            {"sanctioned_name": c["sanctioned_name"], "score": round(c["name_score"], 1), "name_type": c["name_type"],
+             "list": getattr(db.session.get(SanctionedEntity, c["entity_id"]), "source", None)}
+            for c in party["candidates"][:5]
         ],
         "counterparty": untrusted(case.counterparty_name),
     }
