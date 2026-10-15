@@ -24,15 +24,22 @@ git archive HEAD compliance-service docker-compose.vps.yml .env.vps.example \
   | "${SSH[@]}" "$TARGET" "mkdir -p $REMOTE_DIR && tar -x -C $REMOTE_DIR"
 
 echo "==> configuring environment"
-API_KEY=""
+SCP=(scp -o BatchMode=yes ${KEY:+-i "$KEY" -o IdentitiesOnly=yes})
+KEYFILE="$(mktemp)"
+trap 'rm -f "$KEYFILE"' EXIT
+chmod 600 "$KEYFILE"
 if [ -f .env ]; then
-  API_KEY="$(sed -n 's/^ANTHROPIC_API_KEY=//p' .env | head -1 | tr -d '\r')"
+  sed -n 's/^ANTHROPIC_API_KEY=//p' .env | head -1 | tr -d '\r\n' > "$KEYFILE"
 fi
-printf '%s' "$API_KEY" | "${SSH[@]}" "$TARGET" bash -s -- "$DOMAIN" "$REMOTE_DIR" <<'REMOTE'
+# The key travels as a file (mode 600) and is deleted on the server right after use; never on a command line.
+"${SCP[@]}" -q "$KEYFILE" "$TARGET:$REMOTE_DIR/.anthropic_key.tmp"
+"${SSH[@]}" "$TARGET" bash -s -- "$DOMAIN" "$REMOTE_DIR" <<'REMOTE'
 set -euo pipefail
 DOMAIN="$1"; DIR="$2"
-read -r -d '' API_KEY || true
 cd "$DIR"
+chmod 600 .anthropic_key.tmp
+API_KEY="$(cat .anthropic_key.tmp)"
+rm -f .anthropic_key.tmp
 if [ ! -f .env.vps ]; then
   cp .env.vps.example .env.vps
   sed -i "s|^AML_DOMAIN=.*|AML_DOMAIN=$DOMAIN|" .env.vps
