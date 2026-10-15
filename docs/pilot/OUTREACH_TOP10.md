@@ -25,12 +25,12 @@ Facts marked (2nd) come from secondary sources; check them before sending.
   facial-recognition onboarding; MoneyGram alliance and PNB link (2nd). Trademark owner: Digital Wallet US LLC.
 - Why us: a new US remittance flow means OFAC screening on every counterparty from day one. Nothing public describes
   their US screening vendor.
-- Contact: no compliance or US leader is named publicly. Group CEO and founder: Eiji Miyakawa (2nd). Ask the group for the US compliance lead, or find the US lead on LinkedIn while signed in (not done: LinkedIn blocks logged-out pages).
+- Contact: Founder & CEO Eiji Miyakawa, public LinkedIn profile (linkedin.com/in/eijimiyakawa, found 2026-10-15). No US compliance lead found on LinkedIn; the Wells Fargo compliance profile in the results is unrelated. Ask Mr Miyakawa to forward to the US compliance lead.
 - Letter (EN):
 
 > Subject: Sanctions screening for Smiles Mobile Remittance in the US
 >
-> Dear {name},
+> Dear Mr Miyakawa,
 > Congratulations on the US launch of Smiles Mobile Remittance in June. I could not find public detail on your US
 > sanctions screening setup, so I am writing with one practical offer.
 > I am Andrii Pylypchuk, a Ukrainian developer now living in Frankfurt. I built AML+18, an open-source screening layer
@@ -46,7 +46,7 @@ Facts marked (2nd) come from secondary sources; check them before sending.
 - Facts: Edmonton-based, listed on TSXV; 2026 US market push, over 30% of new registrations from the US (company claim).
   Compliance language found is Canadian only.
 - Why us: a Canadian company with a US customer base has to show OFAC screening; investors will ask.
-- Contact: CEO and founder Adam O'Brien, named on bitcoinwell.com/about (verified 2026-10-15). No compliance person is named on the site.
+- Contact: CEO and founder Adam O'Brien, named on bitcoinwell.com/about (verified 2026-10-15). LinkedIn shows no compliance title at Bitcoin Well; a VP Operations appears, with the name hidden.
 - Letter (EN):
 
 > Subject: OFAC screening for the US expansion of Bitcoin Well
@@ -134,7 +134,7 @@ would look careless.
   hiring a BSA Officer and a CCO in 2026; existing vendors named in the posting: Sumsub, Unit21, TRM Labs.
 - Why us: they have a stack; the gap we can fill is a second, explainable decision layer and a sanctions-only check for
   the EU entity they are building (EMI / CASP). Lower probability; still a real company with a live hiring signal.
-- Contact: Co-Founder & CEO Ryan Bozarth, named on dakota.xyz/about (verified 2026-10-15). Compliance postings are unnamed; the BSA Officer and CCO hires are not yet on the site.
+- Contact: Co-Founder & CEO Ryan Bozarth, named on dakota.xyz/about (verified 2026-10-15). LinkedIn shows a current Chief Compliance Officer at Dakota (New York), but the name is hidden for people outside our network. Ask Mr Bozarth to forward to the CCO.
 - Letter (EN):
 
 > Subject: A second opinion for your BSA and sanctions programme
