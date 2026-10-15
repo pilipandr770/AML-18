@@ -187,3 +187,7 @@ the output of this phase, and it is what the YC application should be built on.
   Reply: none yet.
 - Dakota (Talk to Sales form): not submitted. Needs a business e-mail; see docs/pilot/SUBMISSIONS.md item 2.
 - Digital Wallet US: no business channel published; not contacted.
+- 2026-10-15: e-mail sent to office@kurant.at from pylypchukandrii770@gmail.com (Gmail message id 1a140116da343dc5),
+  German text as in docs/pilot/SUBMISSIONS.md item 4. Reply: none yet.
+- CoinFlip: on hold (Texas consent order, Minnesota ban bill). Not contacted.
+- CoinZoom: no business channel (only cz.marketing@, media inquiries). Not contacted.
