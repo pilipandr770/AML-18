@@ -93,6 +93,7 @@ def upgrade():
     sa.Column('mode', sa.String(length=16), nullable=False),
     sa.Column('policy', sa.JSON(), nullable=False),
     sa.Column('policy_version', sa.Integer(), nullable=False),
+    sa.Column('kill_switch', sa.Boolean(), server_default=sa.false(), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['developer_project_id'], ['developer_projects.id'], ),
     sa.PrimaryKeyConstraint('id'),

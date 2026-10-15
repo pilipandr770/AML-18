@@ -35,6 +35,9 @@ class AgentSettings(db.Model):
     mode = db.Column(db.String(16), nullable=False, default=MODE_MONITOR)
     policy = db.Column(db.JSON, nullable=False, default=dict)  # validated by app.agent.policy.Policy
     policy_version = db.Column(db.Integer, nullable=False, default=1)
+    # Instant stop: while true the agent can only record recommendations,
+    # whatever the mode. Cleared only by the authenticated owner.
+    kill_switch = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow)
 
 
