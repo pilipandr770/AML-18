@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictional test fixture (NOT real sanctions data): one entity with listed crypto addresses,
+     using the real SDN idType spelling "Digital Currency Address - <CURRENCY>". -->
+<sdnList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <sdnEntry>
+    <uid>20001</uid>
+    <lastName>Testcoin Mixer Ltd</lastName>
+    <sdnType>Entity</sdnType>
+    <programList><program>CYBER2</program></programList>
+    <idList>
+      <id><uid>1</uid><idType>Digital Currency Address - XBT</idType><idNumber>bc1qtestfixtureaddressxxxxxxxxxxxxxxxxxx0</idNumber></id>
+      <id><uid>2</uid><idType>Digital Currency Address - ETH</idType><idNumber>0xAbCdEf0123456789aBcDeF0123456789AbCdEf01</idNumber></id>
+      <id><uid>3</uid><idType>Digital Currency Address - TRX</idType><idNumber>TTestFixtureTronAddressxxxxxxxxxxxxx</idNumber></id>
+    </idList>
+    <addressList><address><city>Nowhere</city><country>Russia</country></address></addressList>
+  </sdnEntry>
+</sdnList>

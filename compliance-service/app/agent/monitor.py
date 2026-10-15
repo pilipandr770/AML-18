@@ -28,7 +28,7 @@ def scan_address(rpc, dep: DepositAddress, max_blocks: int = MAX_BLOCKS_PER_SCAN
             case = AgentCase(
                 developer_project_id=dep.developer_project_id, chain=dep.chain, asset=dep.asset,
                 amount=Decimal(int(tx["value"], 16)) / Decimal(10**18), tx_hash=tx["hash"],
-                deposit_address=dep.address,
+                deposit_address=dep.address, counterparty_address=tx.get("from"),
             )
             db.session.add(case)
             created.append(case)

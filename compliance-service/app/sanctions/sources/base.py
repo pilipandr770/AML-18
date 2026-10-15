@@ -24,6 +24,9 @@ class NormalizedRecord:
     programs: list = field(default_factory=list)
     lei: str | None = None
     raw_record: dict = field(default_factory=dict)
+    # [{"currency": "XBT", "address": "..."}]; if empty, ingest derives them from
+    # national_ids entries typed like OFAC's "Digital Currency Address - XBT".
+    crypto_addresses: list = field(default_factory=list)
 
 
 class SanctionsSource(ABC):

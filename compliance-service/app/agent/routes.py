@@ -25,6 +25,7 @@ class TransferIn(BaseModel):
     deposit_address: str = Field(min_length=1, max_length=128)
     counterparty_name: Optional[str] = Field(default=None, max_length=256)
     counterparty_country: Optional[str] = Field(default=None, max_length=8)
+    counterparty_address: Optional[str] = Field(default=None, max_length=128)
     memo: Optional[str] = Field(default=None, max_length=2000)
 
 
@@ -72,7 +73,8 @@ def submit_transfer():
     case = AgentCase(
         developer_project_id=project.id, external_ref=body.external_ref, chain=body.chain, asset=body.asset,
         amount=amount, tx_hash=body.tx_hash, deposit_address=body.deposit_address,
-        counterparty_name=body.counterparty_name, counterparty_country=body.counterparty_country, memo=body.memo,
+        counterparty_name=body.counterparty_name, counterparty_country=body.counterparty_country,
+        counterparty_address=body.counterparty_address, memo=body.memo,
     )
     db.session.add(case)
     db.session.commit()

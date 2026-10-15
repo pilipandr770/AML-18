@@ -89,6 +89,7 @@ class AgentCase(db.Model):
     deposit_address = db.Column(db.String(128), nullable=False)
     counterparty_name = db.Column(db.String(256), nullable=True)  # untrusted external data
     counterparty_country = db.Column(db.String(8), nullable=True)
+    counterparty_address = db.Column(db.String(128), nullable=True, index=True)  # sender address, screened exactly
     memo = db.Column(db.Text, nullable=True)  # untrusted external data
     funds_check = db.Column(db.JSON, nullable=True)  # verify_incoming_funds result
     deterministic_decision = db.Column(db.String(16), nullable=True)  # accepted|review|rejected (floor; LLM can only raise)

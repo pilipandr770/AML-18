@@ -12,16 +12,41 @@ from flask import Blueprint, current_app, jsonify, request
 
 from app.developer_portal.auth import require_api_key
 from app.extensions import db
+from app.sanctions.addresses import match_address
 from app.sanctions.models import SanctionedEntity
 from app.screening.decision import corroborating_fields, decide
 from app.screening.matcher import match_name
-from app.screening.schemas import CheckNameReply, CheckNameRequest, MatchDetail
+from app.screening.schemas import (
+    AddressMatch, CheckAddressReply, CheckAddressRequest, CheckNameReply, CheckNameRequest, MatchDetail,
+)
 
 screening_bp = Blueprint("screening", __name__, url_prefix="/screening")
 
 logger = logging.getLogger(__name__)
 
 _DECISION_SEVERITY = {"accepted": 0, "review": 1, "rejected": 2}
+
+
+@screening_bp.post("/check-address")
+def check_address_route():
+    """Exact-match screening of a cryptocurrency address against the
+    addresses listed on every loaded sanctions list."""
+    project, error = require_api_key()
+    if error:
+        return error
+    try:
+        body = CheckAddressRequest.model_validate(request.get_json(force=True))
+    except Exception:
+        return jsonify({"error": "bad request"}), 400
+
+    hits = match_address(body.address)
+    logger.info("check-address listed=%s project=%s", bool(hits), project.public_id)
+    reply = CheckAddressReply(
+        listed=bool(hits),
+        decision="rejected" if hits else "accepted",
+        matches=[AddressMatch(**{k: h[k] for k in AddressMatch.model_fields}) for h in hits],
+    )
+    return jsonify(reply.model_dump()), 200
 
 
 @screening_bp.post("/check-name")

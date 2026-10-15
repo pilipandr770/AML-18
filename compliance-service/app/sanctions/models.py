@@ -56,6 +56,23 @@ class SanctionedEntity(db.Model):
 
     list_snapshot = db.relationship("ListSnapshot", back_populates="entities")
     names = db.relationship("EntityNameIndex", back_populates="entity", cascade="all, delete-orphan")
+    addresses_listed = db.relationship("SanctionedAddress", back_populates="entity", cascade="all, delete-orphan")
+
+
+class SanctionedAddress(db.Model):
+    """A cryptocurrency address listed against a sanctioned entity (e.g.
+    OFAC SDN "Digital Currency Address - XBT"). Exact-match lookup table:
+    one row per listed address, normalized for comparison."""
+
+    __tablename__ = "sanctioned_addresses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    entity_id = db.Column(db.Integer, db.ForeignKey("sanctioned_entities.id"), nullable=False, index=True)
+    currency = db.Column(db.String(16), nullable=False)  # as listed, e.g. XBT, ETH, TRX, USDT
+    address = db.Column(db.String(128), nullable=False)  # as listed
+    address_normalized = db.Column(db.String(128), nullable=False, index=True)
+
+    entity = db.relationship("SanctionedEntity", back_populates="addresses_listed")
 
 
 class EntityNameIndex(db.Model):

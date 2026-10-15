@@ -11,7 +11,8 @@ import logging
 from datetime import datetime, timezone
 
 from app.extensions import db
-from app.sanctions.models import EntityNameIndex, ListSnapshot, SanctionedEntity
+from app.sanctions.addresses import addresses_from_national_ids, normalize_address
+from app.sanctions.models import EntityNameIndex, ListSnapshot, SanctionedAddress, SanctionedEntity
 from app.sanctions.normalize import name_variants
 from app.sanctions.sources.eu_fsf import EUFSFSource
 from app.sanctions.sources.ofac_sdn import OFACSDNSource
@@ -87,6 +88,18 @@ def ingest_source(source) -> ListSnapshot:
                     name_normalized=variant["name_text"].lower(),
                     phonetic_key=variant["phonetic_key"],
                     name_type=variant["name_type"],
+                ))
+
+            listed = record.crypto_addresses or addresses_from_national_ids(record.national_ids)
+            seen = set()
+            for item in listed:
+                key = normalize_address(item["address"])
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                db.session.add(SanctionedAddress(
+                    entity_id=entity.id, currency=item["currency"][:16], address=item["address"][:128],
+                    address_normalized=key[:128],
                 ))
 
             record_count += 1

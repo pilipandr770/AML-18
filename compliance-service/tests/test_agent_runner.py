@@ -225,3 +225,17 @@ def test_operation_before_decision_is_refused_without_side_effects(app, project)
     assert case.status == "operated" and len(ex.executed) == 1
     verdicts = AgentAuditEntry.query.filter_by(event_type="policy_verdict").count()
     assert verdicts == 1  # the premature attempt never reached the policy engine
+
+
+def test_sanctioned_sender_address_is_block_recommendation_and_never_automatic(app, project):
+    from tests.test_sanctioned_addresses import _CryptoFixtureSource
+    from app.sanctions.ingest import ingest_source as _ingest
+    _ingest(_CryptoFixtureSource())  # supersedes the name fixture; US coverage (OFAC_SDN) stays satisfied
+    _settings(project)
+    case = _case(project, name="Anna Schmidt")
+    case.counterparty_address = "0xABCDEF0123456789abcdef0123456789abcdef01"  # listed ETH address (different casing)
+    db.session.commit()
+    ex = _run(app, project, case, _script([CLEAR], [RELEASE]))
+    assert case.deterministic_decision == "rejected"
+    assert case.evidence["screening"]["rule_branch"] == "sanctioned_address_exact"
+    assert case.classification == "recommend_block" and case.status == "awaiting_human" and ex.executed == []

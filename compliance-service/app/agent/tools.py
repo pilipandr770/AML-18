@@ -18,6 +18,7 @@ from app.agent.policy import (
     ALL_OPERATIONS, DENIED, EXECUTE, NEEDS_HUMAN, RECOMMEND_ONLY, Proposal, evaluate,
 )
 from app.extensions import db
+from app.sanctions.addresses import match_address
 from app.sanctions.freshness import get_freshness
 from app.screening.engine import screen_parties
 from app.wallet_ownership.models import WalletOwnershipVerification
@@ -90,6 +91,17 @@ def _spent_today(project_id: int) -> Decimal:
 
 def screen_transfer(ctx: ToolContext, args: dict) -> dict:
     case = ctx.case
+    address_hits = match_address(case.counterparty_address) if case.counterparty_address else []
+    if address_hits:
+        # An exact sanctioned-address match is a hard identifier hit.
+        return {
+            "decision": "rejected", "rule_branch": "sanctioned_address_exact", "top_candidates": [],
+            "address_matches": [
+                {"sanctioned_name": h["sanctioned_name"], "source": h["source"], "currency": h["currency"],
+                 "address": h["address"]} for h in address_hits[:5]
+            ],
+            "counterparty": untrusted(case.counterparty_name),
+        }
     if not (case.counterparty_name or "").strip():
         # Nothing to screen (e.g. a deposit seen on-chain with no KYC data from
         # the client): that is not a clean result, it needs a human.
