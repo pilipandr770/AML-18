@@ -122,6 +122,35 @@ Registered does not mean active or small; filter by name and website, then look 
 The agent does not encode US reporting duties (SARs, travel rule thresholds, state licensing). Say so in every
 conversation: it screens, explains and keeps an audit trail; the customer's counsel decides what the law requires.
 
+## FinCEN MSB list: what we pulled and what it is worth (2026-10-15)
+
+- Source: FinCEN MSB Registrant Search, official export (msb.fincen.gov, "View/download", weekly update, 29,200 registrants
+  in total). Saved locally to `tmp/prospects/fincen_msb_registrants.tsv` (not committed: contains third-party company data).
+- Filters we applied: US state; activity codes 409 money transmitter, 407 currency dealer, 415 dealer in foreign exchange,
+  414 provider of prepaid access; crypto-related words in the legal or DBA name; at most 2 branches; registered 2024 or later.
+  Result: 1,052 names, 351 after removing mass-agent addresses (Denver CO 465 records, New York 109, Sheridan WY 27, etc.).
+- Caveat 1: a registration is not evidence of a real operating business. FinCEN itself warns that fraudsters cite the list.
+  Several names are red flags on their face ("Ez Coin Laundromat", "Universal Coins" with a known scam-brand pattern).
+  Do not write to any company we cannot verify.
+- Caveat 2: the export has no website, phone or e-mail. Every candidate needs manual enrichment.
+
+Verification round 1 (web search, 5 companies):
+| Company | Result |
+|---|---|
+| Alpaca Crypto (San Mateo CA) | Large brokerage with its own AML and sanctions team; not a target |
+| Apex Crypto (Chicago) | Acquired by Bakkt (2022); not a target |
+| Ameri Crypto Exchange (DC) | No web presence found |
+| Autocoin LLC (St Petersburg FL) | Software vendor of an auto-trading tool; location unconfirmed; low fit |
+| Bitage Technology (Lakewood CO) | No web presence found |
+
+Conclusion: the export is a sourcing list, not an outreach list. Useful signals to rank by, in order: (1) a live website
+with a team page; (2) an open job for AML, compliance or MLRO (the strongest sign of pain); (3) recent news or a licence
+announcement; (4) no large vendor stack already visible. Companies scoring on (1) and (2) go to the shortlist.
+
+Next step agreed with the founder: enrich the top ~100 by name against their own websites and job boards, then write
+individually to the best 10 to 20. Each letter names the specific fact we found, and states honestly that the author is a
+Ukrainian developer now in Germany, applying to Y Combinator, who promises to mention the partner in the pitch.
+
 ## Honest expectations
 
 Large licensed players will not switch for a free pilot. The realistic first customers are very small teams without a
