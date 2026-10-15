@@ -191,3 +191,10 @@ the output of this phase, and it is what the YC application should be built on.
   German text as in docs/pilot/SUBMISSIONS.md item 4. Reply: none yet.
 - CoinFlip: on hold (Texas consent order, Minnesota ban bill). Not contacted.
 - CoinZoom: no business channel (only cz.marketing@, media inquiries). Not contacted.
+- 2026-10-15: e-mail sent to hello@openfx.com from pylypchukandrii770@gmail.com (Gmail message id 1a1403aa1b9f385a),
+  text as in docs/pilot/SUBMISSIONS.md item 6. Reply: none yet.
+- 2026-10-15: 1Money contact form submitted (Type: Technology / E-Commerce Platforms; help text as in SUBMISSIONS.md item 5),
+  e-mail pylypchukandrii770@gmail.com. Confirmation shown on the site. Reply: none yet.
+- 2026-10-15: Dakota Talk to Sales form submitted with the Gmail address as "work email" (the form requires one; a business
+  address on andrii-it.de would be more accurate). Use case text sent; HQ region EMEA; monthly volume "Under $100,000".
+  Confirmation shown on the site ("Someone will be in touch shortly"). Reply: none yet.
