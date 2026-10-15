@@ -1,24 +1,21 @@
 {% extends "developer_base.html" %}
-{% block title %}Projekt registriert – AML+18{% endblock %}
+{% block title %}{{ _("Project registered") }} – AML+18{% endblock %}
 {% block content %}
 
 <div class="panel">
-  <h2>Projekt „{{ project.name }}" registriert</h2>
+  <h2>{{ _("Project “{name}” registered", name=project.name) }}</h2>
 
   <div class="warning">
-    Dieser Schlüssel wird nur jetzt angezeigt und nirgendwo gespeichert —
-    kopieren Sie ihn sofort. Bei Verlust: neuen Schlüssel über
-    <code>POST /developer/api-key/rotate</code> mit dem aktuellen Schlüssel
-    anfordern, oder ein neues Projekt registrieren.
+    {{ _("This key is shown only now and stored nowhere — copy it immediately. If you lose it: request a new key via POST /developer/api-key/rotate with the current key, or register a new project.") }}
   </div>
 
   <div class="key-box">{{ api_key }}</div>
 
-  <h3>Nächster Schritt</h3>
+  <h3>{{ _("Next step") }}</h3>
   <pre><code>curl "http://localhost:8300/wallet-ownership/requirement?transfer_amount_eur=1500" \
   -H "Authorization: Bearer {{ api_key }}"</code></pre>
 
-  <p><a href="{{ url_for('developer_portal.landing') }}">← Zurück zur Integrationsübersicht</a></p>
+  <p><a href="{{ url_for('developer_portal.landing') }}">← {{ _("Back to the integration overview") }}</a></p>
 </div>
 
 {% endblock %}

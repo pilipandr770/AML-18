@@ -7,6 +7,7 @@ from app.config import Config
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     TESTING = True
+    UI_LOCALE = "de"  # most legacy assertions check the German UI; English is covered in test_i18n.py
     WEBHOOK_AUTH_KEY_ID = "01JXTESTKEYID0000000000000"
     WEBHOOK_AUTH_KEY_SECRET = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
     WEBHOOK_SIGN_REPLIES = False

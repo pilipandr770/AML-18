@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from app.audit.models import AuditLog
 from app.extensions import db
+from app.i18n import translate
 from app.sanctions.freshness import get_freshness
 from app.screening.models import ScreeningDecision, ScreeningMatch
 
@@ -15,21 +16,21 @@ PAGE_SIZE = 25
 VALID_DECISIONS = {"accepted", "review", "rejected"}
 
 # Internal values (DB rows, CSS classes, Envoy's transfer_action vocabulary)
-# stay in English; only the rendered label is German.
-DECISION_LABELS = {"accepted": "Akzeptiert", "review": "Zu prüfen", "rejected": "Abgelehnt"}
+# stay in English; only the rendered label is localized.
+DECISION_LABELS = {"accepted": "Accepted", "review": "To review", "rejected": "Rejected"}
 PARTY_ROLE_LABELS = {
-    "originator": "Auftraggeber",
-    "beneficiary": "Begünstigter",
-    "originator_vasp": "Auftraggeber-VASP",
-    "beneficiary_vasp": "Begünstigten-VASP",
+    "originator": "Originator",
+    "beneficiary": "Beneficiary",
+    "originator_vasp": "Originator VASP",
+    "beneficiary_vasp": "Beneficiary VASP",
 }
 
 
 @review_bp.context_processor
 def inject_labels():
     return {
-        "decision_labels": DECISION_LABELS,
-        "party_role_labels": PARTY_ROLE_LABELS,
+        "decision_labels": {k: translate(v) for k, v in DECISION_LABELS.items()},
+        "party_role_labels": {k: translate(v) for k, v in PARTY_ROLE_LABELS.items()},
         "sanctions_freshness": get_freshness(),
         "sanctions_staleness_warning_days": current_app.config["SANCTIONS_STALENESS_WARNING_DAYS"],
     }

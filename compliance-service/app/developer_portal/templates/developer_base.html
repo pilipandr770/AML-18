@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ config.UI_LOCALE }}">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}AML+18 – Entwicklerportal{% endblock %}</title>
+  <title>{% block title %}{{ _("AML+18 Developer portal") }}{% endblock %}</title>
   <style>
     :root {
       --bg: #f7f8fa; --panel: #ffffff; --text: #1b1f24; --muted: #5b6572;
@@ -80,21 +80,21 @@
 </head>
 <body>
   <header>
-    <h1><a href="{{ url_for('developer_portal.landing') }}">AML+18 Entwicklerportal</a></h1>
+    <h1><a href="{{ url_for('developer_portal.landing') }}">{{ _("AML+18 Developer portal") }}</a></h1>
     <nav>
-      <a href="{{ url_for('landing.index') }}">Startseite</a>
-      <a href="{{ url_for('developer_portal.landing') }}">Übersicht</a>
-      <a href="{{ url_for('developer_portal.signup_form') }}">Projekt registrieren</a>
-      <a href="{{ url_for('developer_portal.pricing') }}">Preise</a>
-      <a href="{{ url_for('review_ui.list_decisions') }}">Compliance-Officer-Login</a>
+      <a href="{{ url_for('landing.index') }}">{{ _("Home") }}</a>
+      <a href="{{ url_for('developer_portal.landing') }}">{{ _("Overview") }}</a>
+      <a href="{{ url_for('developer_portal.signup_form') }}">{{ _("Register project") }}</a>
+      <a href="{{ url_for('developer_portal.pricing') }}">{{ _("Pricing") }}</a>
+      <a href="{{ url_for('review_ui.list_decisions') }}">{{ _("Compliance officer login") }}</a>
     </nav>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
   <footer>
-    <span>Open Source, MIT-lizenziert, selbst hostbar</span>
-    <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">Quellcode auf GitHub →</a>
+    <span>{{ _("Open source, MIT-licensed, self-hostable") }}</span>
+    <a href="https://github.com/pilipandr770/AML-18" target="_blank" rel="noopener">{{ _("Source code on GitHub") }} →</a>
   </footer>
 </body>
 </html>

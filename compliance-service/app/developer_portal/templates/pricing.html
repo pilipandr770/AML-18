@@ -1,45 +1,39 @@
 {% extends "developer_base.html" %}
-{% block title %}Preise – AML+18{% endblock %}
+{% block title %}Pricing – AML+18{% endblock %}
 {% block content %}
 
 <div class="panel">
-  <h2>Preise</h2>
+  <h2>Pricing</h2>
 
   {% if billing_enabled %}
     <p class="lede">
-      Diese Instanz ist die von uns gehostete AML+18-SaaS-Variante für
-      Wallet-Ownership-Verification und Altersverifikation.
+      This instance is the hosted AML+18 SaaS for wallet ownership verification and age verification.
     </p>
 
     <div class="pillars">
       <div class="pillar">
-        <h4>Kostenlos</h4>
-        <p>Bis zu <strong>{{ free_tier_monthly_call_limit }} API-Aufrufe/Monat</strong>,
-        danach müssen Sie auf den kostenpflichtigen Plan wechseln, um
-        weiterzumachen.</p>
+        <h4>Free</h4>
+        <p>Up to <strong>{{ free_tier_monthly_call_limit }} API calls per month</strong>; after that you
+        need to switch to the paid plan to continue.</p>
       </div>
       <div class="pillar">
-        <h4>Kostenpflichtig</h4>
-        <p>Unbegrenzte API-Aufrufe, monatlich kündbar. Upgrade jederzeit über
-        <code>POST /billing/checkout</code> mit Ihrem API-Schlüssel als
-        Bearer-Token — Sie erhalten eine Stripe-Checkout-URL.</p>
+        <h4>Paid</h4>
+        <p>Unlimited API calls, cancel monthly. Upgrade any time with
+        <code>POST /billing/checkout</code> using your API key as the bearer token — you get a
+        Stripe Checkout URL.</p>
       </div>
     </div>
 
-    <p class="muted">Aktuellen Verbrauch abfragen: <code>GET /billing/usage</code>
-    (Bearer-Token erforderlich).</p>
+    <p class="muted">Check current usage: <code>GET /billing/usage</code> (bearer token required).</p>
   {% else %}
     <p class="lede">
-      Diese selbst gehostete Instanz hat <strong>keine Nutzungsbeschränkung</strong>
-      — Billing betrifft ausschließlich die von uns zentral gehostete
-      SaaS-Variante, nicht Ihre eigene Installation.
+      This self-hosted instance has <strong>no usage limits</strong> — billing only concerns the
+      centrally hosted SaaS variant, not your own installation.
     </p>
   {% endif %}
 
-  <p class="muted">Self-Hosting bleibt für immer kostenlos und quelloffen
-  (MIT-Lizenz) — Sie können jederzeit von der gehosteten Variante auf Ihre
-  eigene Infrastruktur wechseln, ohne Ihren API-Schlüssel oder Ihre
-  Integration zu ändern.</p>
+  <p class="muted">Self-hosting stays free and open source (MIT licence) forever — you can move from
+  the hosted variant to your own infrastructure at any time without changing your API key or integration.</p>
 </div>
 
 {% endblock %}

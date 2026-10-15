@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Screening-Entscheidungen{% endblock %}
+{% block title %}{{ _("Screening decisions") }}{% endblock %}
 {% block content %}
   <div class="filters">
-    <a href="{{ url_for('review_ui.list_decisions') }}" class="{{ 'active' if not current_filter }}">Alle</a>
-    <a href="{{ url_for('review_ui.list_decisions', decision='review') }}" class="{{ 'active' if current_filter == 'review' }}">Zu prüfen</a>
-    <a href="{{ url_for('review_ui.list_decisions', decision='rejected') }}" class="{{ 'active' if current_filter == 'rejected' }}">Abgelehnt</a>
-    <a href="{{ url_for('review_ui.list_decisions', decision='accepted') }}" class="{{ 'active' if current_filter == 'accepted' }}">Akzeptiert</a>
+    <a href="{{ url_for('review_ui.list_decisions') }}" class="{{ 'active' if not current_filter }}">{{ _("All") }}</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='review') }}" class="{{ 'active' if current_filter == 'review' }}">{{ _("To review") }}</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='rejected') }}" class="{{ 'active' if current_filter == 'rejected' }}">{{ _("Rejected") }}</a>
+    <a href="{{ url_for('review_ui.list_decisions', decision='accepted') }}" class="{{ 'active' if current_filter == 'accepted' }}">{{ _("Accepted") }}</a>
   </div>
 
   <div class="panel">
     <table>
       <thead>
         <tr>
-          <th>Transaktion</th>
-          <th>Entscheidung</th>
-          <th>An Envoy gesendet</th>
-          <th>Manuelle Prüfung</th>
-          <th>Erstellt</th>
+          <th>{{ _("Transaction") }}</th>
+          <th>{{ _("Decision") }}</th>
+          <th>{{ _("Sent to Envoy") }}</th>
+          <th>{{ _("Manual review") }}</th>
+          <th>{{ _("Created") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -35,7 +35,7 @@
           <td class="muted">{{ d.created_at.strftime("%Y-%m-%d %H:%M UTC") }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="muted">Noch keine Screening-Entscheidungen vorhanden.</td></tr>
+        <tr><td colspan="5" class="muted">{{ _("No screening decisions yet.") }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -43,9 +43,9 @@
 
   {% if has_prev or has_next %}
   <div class="filters">
-    {% if has_prev %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page-1) }}">&larr; Neuer</a>{% endif %}
-    <span class="muted">Seite {{ page }}</span>
-    {% if has_next %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page+1) }}">Älter &rarr;</a>{% endif %}
+    {% if has_prev %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page-1) }}">&larr; {{ _("Newer") }}</a>{% endif %}
+    <span class="muted">{{ _("Page") }} {{ page }}</span>
+    {% if has_next %}<a href="{{ url_for('review_ui.list_decisions', decision=current_filter, page=page+1) }}">{{ _("Older") }} &rarr;</a>{% endif %}
   </div>
   {% endif %}
 {% endblock %}

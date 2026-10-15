@@ -1,0 +1,45 @@
+{% extends "developer_base.html" %}
+{% block title %}Preise – AML+18{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <h2>Preise</h2>
+
+  {% if billing_enabled %}
+    <p class="lede">
+      Diese Instanz ist die von uns gehostete AML+18-SaaS-Variante für
+      Wallet-Ownership-Verification und Altersverifikation.
+    </p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <h4>Kostenlos</h4>
+        <p>Bis zu <strong>{{ free_tier_monthly_call_limit }} API-Aufrufe/Monat</strong>,
+        danach müssen Sie auf den kostenpflichtigen Plan wechseln, um
+        weiterzumachen.</p>
+      </div>
+      <div class="pillar">
+        <h4>Kostenpflichtig</h4>
+        <p>Unbegrenzte API-Aufrufe, monatlich kündbar. Upgrade jederzeit über
+        <code>POST /billing/checkout</code> mit Ihrem API-Schlüssel als
+        Bearer-Token — Sie erhalten eine Stripe-Checkout-URL.</p>
+      </div>
+    </div>
+
+    <p class="muted">Aktuellen Verbrauch abfragen: <code>GET /billing/usage</code>
+    (Bearer-Token erforderlich).</p>
+  {% else %}
+    <p class="lede">
+      Diese selbst gehostete Instanz hat <strong>keine Nutzungsbeschränkung</strong>
+      — Billing betrifft ausschließlich die von uns zentral gehostete
+      SaaS-Variante, nicht Ihre eigene Installation.
+    </p>
+  {% endif %}
+
+  <p class="muted">Self-Hosting bleibt für immer kostenlos und quelloffen
+  (MIT-Lizenz) — Sie können jederzeit von der gehosteten Variante auf Ihre
+  eigene Infrastruktur wechseln, ohne Ihren API-Schlüssel oder Ihre
+  Integration zu ändern.</p>
+</div>
+
+{% endblock %}

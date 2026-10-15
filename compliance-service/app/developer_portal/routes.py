@@ -6,6 +6,7 @@ from app.developer_portal.auth import generate_api_key, hash_api_key, require_ap
 from app.developer_portal.models import DeveloperProject
 from app.developer_portal.schemas import ProjectSignupRequest
 from app.extensions import db
+from app.i18n import localized
 
 developer_portal_bp = Blueprint(
     "developer_portal", __name__, url_prefix="/developer", template_folder="templates"
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @developer_portal_bp.get("/")
 def landing():
-    return render_template("landing.html")
+    return render_template(localized("landing.html"))
 
 
 @developer_portal_bp.get("/signup")
@@ -27,7 +28,7 @@ def signup_form():
 @developer_portal_bp.get("/pricing")
 def pricing():
     return render_template(
-        "pricing.html",
+        localized("pricing.html"),
         billing_enabled=current_app.config["BILLING_ENABLED"],
         free_tier_monthly_call_limit=current_app.config["FREE_TIER_MONTHLY_CALL_LIMIT"],
     )

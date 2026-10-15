@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Entscheidung {{ decision.transaction_id }}{% endblock %}
+{% block title %}{{ _("Decision {id}", id=decision.transaction_id) }}{% endblock %}
 {% block content %}
-  <p><a href="{{ url_for('review_ui.list_decisions') }}">&larr; Zurück zur Übersicht</a></p>
+  <p><a href="{{ url_for('review_ui.list_decisions') }}">&larr; {{ _("Back to overview") }}</a></p>
 
   <div class="panel">
     <dl class="kv">
-      <dt>Transaktions-ID</dt><dd><code>{{ decision.transaction_id }}</code></dd>
-      <dt>Entscheidung</dt><dd><span class="badge {{ decision.decision }}">{{ decision_labels.get(decision.decision, decision.decision) }}</span></dd>
-      <dt>An Envoy gesendet</dt><dd>{{ decision.transfer_action_sent }}</dd>
-      <dt>Erstellt</dt><dd>{{ decision.created_at.strftime("%Y-%m-%d %H:%M:%S UTC") }}</dd>
+      <dt>{{ _("Transaction ID") }}</dt><dd><code>{{ decision.transaction_id }}</code></dd>
+      <dt>{{ _("Decision") }}</dt><dd><span class="badge {{ decision.decision }}">{{ decision_labels.get(decision.decision, decision.decision) }}</span></dd>
+      <dt>{{ _("Sent to Envoy") }}</dt><dd>{{ decision.transfer_action_sent }}</dd>
+      <dt>{{ _("Created") }}</dt><dd>{{ decision.created_at.strftime("%Y-%m-%d %H:%M:%S UTC") }}</dd>
       {% if decision.human_override %}
-      <dt>Manuelle Prüfung</dt>
+      <dt>{{ _("Manual review") }}</dt>
       <dd>
         <span class="badge {{ decision.human_override_decision }}">{{ decision_labels.get(decision.human_override_decision, decision.human_override_decision) }}</span>
-        von {{ decision.human_override_by }} am {{ decision.human_override_at.strftime("%Y-%m-%d %H:%M UTC") }}<br>
+        {{ _("by {name} on {when}", name=decision.human_override_by, when=decision.human_override_at.strftime("%Y-%m-%d %H:%M UTC")) }}<br>
         <span class="muted">{{ decision.human_override_reason }}</span>
       </dd>
       {% endif %}
@@ -26,12 +26,12 @@
     <table>
       <thead>
         <tr>
-          <th>Rang</th>
-          <th>Übereinstimmender Name</th>
-          <th>Quelle</th>
-          <th>Score</th>
-          <th>Bestätigende Merkmale</th>
-          <th>Regel</th>
+          <th>{{ _("Rank") }}</th>
+          <th>{{ _("Matched name") }}</th>
+          <th>{{ _("Source") }}</th>
+          <th>{{ _("Score") }}</th>
+          <th>{{ _("Corroborating fields") }}</th>
+          <th>{{ _("Rule") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,7 @@
             {% if m.corroborating_fields_matched %}
               {% for k, v in m.corroborating_fields_matched.items() %}{{ k }}={{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
             {% else %}
-              keine
+              {{ _("none") }}
             {% endif %}
           </td>
           <td class="muted"><code>{{ m.rule_branch }}</code></td>
@@ -57,26 +57,26 @@
     </table>
   </div>
   {% else %}
-  <div class="panel muted">Für keine Partei dieser Transaktion wurden Sanktionslisten-Treffer gefunden.</div>
+  <div class="panel muted">{{ _("No sanctions-list hits were found for any party of this transaction.") }}</div>
   {% endfor %}
 
   <div class="panel">
-    <h3 style="margin-top:0">Manuelle Prüfung</h3>
+    <h3 style="margin-top:0">{{ _("Manual review") }}</h3>
     <form method="post" action="{{ url_for('review_ui.override_decision', decision_id=decision.id) }}">
-      <label for="override_by">Ihr Name</label>
+      <label for="override_by">{{ _("Your name") }}</label>
       <input type="text" id="override_by" name="override_by" required>
 
-      <label for="override_decision">Entscheidung</label>
+      <label for="override_decision">{{ _("Decision") }}</label>
       <select id="override_decision" name="override_decision" required>
-        <option value="accepted">Akzeptieren</option>
-        <option value="review">In Prüfung belassen</option>
-        <option value="rejected">Ablehnen</option>
+        <option value="accepted">{{ _("Accept") }}</option>
+        <option value="review">{{ _("Keep in review") }}</option>
+        <option value="rejected">{{ _("Reject") }}</option>
       </select>
 
-      <label for="reason">Begründung</label>
+      <label for="reason">{{ _("Reason") }}</label>
       <textarea id="reason" name="reason" rows="3" required></textarea>
 
-      <button type="submit">Speichern</button>
+      <button type="submit">{{ _("Save") }}</button>
     </form>
   </div>
 {% endblock %}

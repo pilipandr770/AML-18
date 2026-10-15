@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ config.UI_LOCALE }}">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Compliance-Prüfung{% endblock %}</title>
+  <title>{% block title %}{{ _("Compliance review") }}{% endblock %}</title>
   <style>
     :root {
       --bg: #f7f8fa; --panel: #ffffff; --text: #1b1f24; --muted: #5b6572;
@@ -64,18 +64,18 @@
 </head>
 <body>
   <header>
-    <h1>Compliance-Prüfung</h1>
+    <h1>{{ _("Compliance review") }}</h1>
     <nav>
-      <a href="{{ url_for('landing.index') }}">Startseite</a>
-      <a href="{{ url_for('review_ui.list_decisions') }}">Entscheidungen</a>
+      <a href="{{ url_for('landing.index') }}">{{ _("Home") }}</a>
+      <a href="{{ url_for('review_ui.list_decisions') }}">{{ _("Decisions") }}</a>
     </nav>
-    <div class="freshness" title="Alter der aktiven Sanktionsliste je Quelle">
+    <div class="freshness" title="{{ _('Age of the active sanctions list per source') }}">
       {% for row in sanctions_freshness %}
         {% if row.age_days is none %}
-          <span class="stale">{{ row.source }}: keine aktive Liste</span>
+          <span class="stale">{{ row.source }}: {{ _("no active list") }}</span>
         {% else %}
           <span{% if row.age_days > sanctions_staleness_warning_days %} class="stale"{% endif %}>
-            {{ row.source }}: Liste vor {{ row.age_days }} {{ "Tag" if row.age_days == 1 else "Tagen" }}
+            {{ row.source }}: {% if row.age_days == 1 %}{{ _("list is 1 day old") }}{% else %}{{ _("list is {n} days old", n=row.age_days) }}{% endif %}
           </span>
         {% endif %}
       {% endfor %}
