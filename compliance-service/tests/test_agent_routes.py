@@ -11,7 +11,9 @@ from app.agent.monitor import scan_address
 from app.agent.operations import RecordingExecutor
 from app.developer_portal.models import DeveloperProject
 from app.extensions import db
+from app.sanctions.ingest import ingest_source
 from tests.conftest import TestConfig, _mint_project
+from tests.test_engine import _FixtureOFACSource
 
 
 class AgentConfig(TestConfig):
@@ -23,6 +25,7 @@ def agent_app():
     app = create_app(AgentConfig)
     with app.app_context():
         db.create_all()
+        ingest_source(_FixtureOFACSource())  # US profile requires a fresh OFAC_SDN list
         yield app
 
 
@@ -53,7 +56,7 @@ def test_submit_transfer_runs_the_agent_and_is_idempotent(agent_app):
     ledger = MockLedger(1)
     ledger.add("0x1", "0xDep", "0.5", 5)
     agent_app.extensions["agent_runtime"] = AgentRuntime(_llm_clear(), ledger, RecordingExecutor())
-    _pid, headers = _mint_project(agent_app)
+    _pid, headers = _mint_project(agent_app, jurisdiction="US")
     client = agent_app.test_client()
 
     r = client.post("/agent/transfers", json=_body(), headers=headers)
@@ -75,7 +78,7 @@ def test_cases_are_tenant_isolated(agent_app):
     ledger = MockLedger(1)
     ledger.add("0x1", "0xDep", "0.5", 5)
     agent_app.extensions["agent_runtime"] = AgentRuntime(_llm_clear(), ledger, RecordingExecutor())
-    _a, ha = _mint_project(agent_app)
+    _a, ha = _mint_project(agent_app, jurisdiction="US")
     _b, hb = _mint_project(agent_app, name="B", contact_email="b@example.com")
     client = agent_app.test_client()
     cid = client.post("/agent/transfers", json=_body(), headers=ha).get_json()["case_id"]

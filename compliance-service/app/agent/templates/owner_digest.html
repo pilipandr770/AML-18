@@ -1,0 +1,8 @@
+{% extends "owner_base.html" %}
+{% block title %}{{ _("Digest") }}{% endblock %}
+{% block content %}
+<div class="panel">
+  {{ body|safe }}
+  <p><a class="btn" href="{{ url_for('owner.digest_csv') }}">{{ _("Download CSV") }}</a></p>
+</div>
+{% endblock %}

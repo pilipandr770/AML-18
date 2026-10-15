@@ -93,6 +93,12 @@ class Config:
     # "recording" (default) only records instructions; "webhook" sends them,
     # HMAC-signed, to the project's webhook_url.
     AGENT_EXECUTOR = os.environ.get("AGENT_EXECUTOR", "recording")
+    # Optional digest email; unset SMTP_HOST = no email, HTML/CSV still available.
+    SMTP_HOST = os.environ.get("SMTP_HOST", "")
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_USER = os.environ.get("SMTP_USER", "")
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+    SMTP_FROM = os.environ.get("SMTP_FROM", "")
 
     # Hosted-SaaS billing (see app/billing/). Off by default -- a
     # self-hosted deployment needs zero Stripe setup and never has its

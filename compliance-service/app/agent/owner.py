@@ -17,11 +17,13 @@ from flask import (
 from pydantic import ValidationError
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.agent import digest as digest_mod
 from app.agent import journal
 from app.agent.factory import get_runtime
 from app.agent.models import (
     MODE_MONITOR, MODE_OPERATE, AgentAuditEntry, AgentCase, ModeConsent, OwnerAccount,
 )
+from app.agent.jurisdiction import profile_for
 from app.agent.policy import ALL_OPERATIONS, Policy
 from app.agent.settings import get_settings_row, load_effective
 from app.developer_portal.auth import hash_api_key
@@ -391,4 +393,20 @@ def report_detail(case_id):
         .order_by(AgentAuditEntry.seq).all()
     )
     return render_template("owner_report.html", case=case, events=events, describe=_describe,
-                           jurisdiction=g.project.jurisdiction)
+                           jurisdiction=g.project.jurisdiction, notes=profile_for(g.project.jurisdiction)["notes"])
+
+
+@owner_bp.get("/digest")
+@login_required
+def digest_html():
+    hours = min(max(request.args.get("hours", 24, type=int), 1), 24 * 30)
+    d = digest_mod.build(g.project, hours)
+    return render_template("owner_digest.html", body=digest_mod.to_html(d))
+
+
+@owner_bp.get("/digest.csv")
+@login_required
+def digest_csv():
+    hours = min(max(request.args.get("hours", 24, type=int), 1), 24 * 30)
+    csv_text = digest_mod.to_csv(digest_mod.build(g.project, hours))
+    return Response(csv_text, mimetype="text/csv", headers={"Content-Disposition": "attachment; filename=digest.csv"})

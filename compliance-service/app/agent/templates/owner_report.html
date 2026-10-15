@@ -22,6 +22,8 @@
   {% set ev = ev_all.get("llm_evidence") %}
   {% if ev %}<ul>{% for item in ev %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
   {% if ev_all.get("report") %}<h3>{{ _("Agent report") }}</h3><p style="white-space:pre-wrap">{{ ev_all.get("report") }}</p>{% endif %}
+  <h3>{{ _("Jurisdiction notes") }}</h3>
+  <ul>{% for n in notes %}<li class="muted">{{ n }}</li>{% endfor %}</ul>
   <h3>{{ _("Journal for this case") }}</h3>
   <table>
     <tr><th>#</th><th>{{ _("Time (UTC)") }}</th><th>{{ _("Actor") }}</th><th>{{ _("Event") }}</th><th>{{ _("Details") }}</th></tr>

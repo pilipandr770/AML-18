@@ -43,6 +43,7 @@
       <a href="{{ url_for('owner.approvals') }}">{{ _("Pending approvals") }}</a>
       <a href="{{ url_for('owner.policy_page') }}">{{ _("Mode & Policy") }}</a>
       <a href="{{ url_for('owner.reports') }}">{{ _("Reports") }}</a>
+      <a href="{{ url_for('owner.digest_html') }}">{{ _("Digest") }}</a>
     </nav>
     <div class="right">
       <form method="post" action="{{ url_for('owner.kill') }}" class="inline">

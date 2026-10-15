@@ -51,7 +51,8 @@ class ToolContext:
 def _floor(case: AgentCase) -> str:
     floor = _FLOOR_FROM_DETERMINISTIC.get(case.deterministic_decision or "", CLASS_NEEDS_REVIEW)
     funds_ok = bool((case.funds_check or {}).get("verified"))
-    if not funds_ok and _SEVERITY[floor] < _SEVERITY[CLASS_NEEDS_REVIEW]:
+    coverage_ok = bool(((case.evidence or {}).get("coverage") or {}).get("ok", False))
+    if (not funds_ok or not coverage_ok) and _SEVERITY[floor] < _SEVERITY[CLASS_NEEDS_REVIEW]:
         floor = CLASS_NEEDS_REVIEW
     return floor
 

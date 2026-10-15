@@ -174,3 +174,34 @@ def test_agent_has_no_tool_that_changes_mode_or_policy():
         "screen_transfer", "get_sanctions_freshness", "check_wallet_ownership", "verify_incoming_funds",
         "list_pending_reviews", "record_decision", "execute_operation", "write_report", "notify_owner",
     }
+
+
+def test_missing_required_source_for_jurisdiction_blocks_clear(app, project):
+    from app.sanctions.models import ListSnapshot
+    ListSnapshot.query.delete()
+    db.session.commit()
+    _settings(project)
+    case = _case(project)
+    ex = _run(app, project, case, _script([CLEAR], [RELEASE]))
+    assert case.evidence["coverage"]["missing"] == ["OFAC_SDN"]
+    assert case.classification == "needs_review" and ex.executed == []
+
+
+def test_eu_profile_requires_eu_list_too(app, project):
+    project.jurisdiction = "EU"
+    db.session.commit()
+    _settings(project)
+    case = _case(project)
+    _run(app, project, case, _script([CLEAR], [RELEASE]))
+    assert case.evidence["coverage"]["missing"] == ["EU_FSF"] and case.classification == "needs_review"
+
+
+def test_digest_html_csv_and_journal_integrity(app, project):
+    from app.agent import digest
+    _settings(project)
+    _run(app, project, _case(project), _script([CLEAR], [RELEASE]))
+    d = digest.build(project, 24)
+    assert d["total"] == 1 and d["operations_executed"] == 1 and d["journal_ok"] is True
+    assert "case_id" in digest.to_csv(d).splitlines()[0]
+    assert "AML+18 agent digest" in digest.to_html(d) and "REQUIRES COUNSEL REVIEW" in digest.to_html(d)
+    assert digest.send_email({"SMTP_HOST": ""}, "x@y.z", d) is False
