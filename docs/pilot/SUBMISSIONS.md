@@ -64,3 +64,32 @@ from their own footer), so the compliance function exists; it is simply not publ
 1. Set up a business e-mail (andrii-it.de domain) for the Dakota form. Tell me the address and I will update the form text.
 2. Read each text once more; it is sent in your name.
 3. Log each submission in `docs/pilot/PROSPECTS.md` with the date and any reply.
+
+## 4. Kurant GmbH: e-mail to office@kurant.at (published general address, Vienna)
+
+Why this channel: office@kurant.at is the only published Austrian address; the page has no compliance or AML channel.
+Do not mention the German service halt or MiCA licence status: those are regulatory matters, not a sales hook.
+Ask first whether the Leitung Compliance role is still open; if it is closed, the letter still works as a general offer.
+
+Subject: Sanktionsprüfung für Krypto-Automaten: kostenloser Pilot
+
+> Sehr geehrte Damen und Herren,
+>
+> bitte leiten Sie diese Nachricht an die Leitung Compliance / Geldwäschebeauftragte(n) weiter.
+>
+> Ich bin Andrii Pylypchuk, ukrainischer Entwickler und derzeit in Frankfurt. AML+18 ist eine Open-Source-Software (MIT)
+> zur Prüfung von Personen und Wallet-Adressen gegen OFAC-, EU-, UN- und UK-Listen. Jede Entscheidung wird begründet und
+> in einem manipulationssicheren Journal festgehalten. Ein KI-Agent entscheidet nicht außerhalb der von Ihnen gesetzten Grenzen.
+> Ihre Systeme bleiben unberührt: Ihre Entwickler rufen eine REST-API auf.
+>
+> Integrationsleitfaden: https://aml.andrii-it.de/docs/
+> Projekt: https://aml.andrii-it.de
+>
+> Ich suche drei Design-Partner für einen kostenlosen Pilot mit ehrlichem Feedback. Ich bewerbe mich bei Y Combinator und
+> nenne Pilotpartner dort und im Pitch.
+>
+> Wenn das nicht relevant ist, genügt eine kurze Antwort mit „kein Interesse“, dann schreibe ich nicht erneut.
+>
+> Mit freundlichen Grüßen
+> Andrii Pylypchuk, Frankfurt am Main
+> https://andrii-it.de
