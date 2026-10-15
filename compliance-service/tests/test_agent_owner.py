@@ -242,3 +242,16 @@ def test_webhook_executor_without_config_raises(oapp, project_key):
     project.webhook_url = None
     with pytest.raises(OperationError):
         WebhookExecutor().execute("release", _awaiting_case(project), project)
+
+
+def test_approvals_page_explains_why_a_case_is_waiting(oapp, project_key):
+    project, _ = project_key
+    client, _o, _t = _signed_in(oapp, project_key)
+    case = _awaiting_case(project)
+    journal.append(project.id, "policy_engine", "policy_verdict",
+                   {"operation": "release", "outcome": "recommend_only", "reasons": ["inv_monitor_mode"],
+                    "preview_outcome": "needs_human", "preview_reasons": ["over_require_human_above"]},
+                   case.public_id)
+    page = client.get("/owner/approvals").data.decode()
+    assert "Why it is waiting for you" in page
+    assert "above your &#39;require human above&#39; limit" in page or "above your 'require human above' limit" in page

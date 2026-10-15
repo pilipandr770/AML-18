@@ -1,0 +1,374 @@
+# AML+18
+
+[![CI](https://github.com/pilipandr770/AML-18/actions/workflows/ci.yml/badge.svg)](https://github.com/pilipandr770/AML-18/actions/workflows/ci.yml)
+
+Ein offener, selbst hostbarer Compliance-Baustein für Krypto-Projekte im
+EU-Raum. Ziel ist **kein** fertiges Produkt für ein bestimmtes Geschäftsmodell
+(Börse, Umtauschdienst, Wallet, Casino, Adult-Plattform) — sondern das
+rechtliche Fundament, auf dem solche Projekte aufbauen können: aus einer
+bloßen Blockchain-Adresse eine **verifizierte Entität** machen (Sanktionsprüfung,
+Nachweis der Kontrolle über eine Self-Hosted-Wallet, Altersverifikation).
+Alles, was danach kommt — Glücksspiel-Lizenz, Adult-Content-Freigabe,
+Börsenzulassung — ist bewusst nicht Teil dieses Projekts.
+
+Es deckt drei regulatorische Anforderungen ab, die ein kleiner CASP
+(Crypto-Asset Service Provider) sonst separat bei Anbietern wie Sumsub oder
+Notabene einkaufen müsste:
+
+1. **EU Travel Rule** (Verordnung (EU) 2023/1113 „TFR" i. V. m. MiCA und der
+   AMLR) — Sanktions-/AML-Screening bei Krypto-Transfers zwischen zwei
+   VASPs (Crypto-Asset Service Providern), über das echte TRISA-Protokoll.
+2. **Wallet-Ownership-Verification** — Nachweis der Kontrolle über eine
+   Self-Hosted-Wallet-Adresse bei Transfers ab einem konfigurierbaren
+   EUR-Schwellenwert (Standard: €1.000), wie von den EBA-Travel-Rule-
+   Leitlinien und BaFins § 15a GwG verlangt.
+3. **Altersverifikation (18+)** — nicht nur für Adult-Content/PPV-
+   Plattformen, sondern grundsätzlich auch für Online-Glücksspiel (GlüStV)
+   einsetzbar.
+
+Alle drei sind architektonisch strikt voneinander getrennt (eigene
+Datenbanktabellen, keine Verknüpfung) — DSA Art. 28, JMStV, TFR und die
+EBA-Leitlinien sind unterschiedliche Regelungsregime, die nicht in einem
+Datensatz vermischt werden dürfen. Details und Rechtsgrundlagen:
+`ANFORDERUNGEN.md`.
+
+**Strategie:** Open Core. Die selbst gehostete Version bleibt komplett
+kostenlos und quelloffen — das war und bleibt der Weg, mit dem kleine
+CASPs den Baustein organisch übernehmen. Zusätzlich gibt es optional eine
+von uns zentral gehostete SaaS-Variante der beiden REST-APIs
+(Wallet-Ownership, Altersverifikation) für alle, die keine eigene
+Infrastruktur betreiben wollen — mit Free-Tier und kostenpflichtigem
+Plan bei höherem Volumen, siehe „Hosted-SaaS & Billing" unten.
+
+## Die drei Einstiegspunkte
+
+Jede der drei Anforderungen hat einen eigenen, unabhängigen Einstiegspunkt
+für ein anderes Projekt, das diesen Container nutzt:
+
+| Anforderung | Einstiegspunkt | Warum |
+|---|---|---|
+| Travel-Rule-Screening | Echtes TRISA-Protokoll (`envoy.local:8100`) | TRISA ist ein VASP-zu-VASP-Protokoll — das eigene Projekt muss selbst einen TRISA-Knoten betreiben (z. B. ebenfalls mit vendoriertem Envoy) und sich damit verbinden, nicht nur einen REST-Call machen. |
+| Wallet-Ownership-Verification | REST (`/wallet-ownership/*`), API-Schlüssel über `/developer/signup` | Gilt für Self-Hosted-Wallets — dort gibt es keinen zweiten VASP, mit dem man TRISA sprechen könnte. |
+| Altersverifikation | REST (`/age-verify/*`), API-Schlüssel über `/developer/signup` | Eigenständige, von Travel-Rule-Identitätsdaten getrennte Prüfung. |
+
+Der Travel-Rule-Weg ist bewusst der „echte", nicht ein vereinfachter
+REST-Shortcut: Er zeigt, dass ein anfragendes Projekt tatsächlich über das
+offizielle Protokoll sprechen muss, damit seine Transfers automatisch
+gescreent werden — nicht nur eine API aufrufen, die man auch umgehen könnte.
+
+## Komponenten
+
+- **`envoy/`** — [TRISA Envoy](https://github.com/trisacrypto/envoy),
+  MIT-lizenziert, lokal vendoriert (siehe `envoy/VERSIONS.md` für die
+  gepinnte Upstream-Revision, `patches/README.md` für lokale Anpassungen).
+  Reine Transportschicht: kein eingebautes Sanktions-Screening, aber genau
+  ein Erweiterungspunkt dafür — ein ausgehender Webhook bei jeder
+  eingehenden Travel-Rule-Nachricht, hier an `compliance.local` angebunden.
+  Der lokale Stack enthält zusätzlich `counterparty.local` (Stand-in für
+  ein fremdes, andockendes Projekt) und `gds.local` (eine vollständig
+  lokale, selbst-enthaltene TRISA-Verzeichnisdienst-Sandbox — keine
+  Registrierung bei einem echten Testnet nötig).
+- **`compliance-service/`** — der eigentliche Mehrwert: ein Flask-Microservice
+  mit drei unabhängigen Modulen:
+  - `screening/` + `webhook/` — empfängt Envoys Webhook, prüft IVMS101-
+    Identitätsdaten gegen echte Sanktionslisten (OFAC SDN, EU-Konsolidierte
+    Liste) und antwortet mit einer expliziten Entscheidung
+    (Akzeptieren/Prüfen/Ablehnen).
+  - `wallet_ownership/` — Signatur-Challenge- und EVM-Testtransfer-basierte
+    Verifikation der Kontrolle über eine Self-Hosted-Wallet-Adresse.
+  - `ageverify/` — datensparsamer Altersnachweis, mit Mock-Adapter für
+    lokale Entwicklung und EU-OID4VP-Adapter für den echten Blueprint-Flow.
+  - `review_ui/` — die Oberfläche für den Compliance-Officer
+    (Entscheidungsliste, Detailansicht mit Begründung, manuelle Prüfung).
+  - `developer_portal/` — das Entwicklerportal: Projekt registrieren,
+    API-Schlüssel erhalten, Integrationsanleitung. Gate für die beiden
+    REST-APIs (`wallet_ownership`, `ageverify`), die ohne gültigen
+    API-Schlüssel `401` zurückgeben.
+  - `landing/` — die Startseite (`/`): erklärt Problem und Lösung auf
+    Deutsch (die drei regulatorischen Pflichten und wie die drei Module
+    sie abdecken), verlinkt weiter zu Entwicklerportal, Compliance-
+    Officer-Oberfläche und GitHub.
+  - `billing/` — Metering, Free-Tier-Quota und Stripe-Checkout/-Webhooks
+    für die gehostete SaaS-Variante. Komplett inaktiv (`BILLING_ENABLED=false`,
+    Standard), wenn Sie selbst hosten — siehe „Hosted-SaaS & Billing" unten.
+- **`vendor/ageverify/`** — lokal vendorierte Upstream-Komponenten der
+  EU Age Verification Blueprint Referenzimplementierung (Verifier-UI,
+  Verifier-Backend, technische Spezifikation).
+- **`examples/travel-rule-demo/`** — Demo-Skripte, die den Travel-Rule-
+  Einstiegspunkt end-to-end vorführen (siehe unten).
+
+Datenbank: Postgres ist der Standard-Datenspeicher im Docker-Compose-Stack
+(Service `postgres`, versioniert über Alembic-Migrationen in
+`compliance-service/migrations/`). Für lokale Entwicklung außerhalb von
+Docker funktioniert auch SQLite (`compliance-service/.env.example`) —
+`DATABASE_URL` einfach umbiegen, SQLAlchemy/Alembic ist dabei egal, welche
+Engine dahintersteckt.
+
+## Schnellstart
+
+Voraussetzungen: Docker, Docker Compose, Go (für `cmd/fsi`, Envoys
+eingebautes Test-Tool), Git Bash/`openssl` unter Windows für die lokale
+Zertifikatsgenerierung.
+
+```
+powershell -File scripts/bootstrap.ps1     # Windows
+bash scripts/bootstrap.sh                  # Linux/macOS
+```
+
+Beide Skripte sind funktional identisch und idempotent — bereits vorhandene
+Zertifikate, GDS-Registrierung, API-Schlüssel und der Webhook-HMAC-Key
+werden übersprungen, nicht neu erzeugt (`-Reset`/`--reset` erzwingt eine
+vollständige Neuinitialisierung). Sie erledigen:
+
+1. `.env` aus `.env.example` anlegen, `GIT_REVISION` setzen.
+2. Lokale TLS-Sandbox-Zertifikate erzeugen (`envoy/.secret/generate.sh`).
+3. `docker compose build && docker compose up -d` — startet den gesamten
+   Stack: `gds.local`, `envoy.local`, `counterparty.local`, `postgres`,
+   `compliance.local`, `ageverify-verifier`, `sanctions-cron`.
+   `compliance.local` wartet auf den Postgres-Healthcheck und wendet beim
+   Start automatisch alle Alembic-Migrationen an (`flask db upgrade`, siehe
+   `compliance-service/migrations/`).
+4. Beide TRISA-Knoten bei der lokalen Verzeichnis-Sandbox registrieren
+   (`go run ./cmd/fsi gds:init`).
+5. API-Schlüssel für `envoy.local`/`counterparty.local` erzeugen (für
+   `cmd/fsi` und die Demo-Skripte — landen ausschließlich in
+   `envoy/tmp/creds/*.txt`, gitignored, nie in der Konsolenausgabe).
+6. Den Webhook-HMAC-Key erzeugen und in `.env` eintragen, damit
+   `envoy.local` und `compliance.local` sich gegenseitig authentifizieren
+   können.
+
+Danach:
+- Startseite (Projektübersicht, Problem/Lösung): `http://localhost:8300/`
+- Compliance-Officer-Oberfläche: `http://localhost:8300/review/`
+- Envoy Web-UI: `http://localhost:8000/`
+- EU-Verifier-Backend: `http://localhost:8080/`
+
+## Travel-Rule-Demo (Einstiegspunkt-Nachweis)
+
+```
+python examples/travel-rule-demo/send_transfer.py --clean
+python examples/travel-rule-demo/send_transfer.py --flagged
+```
+
+Der erste Aufruf schickt einen Transfer mit sauberen, synthetischen
+Identitäten von `counterparty.local` (Stand-in für ein fremdes Projekt) an
+`envoy.local` — Ergebnis in der Officer-Oberfläche: **accepted**. Der
+zweite Aufruf verwendet einen Namen, live abgefragt aus der bereits
+eingespielten OFAC-/EU-Sanktionsliste — Ergebnis: **review**/**rejected**,
+mit sichtbarem Treffer, Score und Begründung. Details:
+`examples/travel-rule-demo/README.md`.
+
+## Sanktionsliste aktuell halten
+
+Der Service `sanctions-cron` (im Docker-Compose-Stack enthalten) ruft
+`flask sanctions-ingest` in einem festen Intervall auf (Standard: täglich,
+`SANCTIONS_CRON_INTERVAL_SECONDS` in `.env`) — ein frischer Checkout screent
+also nicht dauerhaft gegen den Stand vom Tag des Klonens. Jede Quelle wird
+unabhängig aktualisiert: Ist eine Quelle vorübergehend nicht erreichbar
+(z. B. geo-blockiert), blockiert das nicht die anderen.
+
+Das Alter der jeweils aktiven Liste je Quelle (`OFAC_SDN`, `EU_FSF`) steht
+in der Kopfzeile der Compliance-Officer-Oberfläche (`/review/`) — rot
+markiert, sobald es `SANCTIONS_STALENESS_WARNING_DAYS` (Standard: 7 Tage)
+überschreitet oder eine Quelle noch nie erfolgreich geladen wurde. Eine
+Entscheidung gegen eine veraltete Liste ist eine echte Compliance-Lücke,
+kein reines UI-Detail — daher ist der Hinweis immer sichtbar, nicht in
+einer Einstellungsseite versteckt.
+
+## Entwicklerportal (`/developer/`)
+
+Einstiegspunkt für ein fremdes Projekt, das die beiden REST-APIs nutzen
+will (Wallet-Ownership, Altersverifikation) — keine Anmeldung nötig,
+sofort ein API-Schlüssel:
+
+```
+curl -X POST http://localhost:8300/developer/signup \
+  --data-urlencode "name=Mein Projekt" \
+  --data-urlencode "contact_email=dev@mein-projekt.example"
+```
+
+Antwort enthält den API-Schlüssel **einmalig** im Klartext (`aml18_sk_...`)
+— er wird serverseitig nur als Hash gespeichert und kann nicht erneut
+angezeigt werden. Bei Verlust: `POST /developer/api-key/rotate` mit dem
+aktuellen Schlüssel als Bearer-Token, oder neu registrieren. Übersicht mit
+Integrationsbeispielen: `http://localhost:8300/developer/`.
+
+Beide folgenden REST-APIs verlangen den Schlüssel als Bearer-Token — ohne
+gültigen, aktiven Schlüssel antworten sie mit `401`.
+
+## Hosted-SaaS & Billing
+
+Derselbe Code läuft in zwei Betriebsarten, gesteuert allein über
+`BILLING_ENABLED` (Standard: `false`):
+
+- **Selbst gehostet** (`BILLING_ENABLED=false`): keine Nutzungsbeschränkung,
+  kein Stripe-Setup nötig, `/billing/*` antwortet mit `404`.
+- **Zentral gehostet** (`BILLING_ENABLED=true`, z. B. über
+  `docker-compose.hosted.yml`): `wallet_ownership`- und `ageverify`-Aufrufe
+  werden pro Projekt gezählt; oberhalb von `FREE_TIER_MONTHLY_CALL_LIMIT`
+  (Standard: 1000/Monat) antworten sie mit `402`, bis das Projekt ein
+  aktives Stripe-Abo hat.
+
+```
+POST /billing/checkout   # Bearer-Token erforderlich -> gibt eine Stripe-Checkout-URL zurück
+POST /billing/webhook    # von Stripe aufgerufen, signaturgeprüft
+GET  /billing/usage      # Bearer-Token erforderlich -> aktueller Verbrauch + Plan-Status
+```
+
+Jedes Projekt (`DeveloperProject`) ist bereits heute der Mandanten-
+Grenzwert: `wallet_ownership`- und `ageverify`-Datensätze tragen eine
+`developer_project_id` und sind pro Schlüssel isoliert — ein Schlüssel
+kann nie Daten eines anderen Projekts lesen oder verändern (siehe
+`tests/test_tenant_isolation.py`). Die Travel-Rule/TRISA-Säule ist davon
+bewusst ausgenommen: Jeder TRISA-Knoten ist eine eigene VASP-Identität mit
+eigenen Zertifikaten und GDS-Registrierung — Multi-Tenancy dafür wäre ein
+eigenständiges, deutlich größeres Vorhaben und ist nicht Teil dieses
+Angebots. Wer Travel-Rule-Screening braucht, betreibt weiterhin einen
+eigenen TRISA-Knoten (self-hosted).
+
+Für einen echten öffentlichen Auftritt mit eigener Domain und
+automatischem HTTPS gibt es das additive Compose-Overlay
+`docker-compose.hosted.yml` (Caddy als Reverse-Proxy):
+
+```
+docker compose -f docker-compose.yml -f docker-compose.hosted.yml up -d
+```
+
+Die Basis-`docker-compose.yml` bleibt dabei komplett unverändert — Self-
+Hoster merken von dieser Datei nichts. **Wichtig:** Compose kann den
+direkten Port-Publish von `compliance.local` (`8300:8300`) aus der
+Basisdatei nicht per Overlay zurücknehmen — die Firewall der gehosteten
+Umgebung muss deshalb ausschließlich 80/443 öffentlich freigeben und
+8300/5432/etc. privat halten, sonst ist `compliance.local` direkt und
+unverschlüsselt erreichbar, an Caddy vorbei.
+
+## Wallet-Ownership-Verification API
+
+```
+GET  /wallet-ownership/requirement?transfer_amount_eur=1500
+POST /wallet-ownership/challenges          {"network": "ETH", "address": "0x..."}
+POST /wallet-ownership/verifications       {"method": "signed_message", "challenge_id": "...", "signature": "0x..."}
+GET  /wallet-ownership/verifications/<id>
+```
+
+Jeder Aufruf mit `Authorization: Bearer aml18_sk_...`. Zwei Methoden (beide
+aus der EBA-Leitlinien-Liste zulässiger Verfahren): `signed_message`
+(Server-Nonce signieren, sofort einsatzbereit, keine
+Blockchain-Infrastruktur nötig) und `test_transfer` (kleiner EVM-Transfer,
+benötigt `WALLET_OWNERSHIP_EVM_RPC_URL` + `WALLET_OWNERSHIP_EVM_SENDER_PRIVATE_KEY`
+in `.env`).
+
+## Altersverifikation API (privacy-preserving)
+
+```
+POST /age-verify/check
+Authorization: Bearer aml18_sk_...
+{
+  "subject_reference": "platform-user-123",
+  "proof_token": "opaque-proof-or-mock-token",
+  "adapter": "mock|eu_oid4vp"
+}
+```
+
+Antwort enthält nur den Altersentscheid (ja/nein) und Metadaten, keine
+personenbezogenen Rohdaten aus dem Nachweis. Für den lokalen Einstieg:
+`proof_token=mock:over18` -> `verified=true`, `proof_token=mock:under18` ->
+`verified=false`.
+
+Die EU-Integration (`eu_oid4vp`, Standard-Adapter in diesem Stack) läuft
+über einen zustandsbehafteten Session-Flow:
+
+```
+POST /age-verify/sessions        {"subject_reference": "...", "adapter": "eu_oid4vp"}   # Bearer-Token erforderlich
+GET  /age-verify/sessions/<id>                                                          # Bearer-Token erforderlich
+GET  /age-verify/sessions/<id>/launch   # Deep-Link + QR für Wallet-Tests -- bewusst ohne Auth (Browser/Wallet-App öffnet direkt)
+```
+
+`scripts/run_ageverify_e2e_device_response.ps1` automatisiert den
+kompletten Flow von der Credential-Ausstellung bis zur Verifikation gegen
+den lokalen Stack.
+
+## Stand des Projekts
+
+- **Travel-Rule-Screening**: abgeschlossen und end-to-end über das echte
+  TRISA-Protokoll verifiziert (siehe Demo oben). OFAC-SDN- und
+  EU-Konsolidierte-Parser, phonetisch vorgefilterter Fuzzy-Abgleich
+  (rapidfuzz + jellyfish/NYSIIS, MIT — bewusst nicht Beider-Morse/`abydos`,
+  da GPLv3+), kyrillische Transliteration, konservative
+  Akzeptieren/Prüfen/Ablehnen-Entscheidungslogik. Gegen die echte, aktuelle
+  OFAC-SDN-Liste verifiziert (19.210 Einträge).
+- **Wallet-Ownership-Verification**: `signed_message`-Methode live
+  verifiziert; `test_transfer`-Methode nur unit-getestet, noch nicht gegen
+  ein echtes Testnetz validiert.
+- **Altersverifikation**: `eu_oid4vp`-Adapter end-to-end gegen den
+  vendorierten Referenz-Issuer und -Verifier verifiziert, inklusive
+  automatisierter frischer Credential-Ausstellung.
+- **Entwicklerportal**: Selbstbedienungs-Registrierung + API-Schlüssel
+  live über Browser-Formular und curl verifiziert; `wallet_ownership`- und
+  `ageverify`-REST-Endpunkte (mit Ausnahme der Wallet-App-Deep-Link-Seiten
+  `/launch`/`qr.svg`) sind jetzt hinter dem Schlüssel geschlossen (vorher:
+  komplett offen — ein echtes, jetzt geschlossenes Sicherheitsloch).
+- **Compliance-Officer-Oberfläche**: Entscheidungsliste, Detailansicht mit
+  Begründung, manuelle Prüfung mit Audit-Log, sichtbares Alter der aktiven
+  Sanktionsliste je Quelle. Noch **ohne Authentifizierung** — vor jedem
+  echten Einsatz nachzurüsten.
+- **Sanktionslisten-Aktualisierung**: `sanctions-cron`-Sidecar-Service
+  (Docker-Compose) hält die Listen automatisch aktuell, unabhängig pro
+  Quelle. Beim Aufbau live gegen Postgres verifiziert und dabei ein echter
+  Bug gefunden und behoben: `nationality`/`country_of_residence` waren als
+  `VARCHAR(4)` modelliert (ISO-3166-1-Alpha-2-Annahme), beide Parser liefern
+  aber volle Ländernamen — SQLite hat das nie geprüft, Postgres hat die
+  Einfügung mit einem `StringDataRightTruncation`-Fehler abgebrochen.
+  Behoben durch Spaltenverbreiterung (Migration `445402baca5a`) plus
+  Härtung von `ingest_all()`: ein Quellen-Fetch-Fehler (z. B. der bekannte
+  EU-FSF-403 aus Nicht-EU-Netzen) erzeugt jetzt einen `failed`-Audit-Eintrag
+  statt den gesamten Lauf abzubrechen, sodass andere Quellen trotzdem
+  aktualisiert werden.
+- **Linux/macOS-Bootstrap**: `scripts/bootstrap.sh`, funktional identisch
+  zu `scripts/bootstrap.ps1`, idempotent gegen einen bereits laufenden
+  Stack getestet.
+- **Startseite**: `/` rendert jetzt eine eigene Projektübersicht (Problem/
+  Lösung, drei Module, Scope-Abgrenzung) statt direkt auf das
+  Entwicklerportal weiterzuleiten — das Entwicklerportal bleibt der
+  technische Einstieg für bereits entschlossene Entwickler, die Startseite
+  ist der allgemeine Erklärtext davor.
+- **Hosted-SaaS & Billing**: Open-Core-Modell umgesetzt — `wallet_ownership`
+  und `ageverify` sind jetzt mandantenfähig (`developer_project_id` auf
+  allen vier betroffenen Tabellen, Lese-/Schreibzugriff pro API-Schlüssel
+  isoliert, live gegen Postgres verifiziert), plus Free-Tier-Metering und
+  Stripe-Checkout/-Webhook-Integration (`app/billing/`), beides nur aktiv
+  bei `BILLING_ENABLED=true`. Travel-Rule/TRISA bleibt bewusst
+  self-host-only (siehe „Hosted-SaaS & Billing" oben für die Begründung).
+  Zwei reale Bugs beim Aufbau gefunden und behoben: eine neue `NOT NULL`-
+  Spalte gegen eine Postgres-Tabelle mit bereits vorhandenen (lokalen
+  Test-)Zeilen bricht ohne Backfill/`server_default` ab; von Alembic
+  automatisch erzeugte unbenannte Constraints scheitern unter SQLites
+  Batch-Modus, obwohl sie gegen Postgres klaglos funktionieren — beide
+  Migrationsschritte entsprechend nachgebessert.
+- **Offen**: GlüStV-Rechtsgrundlagen für den Glücksspiel-Anwendungsfall
+  (siehe `ANFORDERUNGEN.md`, Teil B.3); automatische Anbindung der
+  Wallet-Ownership-Prüfung an den Webhook-/Screening-Entscheidungspfad
+  (aktuell ein eigenständig aufrufbarer Endpunkt); Basis-Authentifizierung
+  für die Compliance-Oberfläche; Entwicklerportal-Zugang hat noch kein
+  Login/Recovery jenseits des einmalig gezeigten Schlüssels (Rotation via
+  `/developer/api-key/rotate` funktioniert, Passwort-Login nicht — bewusstes
+  MVP-Scoping).
+
+Testsuite: `python -m pytest` im Verzeichnis `compliance-service/`.
+
+## Lizenz
+
+MIT für den eigenen Code dieses Projekts (`compliance-service/`, `scripts/`,
+`examples/`, Dokumentation) — siehe `LICENSE`. Vendorierte Drittanbieter-Codebasen
+behalten ihre eigene Upstream-Lizenz und eigene `LICENSE`-Datei: `envoy/`
+(MIT, trisacrypto/envoy) und die Projekte unter `vendor/ageverify/`
+(überwiegend Apache License 2.0; die technische Spezifikation ist CC BY 4.0).
+
+## Entwicklungsnotizen
+
+Die lokale Entwicklung fand in einer Reihe von Claude-Code-Sitzungen statt —
+die vollständige Fehlersuche (Windows-spezifische Stolpersteine, mehrere
+echte Upstream-Bugs in Envoy gefunden und gepatcht, Erkenntnisse aus der
+Verifikation mit Live-Daten) ist im Projektgedächtnis festgehalten und wird
+hier nicht dupliziert. `patches/README.md` (Englisch, da teilweise an das
+Upstream-Projekt gerichtet) dokumentiert die lokalen Envoy-Anpassungen.

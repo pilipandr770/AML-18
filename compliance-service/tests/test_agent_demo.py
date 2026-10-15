@@ -48,3 +48,4 @@ def test_operate_mode_acts_only_on_the_clean_case(results):
 def test_exactly_one_instruction_and_intact_journal(results):
     assert [x["operation"] for x in results["operations_sent"]] == ["release"]
     assert results["journal_ok"] is True
+

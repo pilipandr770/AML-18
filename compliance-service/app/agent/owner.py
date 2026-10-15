@@ -236,6 +236,37 @@ def feed():
                            chain_ok=ok, chain_bad=bad)
 
 
+REASON_TEXT = {
+    "inv_sanctions_always_human": "Sanctions or fuzzy match: always decided by a human",
+    "inv_llm_not_clear": "The agent did not classify the case as clear",
+    "inv_monitor_mode": "MONITOR mode: recommendation only",
+    "over_require_human_above": "Amount is above your 'require human above' limit",
+    "over_max_amount_per_operation": "Amount is above the per-operation maximum",
+    "over_daily_cap": "Daily cap would be exceeded",
+    "funds_not_verified": "Incoming funds could not be verified on-chain",
+    "new_counterparty_requires_human": "New counterparty: policy requires a human",
+    "jurisdiction_blocked": "Counterparty jurisdiction is on your blocked list",
+    "delivery_failed": "Delivery to your system failed",
+}
+
+
+def _hold_reasons(case):
+    """Why this case is waiting for a human, in plain words (policy engine
+    verdicts, falling back to the screening result)."""
+    entries = (
+        AgentAuditEntry.query.filter_by(developer_project_id=case.developer_project_id,
+                                        case_public_id=case.public_id, event_type="policy_verdict")
+        .order_by(AgentAuditEntry.seq.desc()).all()
+    )
+    reasons = []
+    for e in entries[:1]:
+        reasons = e.payload.get("preview_reasons") or e.payload.get("reasons") or []
+    texts = [REASON_TEXT[r] for r in reasons if r in REASON_TEXT and r != "inv_monitor_mode"]
+    if case.deterministic_decision and case.deterministic_decision != "accepted" and not texts:
+        texts = [REASON_TEXT["inv_sanctions_always_human"]]
+    return texts
+
+
 @owner_bp.get("/approvals")
 @login_required
 def approvals():
@@ -244,7 +275,8 @@ def approvals():
         .order_by(AgentCase.created_at.desc()).all()
     )
     mode, _policy, kill = load_effective(g.project.id)
-    return render_template("owner_approvals.html", cases=cases, mode=mode, kill=kill)
+    return render_template("owner_approvals.html", cases=cases, mode=mode, kill=kill,
+                           hold_reasons={c.public_id: _hold_reasons(c) for c in cases})
 
 
 @owner_bp.post("/approvals/<case_id>")

@@ -1,6 +1,6 @@
 # Project Status
 
-Date: 2026-09-12
+Date: 2026-10-15
 Repository: AML-18
 
 ## Summary
@@ -121,6 +121,45 @@ versioning, no ALTER-TABLE path for future schema changes).
   Postgres (`SELECT` confirmed the row), the Travel Rule demo
   (`send_transfer.py --clean`) and the AV E2E script both re-run clean
   against the Postgres-backed stack.
+
+## 2026-10-15 Update: AI compliance agent (YC demo build)
+
+Goal: turn AML+18 into an "AI compliance officer" for crypto/fintech, built on the existing modules, for a Y Combinator
+application (target deadline 2 Nov 2026 -- unverified, check ycombinator.com/apply). Everything is behind
+`AGENT_ENABLED=false`; self-hosted behaviour is unchanged. Details: `docs/AGENT.md`.
+
+What was built (days 1-17 of the plan, all committed, ~195 tests):
+
+- `app/agent/`: data model + migration (settings, owner accounts, consent, cases, deposit addresses, hash-chained journal);
+  deterministic policy engine (`policy.py`); append-only SHA-256 hash-chain journal with ORM update/delete guards and
+  `verify_chain()`; LLM tool-use runner (`runner.py`, Anthropic client with timeout + per-minute cap, scripted fake for tests);
+  nine whitelisted tools; chain adapters (mock ledger, read-only EVM testnet RPC); intake API (`POST /agent/transfers`),
+  testnet deposit monitor (`flask agent-monitor`); owner console (`/owner/`: password + TOTP, lockout, CSRF, consent records,
+  kill switch, pending approvals with plain-language hold reasons, per-case reports, daily digest HTML/CSV/SMTP);
+  HMAC-signed operation webhooks with idempotency keys; jurisdiction profiles (US/EU) with a deterministic list-coverage floor.
+- English UI by default (`UI_LOCALE=en|de`), German originals kept as `*.de.html` / `app/i18n_de.py`; new English landing page;
+  README now English (German kept in `README.de.md`).
+- `scripts/demo/run_demo.py`: one-command demo of five cases in MONITOR then OPERATE (verified end-to-end with the real
+  `claude-haiku-5-5` model: all five behave as specified in both modes; CI runs the same scenario with an offline stand-in).
+- `docs/demo/SCREEN_RECORDING.md`, `docs/yc/APPLICATION_DRAFT.md`, `docs/yc/EMAIL_DRAFTS.md` (drafts only, nothing sent).
+
+Real issues found and fixed while building (kept for the record):
+
+- SQLite returns `Numeric` columns with float noise (`0.4` -> `0.400000000000000022`), which made the exact on-chain amount
+  comparison fail. Fixed with a 1e-9 tolerance and display-only formatting; Postgres is exact.
+- With the real model, `execute_operation` was sometimes proposed before `record_decision`, producing a spurious "needs human"
+  preview. The tool is now refused until a decision is recorded (no side effects), and the model corrects itself in-loop.
+- A live smoke test showed the model rightly asking a human to confirm "thin list coverage" when only a 2-record fixture was loaded
+  under an EU profile; coverage is now computed deterministically per jurisdiction instead of left to the model.
+- Appending to `.env` glued a new variable onto the last line (file had no trailing newline) and corrupted the API key; caught by a
+  length check and repaired. Lesson: always ensure a trailing newline before appending.
+
+Not done / open:
+
+- Migration `db5f209dbbd8` was generated against a temporary SQLite database and exercised by `test_migrations.py`
+  (Docker Desktop was not running); it still needs `flask db upgrade` verification against Postgres.
+- No mainnet, address-level sanctions screening, or legal review of jurisdiction texts (marked REQUIRES COUNSEL REVIEW).
+- Application text has [FOUNDER INPUT] placeholders; no email or application has been sent.
 
 ## 2026-09-12 Update: Open-core hosted SaaS tier (multi-tenancy + Stripe billing)
 
