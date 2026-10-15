@@ -7,20 +7,11 @@ inside Envoy's 30s webhook timeout and to control false-positive noise;
 (2) scoring -- rapidfuzz over just that shortlist.
 """
 
-import jellyfish
 from rapidfuzz import fuzz, utils as rf_utils
 
 from app.sanctions.models import EntityNameIndex, SanctionedEntity
+from app.sanctions.normalize import phonetic_keys as name_phonetic_keys, significant_tokens
 from app.screening.transliterate import transliterate_variants
-
-
-def _phonetic_key(name: str) -> str:
-    tokens = name.split()
-    surname_token = tokens[-1] if tokens else name
-    try:
-        return jellyfish.nysiis(surname_token) or ""
-    except Exception:
-        return ""
 
 
 def _query_variants(name: str) -> list:
@@ -35,11 +26,33 @@ def _query_variants(name: str) -> list:
     return out
 
 
+def name_score(query: str, candidate: str) -> float:
+    """Similarity of two names (0-100) over their significant tokens
+    (legal-form suffixes and particles dropped, order-insensitive).
+
+    Deliberately NOT rapidfuzz's WRatio: its partial-match mode scores any
+    name that merely contains a short string highly, so a one-word alias
+    like "John" or "MARIA" matched every "John ..." / "Maria ..." at 90 and
+    flooded reviewers. Here a subset of tokens only counts (at 90% weight)
+    when at least two tokens are shared, so "Saddam Hussein" still finds
+    "Saddam Hussein Al-Tikriti" but "John Smith" does not find "John"."""
+    qt = significant_tokens(query)
+    ct = significant_tokens(candidate)
+    if not qt or not ct:
+        return 0.0
+    q, c = " ".join(qt), " ".join(ct)
+    score = fuzz.token_sort_ratio(q, c, processor=rf_utils.default_process)
+    if min(len(set(qt)), len(set(ct))) >= 2:
+        score = max(score, 0.9 * fuzz.token_set_ratio(q, c, processor=rf_utils.default_process))
+    return float(score)
+
+
 def candidate_shortlist(name: str):
     """EntityNameIndex rows (of active entities only) sharing a phonetic key
     with the query name or any of its transliteration variants."""
-    phonetic_keys = {_phonetic_key(v) for v in _query_variants(name)}
-    phonetic_keys.discard("")
+    phonetic_keys = set()
+    for v in _query_variants(name):
+        phonetic_keys |= name_phonetic_keys(v)
     if not phonetic_keys:
         return []
 
@@ -77,7 +90,7 @@ def match_name(name: str, top_n: int = 5) -> list:
             # ~100 an analyst would expect for what is obviously the same
             # name. `default_process` (lowercase + strip non-alphanumeric +
             # collapse whitespace) is rapidfuzz's own recommended fix.
-            score = fuzz.WRatio(qv, row.name_text, processor=rf_utils.default_process)
+            score = name_score(qv, row.name_text)
             if score > best_score:
                 best_score = score
                 best_variant = qv

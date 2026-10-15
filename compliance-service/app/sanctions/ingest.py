@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from app.extensions import db
 from app.sanctions.addresses import addresses_from_national_ids, normalize_address
 from app.sanctions.models import EntityNameIndex, ListSnapshot, SanctionedAddress, SanctionedEntity
-from app.sanctions.normalize import name_variants
+from app.sanctions.normalize import INDEX_VERSION, name_variants
 from app.sanctions.sources.au_dfat import AustraliaDFATSource
 from app.sanctions.sources.canada_sema import CanadaSEMASource
 from app.sanctions.sources.eu_fsf import EUFSFSource
@@ -51,7 +51,8 @@ def ingest_source(source) -> ListSnapshot:
         logger.error("sanctions fetch failed for %s: %s", source.name, exc)
         raise
 
-    content_hash = hashlib.sha256(raw).hexdigest()
+    # INDEX_VERSION is part of the hash so a change in blocking logic re-indexes every list.
+    content_hash = hashlib.sha256(raw + b"|index-v" + INDEX_VERSION.encode()).hexdigest()
 
     existing_active = ListSnapshot.query.filter_by(
         source=source.name, content_hash=content_hash, status="active"
